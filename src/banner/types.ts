@@ -1,7 +1,7 @@
 export interface BackgroundPreset {
   id: string;
   name: string;
-  type: 'gradient' | 'solid';
+  type: 'gradient' | 'solid' | 'transparent';
   stops?: Array<{ offset: string; color: string }>;
   color?: string;
   defaultTextColor: string;

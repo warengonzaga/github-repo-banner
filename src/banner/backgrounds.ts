@@ -52,6 +52,12 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
     color: '#f3f4f6',
     defaultTextColor: '#1f2937',
   },
+  'transparent': {
+    id: 'transparent',
+    name: 'Transparent',
+    type: 'transparent',
+    defaultTextColor: '#ffffff',
+  },
 };
 
 export const DEFAULT_BG = 'gradient-modern';

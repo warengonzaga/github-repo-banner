@@ -61,7 +61,7 @@ export function buildEmojiImageElement(
  * E.g. "🚀 My Project 🔥" → [emoji, text, emoji]
  */
 export function parseHeaderSegments(header: string): HeaderSegment[] {
-  const segments: HeaderSegment[] = [];
+  const raw: HeaderSegment[] = [];
   let lastIndex = 0;
 
   for (const match of header.matchAll(EMOJI_RE)) {
@@ -71,11 +71,11 @@ export function parseHeaderSegments(header: string): HeaderSegment[] {
     if (matchStart > lastIndex) {
       const text = header.slice(lastIndex, matchStart);
       if (text) {
-        segments.push({ type: 'text', value: text });
+        raw.push({ type: 'text', value: text });
       }
     }
 
-    segments.push({ type: 'emoji', value: match[0] });
+    raw.push({ type: 'emoji', value: match[0] });
     lastIndex = matchStart + match[0].length;
   }
 
@@ -83,14 +83,14 @@ export function parseHeaderSegments(header: string): HeaderSegment[] {
   if (lastIndex < header.length) {
     const text = header.slice(lastIndex);
     if (text) {
-      segments.push({ type: 'text', value: text });
+      raw.push({ type: 'text', value: text });
     }
   }
 
   // If no segments found (no emoji, empty after strip), treat whole header as text
-  if (segments.length === 0 && header.length > 0) {
-    segments.push({ type: 'text', value: header });
+  if (raw.length === 0 && header.length > 0) {
+    raw.push({ type: 'text', value: header });
   }
 
-  return segments;
+  return raw;
 }
