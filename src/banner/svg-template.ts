@@ -31,6 +31,31 @@ function buildBackground(bg: BackgroundPreset): string {
 }
 
 /**
+ * Build watermark credit element in bottom right corner.
+ */
+function buildWatermark(): string {
+  const text = 'made with ghrb.waren.build';
+  const fontSize = 16;
+  const rectPaddingX = 8;
+  const rectPaddingY = 6;
+  
+  // Estimate text width (rough approximation)
+  const textWidth = text.length * fontSize * 0.55;
+  const rectWidth = textWidth + rectPaddingX * 2;
+  const rectHeight = fontSize + rectPaddingY * 2;
+  const rectX = WIDTH - rectWidth;
+  const rectY = HEIGHT - rectHeight;
+  
+  const textX = rectX + rectPaddingX + textWidth;
+  const textY = rectY + rectPaddingY + fontSize * 0.8;
+  
+  return `<g opacity="0.6">
+  <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="#000000" fill-opacity="0.3" />
+  <text x="${textX}" y="${textY}" text-anchor="end" font-family="monospace, sans-serif" font-size="${fontSize}" font-weight="500" fill="#f5f5f5">${text}</text>
+</g>`;
+}
+
+/**
  * Estimate the total width of rendered segments at a given font size.
  */
 function estimateTotalWidth(
@@ -69,14 +94,15 @@ function computeFontSize(segments: HeaderSegment[]): number {
  * Async because emoji segments require fetching Twemoji SVGs from the CDN.
  */
 export async function buildBannerSVG(options: BannerOptions): Promise<string> {
-  const { header, background, textColor, fontFamily } = options;
+  const { header, background, textColor, fontFamily, showWatermark = false } = options;
 
   const segments = parseHeaderSegments(header);
   const fontSize = computeFontSize(segments);
   const emojiSize = fontSize;
 
   const totalWidth = estimateTotalWidth(segments, fontSize);
-  const startX = (WIDTH - totalWidth) / 2;
+  // Ensure margins are respected even on overflow
+  const startX = Math.max(MARGIN, (WIDTH - totalWidth) / 2);
   const centerY = HEIGHT / 2;
 
   const defs = buildGradientDef(background);
@@ -112,9 +138,12 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     }
   }
 
+  const watermark = showWatermark ? buildWatermark() : '';
+
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
 <defs>${defs}</defs>
 ${bgRect}
 ${elements.join('\n')}
+${watermark}
 </svg>`;
 }

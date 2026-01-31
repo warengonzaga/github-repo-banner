@@ -19,4 +19,5 @@ export interface BannerOptions {
   background: BackgroundPreset;
   textColor: string;
   fontFamily: string;
+  showWatermark?: boolean;
 }

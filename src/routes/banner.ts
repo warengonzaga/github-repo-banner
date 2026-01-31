@@ -9,6 +9,7 @@ bannerRoute.get('/banner', async (c) => {
   const rawHeader = c.req.query('header') || 'Hello World';
   const bgKey = c.req.query('bg') || DEFAULT_BG;
   const colorParam = c.req.query('color') || '';
+  const supportParam = c.req.query('support') || '';
 
   const header = sanitizeHeader(rawHeader);
   const background = BACKGROUNDS[bgKey] ?? BACKGROUNDS[DEFAULT_BG];
@@ -16,12 +17,15 @@ bannerRoute.get('/banner', async (c) => {
     colorParam && isValidHexColor(colorParam)
       ? `#${colorParam}`
       : background.defaultTextColor;
+  
+  const showWatermark = supportParam === 'true';
 
   const svg = await buildBannerSVG({
     header,
     background,
     textColor,
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    showWatermark,
   });
 
   const isDev = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
