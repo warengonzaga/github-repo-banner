@@ -1017,7 +1017,14 @@
         // Cache-bust for preview, clean URL for markdown
         previewImg.src = url + '&_t=' + Date.now();
         const fullUrl = window.location.origin + url;
-        markdownInput.value = '![Banner](' + fullUrl + ')';
+        let markdown = '![GitHub Repo Banner](' + fullUrl + ')';
+        
+        // Add credit comment when support is enabled
+        if (supportCheckbox.checked) {
+          markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
+        }
+        
+        markdownInput.value = markdown;
       }, 300);
     }
 
@@ -1140,7 +1147,11 @@
       const url = buildUrl();
       previewImg.src = url + '&_t=' + Date.now();
       const fullUrl = window.location.origin + url;
-      markdownInput.value = '![Banner](' + fullUrl + ')';
+      let markdown = '![GitHub Repo Banner](' + fullUrl + ')';
+      if (supportCheckbox.checked) {
+        markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
+      }
+      markdownInput.value = markdown;
     })();
   </script>
 </body>
