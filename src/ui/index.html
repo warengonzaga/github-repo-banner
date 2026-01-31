@@ -8,39 +8,116 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: Inter, system-ui, -apple-system, sans-serif;
-      background: #0D1117;
-      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       padding: 2rem 1rem;
     }
 
+    .layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 296px;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1012px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static;
+      }
+    }
+
+    .main-content {
+      min-width: 0;
+    }
+
+    .readme-container {
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .article-title-container {
+      padding: 1.25rem 2rem 0.75rem 2rem;
+    }
+
+    .article-title {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #c9d1d9;
+      margin: 0;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid #21262d;
+    }
+
+    .nav-tabs {
+      display: flex;
+      border-bottom: 1px solid #21262d;
+      margin-bottom: 0;
+      gap: 0;
+      background: transparent;
+      padding: 0.5rem 1rem 0 1rem;
+    }
+
+    .nav-tab {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #7d8590;
+      text-decoration: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+      margin-bottom: -1px;
+    }
+
+    .nav-tab svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    .nav-tab:hover {
+      color: #c9d1d9;
+      border-bottom-color: #484f58;
+    }
+
+    .nav-tab.active {
+      color: #c9d1d9;
+      border-bottom-color: #f78166;
+    }
+
+    .content-container {
+      background: #0d1117;
+    }
+
     h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .subtitle {
-      color: #94a3b8;
-      margin-bottom: 2rem;
-      font-size: 0.95rem;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 820px;
+      font-size: 2rem;
+      font-weight: 600;
+      color: #c9d1d9;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #21262d;
     }
 
     .preview {
       width: 100%;
-      border-radius: 8px;
       overflow: hidden;
-      margin-bottom: 1.5rem;
-      background: #1e293b;
+      padding: 0 2rem;
+      box-sizing: border-box;
     }
 
     .preview img {
@@ -48,34 +125,60 @@
       display: block;
     }
 
-    .controls {
-      display: grid;
-      gap: 1rem;
+    .content-section {
+      padding: 1rem 2rem;
+    }
+
+    .content-section:first-child {
+      padding-top: 0.75rem;
+      padding-bottom: 0rem;
+    }
+
+    .content-section:last-child {
+      padding-top: 0.5rem;
+      padding-bottom: 1.5rem;
+    }
+
+    .content-section h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #c9d1d9;
+      padding-bottom: 0.375rem;
+      border-bottom: 1px solid #21262d;
+    }
+
+    .form-group {
+      margin-bottom: 0.625rem;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
     }
 
     label {
-      display: flex;
-      flex-direction: column;
-      gap: 0.375rem;
+      display: block;
       font-size: 0.875rem;
-      font-weight: 500;
-      color: #94a3b8;
+      font-weight: 600;
+      color: #c9d1d9;
+      margin-bottom: 0.5rem;
     }
 
     input[type="text"] {
-      background: #1e293b;
-      border: 1px solid #334155;
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
       border-radius: 6px;
-      padding: 0.625rem 0.75rem;
-      color: #e2e8f0;
-      font-size: 0.95rem;
+      padding: 0.5rem 0.75rem;
+      color: #c9d1d9;
+      font-size: 0.875rem;
       outline: none;
       transition: border-color 0.15s;
     }
 
-    input[type="text"]:focus,
-    input[type="color"]:focus {
-      border-color: #3b82f6;
+    input[type="text"]:focus {
+      border-color: #1f6feb;
+      box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.1);
     }
 
     .color-row {
@@ -87,49 +190,49 @@
     .hex-input-group {
       display: flex;
       align-items: center;
-      border: 1px solid #334155;
+      border: 1px solid #30363d;
       border-radius: 6px;
       overflow: hidden;
       transition: border-color 0.15s;
+      flex: 1;
     }
 
     .hex-input-group:focus-within {
-      border-color: #3b82f6;
+      border-color: #1f6feb;
+      box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.1);
     }
 
     .hex-prefix {
       background: #161b22;
-      color: #6b7280;
-      padding: 0.625rem 0.5rem;
-      font-size: 0.95rem;
+      color: #7d8590;
+      padding: 0.5rem;
+      font-size: 0.875rem;
       font-weight: 600;
+      -webkit-user-select: none;
       user-select: none;
-      border-right: 1px solid #334155;
+      border-right: 1px solid #30363d;
     }
 
     .hex-input-group input[type="text"] {
       border: none;
       border-radius: 0;
       width: 90px;
-      background: #1e293b;
-      padding: 0.625rem 0.5rem;
-    }
-
-    .hex-input-group input[type="text"]:focus {
-      border-color: transparent;
+      background: #0d1117;
+      padding: 0.5rem;
+      box-shadow: none !important;
     }
 
     .color-preview {
       width: 32px;
       height: 32px;
       border-radius: 6px;
-      border: 1px solid #334155;
+      border: 1px solid #30363d;
       flex-shrink: 0;
     }
 
     .bg-options {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 0.5rem;
     }
 
@@ -147,32 +250,92 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      flex-direction: row;
-      padding: 0.5rem 0.75rem;
+      padding: 0.5rem;
       border-radius: 6px;
-      border: 2px solid #334155;
+      border: 1px solid #30363d;
       cursor: pointer;
-      font-size: 0.8rem;
-      transition: border-color 0.15s;
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.15s;
+      background: #0d1117;
+    }
+
+    .bg-option label:hover {
+      border-color: #58a6ff;
     }
 
     .bg-option input[type="radio"]:checked + label {
-      border-color: #3b82f6;
+      border-color: #1f6feb;
+      background: rgba(31, 111, 235, 0.1);
     }
 
     .swatch {
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
       border-radius: 4px;
       flex-shrink: 0;
+      border: 1px solid #30363d;
     }
 
-    .output-section {
-      margin-top: 1.5rem;
+    .checkbox-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: rgba(56, 139, 253, 0.1);
+      border: 1px solid #1f6feb;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
     }
 
-    .output-section label {
-      margin-bottom: 0.375rem;
+    .checkbox-container:hover {
+      background: rgba(56, 139, 253, 0.15);
+    }
+
+    .checkbox-container input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-top: 0.125rem;
+      cursor: pointer;
+      accent-color: #1f6feb;
+    }
+
+    .checkbox-label {
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .checkbox-label .title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #c9d1d9;
+      margin-bottom: 0.25rem;
+    }
+
+    .checkbox-label .description {
+      font-size: 0.75rem;
+      color: #7d8590;
+    }
+
+    .sponsor-notice {
+      padding: 0.75rem 1rem;
+      background: rgba(187, 128, 9, 0.1);
+      border: 1px solid #9e6a03;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: #c9d1d9;
+      text-align: center;
+    }
+
+    .sponsor-notice a {
+      color: #58a6ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .sponsor-notice a:hover {
+      text-decoration: underline;
     }
 
     .output-row {
@@ -182,63 +345,250 @@
 
     .output-row input {
       flex: 1;
-      font-family: monospace;
-      font-size: 0.8rem;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+      font-size: 0.75rem;
     }
 
     button {
-      background: #3b82f6;
+      background: #238636;
       color: #fff;
       border: none;
       border-radius: 6px;
-      padding: 0.625rem 1rem;
+      padding: 0.5rem 1rem;
       font-size: 0.875rem;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
       transition: background 0.15s;
       white-space: nowrap;
     }
 
-    button:hover { background: #2563eb; }
+    button:hover {
+      background: #2ea043;
+    }
 
     .copied {
-      background: #22c55e !important;
+      background: #1f6feb !important;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 2rem;
+      align-self: start;
+    }
+
+    .sidebar-section {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .sidebar-section h2 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #7d8590;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #21262d;
+    }
+
+    .author-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: #c9d1d9;
+      transition: background 0.15s;
+      padding: 0.5rem;
+      margin: -0.5rem;
+      border-radius: 6px;
+    }
+
+    .author-card:hover {
+      background: rgba(177, 186, 196, 0.12);
+    }
+
+    .author-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid #30363d;
+    }
+
+    .author-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .author-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #c9d1d9;
+      display: block;
+      margin-bottom: 0.125rem;
+    }
+
+    .author-username {
+      font-size: 0.75rem;
+      color: #7d8590;
+      display: block;
+    }
+
+    .sponsor-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.5rem 1rem;
+      margin-top: 1rem;
+      background: #bf3989;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .sponsor-btn:hover {
+      background: #a03377;
+    }
+
+    .sponsor-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .contribute-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .contribute-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background: #0d1117;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+    }
+
+    .contribute-btn:hover {
+      background: rgba(177, 186, 196, 0.12);
+      border-color: #58a6ff;
+    }
+
+    .contribute-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    .version-display {
+      font-size: 0.75rem;
+      color: #7d8590;
+      text-align: center;
+      padding: 0.75rem;
+    }
+
+    .repo-description {
+      padding: 0.75rem 2rem 0rem 2rem;
+      font-size: 1rem;
+      color: #c9d1d9;
+      line-height: 1.5;
     }
   </style>
 </head>
 <body>
-  <h1>GitHub Repo Banner</h1>
-  <p class="subtitle">Generate customizable banners for your GitHub repositories</p>
-
-  <div class="container">
-    <div class="preview">
-      <img id="preview" alt="Banner preview" />
-    </div>
-
-    <div class="controls">
-      <label>
-        Header (supports emoji)
-        <input type="text" id="header" value="Hello World" placeholder="🚀 My Awesome Project" />
-      </label>
-
-      <label>Background</label>
-      <div class="bg-options">
-        <div class="bg-option">
-          <input type="radio" name="bg" id="bg-gradient-mono" value="gradient-mono" />
-          <label for="bg-gradient-mono">
-            <span class="swatch" style="background: linear-gradient(90deg, #1a1a1a, #4a4a4a);"></span>
-            Monochrome
-          </label>
+  <div class="layout">
+    <main class="main-content">
+      <div class="readme-container">
+        <div class="nav-tabs">
+        <div class="nav-tab active">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path>
+          </svg>
+          README
         </div>
-        <div class="bg-option">
-          <input type="radio" name="bg" id="bg-gradient-modern" value="gradient-modern" checked />
-          <label for="bg-gradient-modern">
-            <span class="swatch" style="background: linear-gradient(90deg, #ec4899, #3b82f6);"></span>
-            Modern
-          </label>
+        <div class="nav-tab">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+          </svg>
+          Code of conduct
         </div>
-        <div class="bg-option">
-          <input type="radio" name="bg" id="bg-gradient-fresh" value="gradient-fresh" />
+        <div class="nav-tab">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.234a.75.75 0 0 1 0 1.5h-.427l2.111 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.006.005-.01.01-.045.04c-.21.176-.441.327-.686.45C14.556 10.78 13.88 11 13 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L12.178 4.5h-.162c-.305 0-.604-.079-.868-.231l-1.29-.736a.245.245 0 0 0-.124-.033H8.75V13h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5V3.5h-.984a.245.245 0 0 0-.124.033l-1.289.737c-.265.15-.564.23-.869.23h-.162l2.112 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.016.015-.045.04c-.21.176-.441.327-.686.45C4.556 10.78 3.88 11 3 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L2.178 4.5H1.75a.75.75 0 0 1 0-1.5h2.234a.249.249 0 0 0 .125-.033l1.288-.737c.265-.15.564-.23.869-.23h.984V.75a.75.75 0 0 1 1.5 0Zm2.945 8.477c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L13 6.327Zm-10 0c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L3 6.327Z"></path>
+          </svg>
+          MIT license
+        </div>
+      </div>
+
+      <div class="content-container">
+        <div class="article-title-container">
+          <h1 class="article-title">GitHub Repo Banner</h1>
+        </div>
+        
+        <div class="preview">
+          <img id="preview" alt="Banner preview" />
+        </div>
+
+        <div class="repo-description">
+          I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great presentation.
+        </div>
+
+        <div class="content-section">
+          <h2>Markdown Output</h2>
+          <div class="output-row">
+            <input type="text" id="markdown" readonly />
+            <button id="copy-btn">Copy</button>
+          </div>
+        </div>
+
+        <div class="content-section">
+          <h2>Settings</h2>
+        
+        <div class="form-group">
+          <label for="header">Header Text</label>
+          <input type="text" id="header" value="Hello World" placeholder="🚀 My Awesome Project" maxlength="30" />
+        </div>
+
+        <div class="form-group">
+          <label>Background Preset</label>
+          <div class="bg-options">
+            <div class="bg-option">
+              <input type="radio" name="bg" id="bg-gradient-mono" value="gradient-mono" checked />
+              <label for="bg-gradient-mono">
+                <span class="swatch" style="background: linear-gradient(90deg, #1a1a1a, #4a4a4a);"></span>
+                Monochrome
+              </label>
+            </div>
+            <div class="bg-option">
+              <input type="radio" name="bg" id="bg-gradient-modern" value="gradient-modern" />
+              <label for="bg-gradient-modern">
+                <span class="swatch" style="background: linear-gradient(90deg, #ec4899, #3b82f6);"></span>
+                Modern
+              </label>
+            </div>
+            <div class="bg-option">
+              <input type="radio" name="bg" id="bg-gradient-fresh" value="gradient-fresh" />
           <label for="bg-gradient-fresh">
             <span class="swatch" style="background: linear-gradient(90deg, #14b8a6, #06b6d4);"></span>
             Fresh
@@ -267,25 +617,82 @@
         </div>
       </div>
 
-      <label>
-        Text Color (hex)
-        <div class="color-row">
-          <div class="hex-input-group">
-            <span class="hex-prefix">#</span>
-            <input type="text" id="color-input" value="" placeholder="default" maxlength="6" />
+        <div class="form-group">
+          <label for="color-input">Text Color (optional)</label>
+          <div class="color-row">
+            <div class="hex-input-group">
+              <span class="hex-prefix">#</span>
+              <input type="text" id="color-input" value="" placeholder="default" maxlength="6" />
+            </div>
+            <span class="color-preview" id="color-preview"></span>
           </div>
-          <span class="color-preview" id="color-preview"></span>
         </div>
-      </label>
 
-      <div class="output-section">
-        <label>Markdown</label>
-        <div class="output-row">
-          <input type="text" id="markdown" readonly />
-          <button id="copy-btn">Copy</button>
+        <div class="form-group">
+          <div class="checkbox-container">
+            <input type="checkbox" id="support" />
+            <div class="checkbox-label">
+              <div class="title">Support this project</div>
+              <div class="description">Add watermark credit to spread the word</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" id="sponsor-link">
+          <div class="sponsor-notice">
+            Prefer brand-free? Consider <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener">sponsoring</a> instead! 💖
+          </div>
+        </div>
+        </div>
         </div>
       </div>
-    </div>
+    </main>
+
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h2>Author</h2>
+        <a href="https://github.com/warengonzaga" target="_blank" rel="noopener" class="author-card">
+          <img src="https://github.com/warengonzaga.png" alt="Waren Gonzaga" class="author-avatar">
+          <div class="author-info">
+            <span class="author-name">Waren Gonzaga</span>
+            <span class="author-username">@warengonzaga</span>
+          </div>
+        </a>
+        <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener" class="sponsor-btn">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+          </svg>
+          Sponsor
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>Contribute</h2>
+        <div class="contribute-links">
+          <a href="https://github.com/warengonzaga/github-repo-banner/issues/new" target="_blank" rel="noopener" class="contribute-btn">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path>
+              <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path>
+            </svg>
+            Report Bug
+          </a>
+          <a href="https://github.com/warengonzaga/github-repo-banner" target="_blank" rel="noopener" class="contribute-btn">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path>
+            </svg>
+            Star the Project
+          </a>
+          <a href="https://github.com/warengonzaga/github-repo-banner/issues/new" target="_blank" rel="noopener" class="contribute-btn">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M1.75 1h8.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 10.25 10H7.061l-2.574 2.573A1.458 1.458 0 0 1 2 11.543V10h-.25A1.75 1.75 0 0 1 0 8.25v-5.5C0 1.784.784 1 1.75 1ZM1.5 2.75v5.5c0 .138.112.25.25.25h1a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h3.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25Zm13 2a.25.25 0 0 0-.25-.25h-.5a.75.75 0 0 1 0-1.5h.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 14.25 12H14v1.543a1.458 1.458 0 0 1-2.487 1.03L9.22 12.28a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.22 2.22v-2.19a.75.75 0 0 1 .75-.75h1a.25.25 0 0 0 .25-.25Z"></path>
+            </svg>
+            Feature Request
+          </a>
+        </div>
+      </div>
+
+      <div class="version-display">v1.0.0</div>
+    </aside>
   </div>
 
   <script>
@@ -296,6 +703,8 @@
     const bgRadios = document.querySelectorAll('input[name="bg"]');
     const colorInput = document.getElementById('color-input');
     const colorPreview = document.getElementById('color-preview');
+    const supportCheckbox = document.getElementById('support');
+    const sponsorLink = document.getElementById('sponsor-link');
 
     // Default text colors per background
     const defaultColors = {
@@ -309,9 +718,13 @@
 
     let debounceTimer;
 
+    function toggleSponsorLink() {
+      sponsorLink.style.display = supportCheckbox.checked ? 'none' : 'block';
+    }
+
     function getSelectedBg() {
       const checked = document.querySelector('input[name="bg"]:checked');
-      return checked ? checked.value : 'gradient-modern';
+      return checked ? checked.value : 'gradient-mono';
     }
 
     function getColorHex() {
@@ -337,6 +750,9 @@
       if (hex) {
         params.set('color', hex);
       }
+      if (supportCheckbox.checked) {
+        params.set('support', 'true');
+      }
       return '/banner?' + params.toString();
     }
 
@@ -361,6 +777,11 @@
       update();
     });
 
+    supportCheckbox.addEventListener('change', () => {
+      toggleSponsorLink();
+      update();
+    });
+
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(markdownInput.value).then(() => {
         copyBtn.textContent = 'Copied!';
@@ -374,6 +795,7 @@
 
     // Initial render (no debounce)
     (function() {
+      toggleSponsorLink();
       updateColorPreview();
       const url = buildUrl();
       previewImg.src = url + '&_t=' + Date.now();
