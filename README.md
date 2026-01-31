@@ -97,7 +97,7 @@ Interactive UI for banner customization and preview.
 |----|------|-------|--------------|
 | `solid-lightblue` | Light Blue | `#dbeafe` | Dark blue |
 | `solid-salmon` | Salmon | `#fecaca` | Dark red |
-| `solid-lightgray` | Light Gray | Gray | Dark gray |
+| `solid-lightgray` | Light Gray | `#f3f4f6` | Dark gray |
 
 ## Development
 
