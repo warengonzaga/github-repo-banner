@@ -40,26 +40,34 @@ pnpm start
 ### Basic Example
 
 ```
-http://localhost:3000/banner?header=My%20Awesome%20Project
+https://ghrb.waren.build/banner?header=My%20Awesome%20Project
 ```
+
+<img src="https://ghrb.waren.build/banner?header=My%20Awesome%20Project" width="600" alt="Basic Example Banner" style="border-radius: 8px;">
 
 ### With Background Preset
 
 ```
-http://localhost:3000/banner?header=My%20Project&bg=gradient-modern
+https://ghrb.waren.build/banner?header=My%20Project&bg=gradient-modern
 ```
+
+<img src="https://ghrb.waren.build/banner?header=My%20Project&bg=gradient-modern" width="600" alt="Background Preset Banner" style="border-radius: 8px;">
 
 ### With Custom Color
 
 ```
-http://localhost:3000/banner?header=My%20Project&bg=gradient-fresh&color=ffcc00
+https://ghrb.waren.build/banner?header=My%20Project&bg=gradient-fresh&color=ffcc00
 ```
+
+<img src="https://ghrb.waren.build/banner?header=My%20Project&bg=gradient-fresh&color=ffcc00" width="600" alt="Custom Color Banner" style="border-radius: 8px;">
 
 ### With Emojis
 
 ```
-http://localhost:3000/banner?header=🚀%20My%20Project%20✨
+https://ghrb.waren.build/banner?header=🚀%20My%20Project%20✨
 ```
+
+<img src="https://ghrb.waren.build/banner?header=🚀%20My%20Project%20✨" width="600" alt="Emoji Banner" style="border-radius: 8px;">
 
 ## API Reference
 
