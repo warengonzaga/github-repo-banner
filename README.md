@@ -2,7 +2,7 @@
 
 ![Banner](https://ghrb.waren.build/banner?header=GitHub+Repo+Banner&bg=gradient-mono)
 
-Generate customizable GitHub repository banners via URL parameters. A lightweight, fast banner generation service built with Hono and TypeScript.
+I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great presentation.
 
 ## Features
 
