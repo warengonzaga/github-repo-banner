@@ -112,13 +112,13 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   const subBaseFontSize = hasSubheader ? Math.round(headerFontSize * 0.4) : 0;
   const subFontSize = hasSubheader ? fitFontSize(subheader!, subBaseFontSize) : 0;
 
-  const VERTICAL_PAD = hasSubheader ? 50 : 0;
+  const VERTICAL_PAD = 50; // Always maintain top/bottom padding
   const availableHeight = HEIGHT - VERTICAL_PAD * 2;
 
   // Vertical scaling for subheader layout
   let effHeaderSize = headerFontSize;
   let effSubSize = subFontSize;
-  let effGap = hasSubheader ? Math.round(subFontSize * 0.6) : 0;
+  let effGap = hasSubheader ? Math.round(subFontSize * 1.0) : 0; // Increased from 0.6 to 1.0 for more spacing
 
   if (hasSubheader) {
     const totalHeight = headerFontSize + effGap + subFontSize;
