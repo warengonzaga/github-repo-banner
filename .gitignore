@@ -1,3 +1,6 @@
 node_modules/
 dist/
 *.js.map
+.claude/
+.vscode/
+pnpm-workspace.yaml
