@@ -9,13 +9,28 @@ bannerRoute.get('/banner', async (c) => {
   const rawHeader = c.req.query('header') || 'Hello World';
   const rawSubheader = c.req.query('subheader') || '';
   const bgKey = c.req.query('bg') || DEFAULT_BG;
+  const customBgParam = c.req.query('custombg') || '';
   const colorParam = c.req.query('color') || '';
   const subheaderColorParam = c.req.query('subheadercolor') || '';
   const supportParam = c.req.query('support') || '';
 
   const header = sanitizeHeader(rawHeader, 50);
   const subheader = rawSubheader ? sanitizeHeader(rawSubheader, 60) : undefined;
-  const background = BACKGROUNDS[bgKey] ?? BACKGROUNDS[DEFAULT_BG];
+  
+  // Custom background overrides preset
+  let background;
+  if (customBgParam && isValidHexColor(customBgParam)) {
+    background = {
+      id: 'custom',
+      name: 'Custom',
+      type: 'solid' as const,
+      color: `#${customBgParam}`,
+      defaultTextColor: '#ffffff',
+    };
+  } else {
+    background = BACKGROUNDS[bgKey] ?? BACKGROUNDS[DEFAULT_BG];
+  }
+  
   const textColor =
     colorParam && isValidHexColor(colorParam)
       ? `#${colorParam}`

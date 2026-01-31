@@ -234,19 +234,15 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 0.5rem;
+      margin-bottom: 1rem;
     }
 
     .bg-option {
       position: relative;
     }
 
-    .bg-option input[type="radio"] {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .bg-option label {
+    .preset-btn {
+      width: 100%;
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -258,13 +254,15 @@
       font-weight: 500;
       transition: all 0.15s;
       background: #0d1117;
+      color: #c9d1d9;
     }
 
-    .bg-option label:hover {
+    .preset-btn:hover {
       border-color: #58a6ff;
+      background: rgba(31, 111, 235, 0.05);
     }
 
-    .bg-option input[type="radio"]:checked + label {
+    .preset-btn.active {
       border-color: #1f6feb;
       background: rgba(31, 111, 235, 0.1);
     }
@@ -279,26 +277,23 @@
 
     .checkbox-container {
       display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      background: rgba(56, 139, 253, 0.1);
-      border: 1px solid #1f6feb;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      background: #161b22;
+      border: 1px solid #30363d;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.15s;
     }
 
     .checkbox-container:hover {
-      background: rgba(56, 139, 253, 0.15);
+      background: #1c2128;
+      border-color: #484f58;
     }
 
     .checkbox-container input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      margin-top: 0.125rem;
-      cursor: pointer;
-      accent-color: #1f6feb;
+      display: none;
     }
 
     .checkbox-label {
@@ -318,6 +313,38 @@
       color: #7d8590;
     }
 
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #30363d;
+      border-radius: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: #7d8590;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .checkbox-container input[type="checkbox"]:checked ~ .toggle-switch {
+      background: #1f6feb;
+    }
+
+    .checkbox-container input[type="checkbox"]:checked ~ .toggle-switch::after {
+      left: 22px;
+      background: #ffffff;
+    }
+
     .sponsor-notice {
       padding: 0.75rem 1rem;
       background: rgba(187, 128, 9, 0.1);
@@ -326,6 +353,12 @@
       font-size: 0.875rem;
       color: #c9d1d9;
       text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .sponsor-notice.thank-you {
+      background: rgba(46, 160, 67, 0.1);
+      border-color: #2ea043;
     }
 
     .sponsor-notice a {
@@ -336,6 +369,46 @@
 
     .sponsor-notice a:hover {
       text-decoration: underline;
+    }
+
+    .emoji-explosion {
+      position: fixed;
+      pointer-events: none;
+      font-size: 2rem;
+      animation: explode 1s ease-out forwards;
+      z-index: 9999;
+    }
+
+    @keyframes explode {
+      0% {
+        transform: translate(0, 0) scale(0);
+        opacity: 1;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(1);
+        opacity: 0;
+      }
+    }
+
+    @keyframes explodeSad {
+      0% {
+        transform: translate(0, 0) scale(0);
+        opacity: 1;
+      }
+      30% {
+        transform: translate(calc(var(--tx) * 0.3), calc(var(--ty) * 0.3)) scale(1.5);
+        opacity: 1;
+      }
+      60% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(2);
+        opacity: 0;
+      }
     }
 
     .output-row {
@@ -560,6 +633,23 @@
             <input type="text" id="markdown" readonly />
             <button id="copy-btn">Copy</button>
           </div>
+
+          <div class="form-group" style="margin-top: 1.5rem;">
+            <label class="checkbox-container">
+              <input type="checkbox" id="support" />
+              <div class="checkbox-label">
+                <div class="title">💖 Help spread the word</div>
+                <div class="description">Add a small watermark to help others discover this tool</div>
+              </div>
+              <span class="toggle-switch"></span>
+            </label>
+          </div>
+
+          <div class="form-group" id="sponsor-link" style="margin-top: 1rem;">
+            <div class="sponsor-notice">
+              <span id="sponsor-message">Prefer brand-free banners? Consider <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener">sponsoring</a> instead! 💖</span>
+            </div>
+          </div>
         </div>
 
         <div class="content-section">
@@ -576,72 +666,22 @@
         </div>
 
         <div class="form-group">
-          <label>Background Preset</label>
-          <div class="bg-options">
-            <div class="bg-option">
-              <input type="radio" name="bg" id="bg-gradient-mono" value="gradient-mono" checked />
-              <label for="bg-gradient-mono">
-                <span class="swatch" style="background: linear-gradient(90deg, #1a1a1a, #4a4a4a);"></span>
-                Midnight
-              </label>
-            </div>
-            <div class="bg-option">
-              <input type="radio" name="bg" id="bg-gradient-modern" value="gradient-modern" />
-              <label for="bg-gradient-modern">
-                <span class="swatch" style="background: linear-gradient(90deg, #ec4899, #3b82f6);"></span>
-                Vibe
-              </label>
-            </div>
-            <div class="bg-option">
-              <input type="radio" name="bg" id="bg-gradient-fresh" value="gradient-fresh" />
-          <label for="bg-gradient-fresh">
-            <span class="swatch" style="background: linear-gradient(90deg, #14b8a6, #06b6d4);"></span>
-            Ocean
-          </label>
-        </div>
-        <div class="bg-option">
-          <input type="radio" name="bg" id="bg-solid-lightblue" value="solid-lightblue" />
-          <label for="bg-solid-lightblue">
-            <span class="swatch" style="background: #dbeafe;"></span>
-            Sky
-          </label>
-        </div>
-        <div class="bg-option">
-          <input type="radio" name="bg" id="bg-solid-salmon" value="solid-salmon" />
-          <label for="bg-solid-salmon">
-            <span class="swatch" style="background: #fee2e2;"></span>
-            Molty
-          </label>
-        </div>
-        <div class="bg-option">
-          <input type="radio" name="bg" id="bg-solid-claude" value="solid-claude" />
-          <label for="bg-solid-claude">
-            <span class="swatch" style="background: #fde8e3;"></span>
-            Claude
-          </label>
-        </div>
-        <div class="bg-option">
-          <input type="radio" name="bg" id="bg-solid-lightgray" value="solid-lightgray" />
-          <label for="bg-solid-lightgray">
-            <span class="swatch" style="background: #f3f4f6;"></span>
-            Minimal
-          </label>
-        </div>
-        <div class="bg-option">
-          <input type="radio" name="bg" id="bg-transparent" value="transparent" />
-          <label for="bg-transparent">
-            <span class="swatch" style="background: repeating-conic-gradient(#d1d5db 0% 25%, transparent 0% 50%) 50% / 12px 12px; border: 1px solid #30363d;"></span>
-            Transparent
-          </label>
-        </div>
-      </div>
-
-        <div class="form-group">
-          <label for="color-input">Text Color (optional)</label>
+          <label for="bg-input">Background Color</label>
           <div class="color-row">
             <div class="hex-input-group">
               <span class="hex-prefix">#</span>
-              <input type="text" id="color-input" value="" placeholder="default" maxlength="6" />
+              <input type="text" id="bg-input" value="1a1a1a" placeholder="1a1a1a" maxlength="6" />
+            </div>
+            <span class="color-preview" id="bg-preview"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="color-input">Text Color</label>
+          <div class="color-row">
+            <div class="hex-input-group">
+              <span class="hex-prefix">#</span>
+              <input type="text" id="color-input" value="ffffff" placeholder="ffffff" maxlength="6" />
             </div>
             <span class="color-preview" id="color-preview"></span>
           </div>
@@ -659,20 +699,59 @@
         </div>
 
         <div class="form-group">
-          <div class="checkbox-container">
-            <input type="checkbox" id="support" />
-            <div class="checkbox-label">
-              <div class="title">Support this project</div>
-              <div class="description">Add watermark credit to spread the word</div>
+          <label>Color Presets (click to apply)</label>
+          <div class="bg-options">
+            <div class="bg-option">
+              <button type="button" class="preset-btn" data-bg="gradient-mono" data-color="ffffff" data-gradient="true">
+                <span class="swatch" style="background: linear-gradient(90deg, #1a1a1a, #4a4a4a);"></span>
+                Midnight
+              </button>
             </div>
-          </div>
+            <div class="bg-option">
+              <button type="button" class="preset-btn" data-bg="gradient-modern" data-color="ffffff" data-gradient="true">
+                <span class="swatch" style="background: linear-gradient(90deg, #ec4899, #3b82f6);"></span>
+                Vibe
+              </button>
+            </div>
+            <div class="bg-option">
+              <button type="button" class="preset-btn" data-bg="gradient-fresh" data-color="ffffff" data-gradient="true">
+            <span class="swatch" style="background: linear-gradient(90deg, #14b8a6, #06b6d4);"></span>
+            Ocean
+          </button>
+        </div>
+        <div class="bg-option">
+          <button type="button" class="preset-btn" data-bg="dbeafe" data-color="3b82f6">
+            <span class="swatch" style="background: #dbeafe;"></span>
+            Sky
+          </button>
+        </div>
+        <div class="bg-option">
+          <button type="button" class="preset-btn" data-bg="fee2e2" data-color="BB2C2C">
+            <span class="swatch" style="background: #fee2e2;"></span>
+            Molty
+          </button>
+        </div>
+        <div class="bg-option">
+          <button type="button" class="preset-btn" data-bg="fde8e3" data-color="DE7356">
+            <span class="swatch" style="background: #fde8e3;"></span>
+            Claude
+          </button>
+        </div>
+        <div class="bg-option">
+          <button type="button" class="preset-btn" data-bg="f3f4f6" data-color="1f2937">
+            <span class="swatch" style="background: #f3f4f6;"></span>
+            Minimal
+          </button>
+        </div>
+        <div class="bg-option">
+          <button type="button" class="preset-btn" data-bg="transparent" data-color="ffffff" data-transparent="true">
+            <span class="swatch" style="background: repeating-conic-gradient(#d1d5db 0% 25%, transparent 0% 50%) 50% / 12px 12px; border: 1px solid #30363d;"></span>
+            Transparent
+          </button>
+        </div>
+      </div>
         </div>
 
-        <div class="form-group" id="sponsor-link">
-          <div class="sponsor-notice">
-            Prefer brand-free? Consider <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener">sponsoring</a> instead! 💖
-          </div>
-        </div>
         </div>
         </div>
       </div>
@@ -731,7 +810,8 @@
     const previewImg = document.getElementById('preview');
     const markdownInput = document.getElementById('markdown');
     const copyBtn = document.getElementById('copy-btn');
-    const bgRadios = document.querySelectorAll('input[name="bg"]');
+    const bgInput = document.getElementById('bg-input');
+    const bgPreview = document.getElementById('bg-preview');
     const colorInput = document.getElementById('color-input');
     const colorPreview = document.getElementById('color-preview');
     const subheaderColorInput = document.getElementById('subheader-color-input');
@@ -739,28 +819,109 @@
     const subheaderColorGroup = document.getElementById('subheader-color-group');
     const supportCheckbox = document.getElementById('support');
     const sponsorLink = document.getElementById('sponsor-link');
-
-    // Default text colors per background
-    const defaultColors = {
-      'gradient-mono': '#ffffff',
-      'gradient-modern': '#ffffff',
-      'gradient-fresh': '#ffffff',
-      'solid-lightblue': '#3b82f6',
-      'solid-salmon': '#BB2C2C',
-      'solid-claude': '#DE7356',
-      'solid-lightgray': '#1f2937',
-      'transparent': '#ffffff',
-    };
+    const sponsorMessage = document.getElementById('sponsor-message');
+    const sponsorNotice = document.querySelector('.sponsor-notice');
+    const presetBtns = document.querySelectorAll('.preset-btn');
 
     let debounceTimer;
+    let currentPreset = null;
 
-    function toggleSponsorLink() {
-      sponsorLink.style.display = supportCheckbox.checked ? 'none' : 'block';
+    function createEmojiExplosion(emojis, count = 6) {
+      const toggleSwitch = document.querySelector('.toggle-switch');
+      const rect = toggleSwitch.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      for (let i = 0; i < count; i++) {
+        const emojiEl = document.createElement('div');
+        emojiEl.className = 'emoji-explosion';
+        
+        // Randomly pick emoji from array
+        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+        emojiEl.textContent = randomEmoji;
+        
+        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+        const distance = 80 + Math.random() * 120; // Mix of short (80px) and long (200px)
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        
+        // Random duration between 900ms and 1500ms
+        const duration = 900 + Math.random() * 600;
+        
+        emojiEl.style.left = centerX + 'px';
+        emojiEl.style.top = centerY + 'px';
+        emojiEl.style.setProperty('--tx', tx + 'px');
+        emojiEl.style.setProperty('--ty', ty + 'px');
+        emojiEl.style.animationDuration = duration + 'ms';
+        
+        document.body.appendChild(emojiEl);
+        
+        setTimeout(() => emojiEl.remove(), duration);
+      }
     }
 
-    function getSelectedBg() {
-      const checked = document.querySelector('input[name="bg"]:checked');
-      return checked ? checked.value : 'gradient-mono';
+    function toggleSponsorLink(animate = true) {
+      if (supportCheckbox.checked) {
+        // Thank you message
+        sponsorNotice.classList.add('thank-you');
+        sponsorMessage.innerHTML = '🙏 Thank you for your support! If you\'d like to go further, I\'d be incredibly grateful for any <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener">sponsorship</a> 💝';
+        sponsorLink.style.display = 'block';
+        
+        // Trigger emoji explosion with mix of appreciation emojis
+        if (animate) {
+          createEmojiExplosion(['💖', '🙏', '🫡', '👍'], 6);
+        }
+      } else {
+        // Default message
+        sponsorNotice.classList.remove('thank-you');
+        sponsorMessage.innerHTML = '💝 Want a clean, brand-free banner? A <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener">sponsorship</a> would mean the world to me! It keeps this tool free for everyone.';
+        sponsorLink.style.display = 'block';
+        
+        // Trigger sad emoji explosion - much slower and longer reach
+        if (animate) {
+          createEmojiExplosionSlow(['😭', '🫠', '😐', '😓'], 6);
+        }
+      }
+    }
+
+    function createEmojiExplosionSlow(emojis, count = 6) {
+      const toggleSwitch = document.querySelector('.toggle-switch');
+      const rect = toggleSwitch.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      for (let i = 0; i < count; i++) {
+        const emojiEl = document.createElement('div');
+        emojiEl.className = 'emoji-explosion';
+        
+        // Randomly pick emoji from array
+        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+        emojiEl.textContent = randomEmoji;
+        
+        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+        const distance = 120 + Math.random() * 180; // Even longer reach (120-300px)
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        
+        // Even slower duration between 2500ms and 3800ms
+        const duration = 2500 + Math.random() * 1300;
+        
+        emojiEl.style.left = centerX + 'px';
+        emojiEl.style.top = centerY + 'px';
+        emojiEl.style.setProperty('--tx', tx + 'px');
+        emojiEl.style.setProperty('--ty', ty + 'px');
+        emojiEl.style.animation = `explodeSad ${duration}ms ease-out forwards`;
+        
+        document.body.appendChild(emojiEl);
+        
+        setTimeout(() => emojiEl.remove(), duration);
+      }
+    }
+
+    function getBgHex() {
+      const val = bgInput.value.trim().replace(/^#/, '');
+      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(val)) return val;
+      return '';
     }
 
     function getColorHex() {
@@ -776,17 +937,34 @@
     }
 
     function updateColorPreview() {
-      const hex = getColorHex();
-      const bg = getSelectedBg();
-      const color = hex ? '#' + hex : (defaultColors[bg] || '#ffffff');
-      colorPreview.style.background = color;
-      colorInput.placeholder = (defaultColors[bg] || '#ffffff').replace('#', '');
+      // Background preview
+      const bgHex = getBgHex();
+      if (bgHex) {
+        bgPreview.style.background = '#' + bgHex;
+      } else {
+        bgPreview.style.background = 'transparent';
+      }
+
+      // Text color preview
+      const textHex = getColorHex();
+      if (textHex) {
+        colorPreview.style.background = '#' + textHex;
+      } else {
+        colorPreview.style.background = 'transparent';
+      }
 
       // Subheader color preview
       const subHex = getSubheaderColorHex();
-      const subColor = subHex ? '#' + subHex : color;
-      subheaderColorPreview.style.background = subColor;
-      subheaderColorInput.placeholder = (hex || (defaultColors[bg] || '#ffffff').replace('#', ''));
+      if (subHex) {
+        subheaderColorPreview.style.background = '#' + subHex;
+      } else {
+        subheaderColorPreview.style.background = textHex ? '#' + textHex : 'transparent';
+      }
+    }
+
+    function clearActivePresets() {
+      presetBtns.forEach(btn => btn.classList.remove('active'));
+      currentPreset = null;
     }
 
     function toggleSubheaderColor() {
@@ -802,7 +980,20 @@
       if (subheader) {
         params.set('subheader', subheader);
       }
-      params.set('bg', getSelectedBg());
+      
+      // Use gradient preset if active, otherwise use custom colors
+      if (currentPreset && currentPreset.gradient) {
+        params.set('bg', currentPreset.bg);
+      } else if (currentPreset && currentPreset.transparent) {
+        params.set('bg', 'transparent');
+      } else {
+        // Custom background color
+        const bgHex = getBgHex();
+        if (bgHex) {
+          params.set('custombg', bgHex);
+        }
+      }
+      
       const hex = getColorHex();
       if (hex) {
         params.set('color', hex);
@@ -833,14 +1024,54 @@
       toggleSubheaderColor();
       update();
     });
-    bgRadios.forEach(r => r.addEventListener('change', () => {
-      updateColorPreview();
-      update();
-    }));
-    colorInput.addEventListener('input', () => {
+
+    // Preset buttons populate input fields
+    presetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const bgValue = btn.dataset.bg;
+        const colorValue = btn.dataset.color;
+        const isGradient = btn.dataset.gradient === 'true';
+        const isTransparent = btn.dataset.transparent === 'true';
+        
+        // Update active state
+        clearActivePresets();
+        btn.classList.add('active');
+        
+        // Store current preset info
+        currentPreset = {
+          bg: bgValue,
+          gradient: isGradient,
+          transparent: isTransparent
+        };
+        
+        // For solid colors, populate the input fields
+        if (!isGradient && !isTransparent) {
+          bgInput.value = bgValue;
+          colorInput.value = colorValue;
+        } else if (isTransparent) {
+          bgInput.value = 'ffffff';
+          colorInput.value = colorValue;
+        }
+        // For gradients, we just use the preset directly via bg param
+        
+        updateColorPreview();
+        update();
+      });
+    });
+
+    // When user manually edits, clear preset selection
+    bgInput.addEventListener('input', () => {
+      clearActivePresets();
       updateColorPreview();
       update();
     });
+
+    colorInput.addEventListener('input', () => {
+      clearActivePresets();
+      updateColorPreview();
+      update();
+    });
+    
     subheaderColorInput.addEventListener('input', () => {
       updateColorPreview();
       update();
@@ -864,7 +1095,18 @@
 
     // Initial render (no debounce)
     (function() {
-      toggleSponsorLink();
+      // Set default Midnight preset as active
+      const defaultPreset = document.querySelector('.preset-btn[data-bg="gradient-mono"]');
+      if (defaultPreset) {
+        defaultPreset.classList.add('active');
+        currentPreset = {
+          bg: 'gradient-mono',
+          gradient: true,
+          transparent: false
+        };
+      }
+      
+      toggleSponsorLink(false); // Don't animate on initial load
       toggleSubheaderColor();
       updateColorPreview();
       const url = buildUrl();
