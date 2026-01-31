@@ -16,8 +16,10 @@ export interface HeaderSegment {
 
 export interface BannerOptions {
   header: string;
+  subheader?: string;
   background: BackgroundPreset;
   textColor: string;
+  subheaderColor?: string;
   fontFamily: string;
   showWatermark?: boolean;
 }

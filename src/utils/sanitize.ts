@@ -10,9 +10,9 @@ export function escapeXml(str: string): string {
   return str.replace(/[&<>"']/g, (ch) => XML_ESCAPE_MAP[ch] ?? ch);
 }
 
-export function sanitizeHeader(raw: string): string {
+export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   const stripped = raw.replace(/<[^>]*>/g, '');
-  return stripped.slice(0, 120);
+  return stripped.slice(0, maxLength);
 }
 
 const HEX_COLOR_RE = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;

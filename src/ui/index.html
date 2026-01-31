@@ -567,7 +567,12 @@
         
         <div class="form-group">
           <label for="header">Header Text</label>
-          <input type="text" id="header" value="Hello World" placeholder="🚀 My Awesome Project" maxlength="30" />
+          <input type="text" id="header" value="Hello World" placeholder="🚀 My Awesome Project" maxlength="50" />
+        </div>
+
+        <div class="form-group">
+          <label for="subheader">Sub Header Text (optional)</label>
+          <input type="text" id="subheader" value="" placeholder="A short description here" maxlength="60" />
         </div>
 
         <div class="form-group">
@@ -625,6 +630,17 @@
               <input type="text" id="color-input" value="" placeholder="default" maxlength="6" />
             </div>
             <span class="color-preview" id="color-preview"></span>
+          </div>
+        </div>
+
+        <div class="form-group" id="subheader-color-group" style="display: none;">
+          <label for="subheader-color-input">Sub Header Text Color (optional)</label>
+          <div class="color-row">
+            <div class="hex-input-group">
+              <span class="hex-prefix">#</span>
+              <input type="text" id="subheader-color-input" value="" placeholder="default" maxlength="6" />
+            </div>
+            <span class="color-preview" id="subheader-color-preview"></span>
           </div>
         </div>
 
@@ -697,12 +713,16 @@
 
   <script>
     const headerInput = document.getElementById('header');
+    const subheaderInput = document.getElementById('subheader');
     const previewImg = document.getElementById('preview');
     const markdownInput = document.getElementById('markdown');
     const copyBtn = document.getElementById('copy-btn');
     const bgRadios = document.querySelectorAll('input[name="bg"]');
     const colorInput = document.getElementById('color-input');
     const colorPreview = document.getElementById('color-preview');
+    const subheaderColorInput = document.getElementById('subheader-color-input');
+    const subheaderColorPreview = document.getElementById('subheader-color-preview');
+    const subheaderColorGroup = document.getElementById('subheader-color-group');
     const supportCheckbox = document.getElementById('support');
     const sponsorLink = document.getElementById('sponsor-link');
 
@@ -733,22 +753,47 @@
       return '';
     }
 
+    function getSubheaderColorHex() {
+      const val = subheaderColorInput.value.trim().replace(/^#/, '');
+      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(val)) return val;
+      return '';
+    }
+
     function updateColorPreview() {
       const hex = getColorHex();
       const bg = getSelectedBg();
       const color = hex ? '#' + hex : (defaultColors[bg] || '#ffffff');
       colorPreview.style.background = color;
       colorInput.placeholder = (defaultColors[bg] || '#ffffff').replace('#', '');
+
+      // Subheader color preview
+      const subHex = getSubheaderColorHex();
+      const subColor = subHex ? '#' + subHex : color;
+      subheaderColorPreview.style.background = subColor;
+      subheaderColorInput.placeholder = (hex || (defaultColors[bg] || '#ffffff').replace('#', ''));
+    }
+
+    function toggleSubheaderColor() {
+      const hasSubheader = subheaderInput.value.trim().length > 0;
+      subheaderColorGroup.style.display = hasSubheader ? 'block' : 'none';
     }
 
     function buildUrl() {
       const params = new URLSearchParams();
       const header = headerInput.value || 'Hello World';
       params.set('header', header);
+      const subheader = subheaderInput.value.trim();
+      if (subheader) {
+        params.set('subheader', subheader);
+      }
       params.set('bg', getSelectedBg());
       const hex = getColorHex();
       if (hex) {
         params.set('color', hex);
+      }
+      const subHex = getSubheaderColorHex();
+      if (subHex && subheader) {
+        params.set('subheadercolor', subHex);
       }
       if (supportCheckbox.checked) {
         params.set('support', 'true');
@@ -768,11 +813,19 @@
     }
 
     headerInput.addEventListener('input', update);
+    subheaderInput.addEventListener('input', () => {
+      toggleSubheaderColor();
+      update();
+    });
     bgRadios.forEach(r => r.addEventListener('change', () => {
       updateColorPreview();
       update();
     }));
     colorInput.addEventListener('input', () => {
+      updateColorPreview();
+      update();
+    });
+    subheaderColorInput.addEventListener('input', () => {
       updateColorPreview();
       update();
     });
@@ -796,6 +849,7 @@
     // Initial render (no debounce)
     (function() {
       toggleSponsorLink();
+      toggleSubheaderColor();
       updateColorPreview();
       const url = buildUrl();
       previewImg.src = url + '&_t=' + Date.now();
