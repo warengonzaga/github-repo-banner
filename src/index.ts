@@ -5,6 +5,11 @@ import uiRoute from './routes/ui.js';
 
 const app = new Hono();
 
+// Health check endpoint for Railway
+app.get('/health', (c) => {
+  return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.route('/', uiRoute);
 app.route('/', bannerRoute);
 
