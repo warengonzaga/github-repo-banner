@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Repo Banner Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: #0D1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 820px;
+    }
+
+    .preview {
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      background: #1e293b;
+    }
+
+    .preview img {
+      width: 100%;
+      display: block;
+    }
+
+    .controls {
+      display: grid;
+      gap: 1rem;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #94a3b8;
+    }
+
+    input[type="text"] {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 0.625rem 0.75rem;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="color"]:focus {
+      border-color: #3b82f6;
+    }
+
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .hex-input-group {
+      display: flex;
+      align-items: center;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+
+    .hex-input-group:focus-within {
+      border-color: #3b82f6;
+    }
+
+    .hex-prefix {
+      background: #161b22;
+      color: #6b7280;
+      padding: 0.625rem 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      user-select: none;
+      border-right: 1px solid #334155;
+    }
+
+    .hex-input-group input[type="text"] {
+      border: none;
+      border-radius: 0;
+      width: 90px;
+      background: #1e293b;
+      padding: 0.625rem 0.5rem;
+    }
+
+    .hex-input-group input[type="text"]:focus {
+      border-color: transparent;
+    }
+
+    .color-preview {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      flex-shrink: 0;
+    }
+
+    .bg-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .bg-option {
+      position: relative;
+    }
+
+    .bg-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .bg-option label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-direction: row;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 2px solid #334155;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: border-color 0.15s;
+    }
+
+    .bg-option input[type="radio"]:checked + label {
+      border-color: #3b82f6;
+    }
+
+    .swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .output-section {
+      margin-top: 1.5rem;
+    }
+
+    .output-section label {
+      margin-bottom: 0.375rem;
+    }
+
+    .output-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .output-row input {
+      flex: 1;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+
+    button {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    button:hover { background: #2563eb; }
+
+    .copied {
+      background: #22c55e !important;
+    }
+  </style>
+</head>
+<body>
+  <h1>GitHub Repo Banner</h1>
+  <p class="subtitle">Generate customizable banners for your GitHub repositories</p>
+
+  <div class="container">
+    <div class="preview">
+      <img id="preview" alt="Banner preview" />
+    </div>
+
+    <div class="controls">
+      <label>
+        Header (supports emoji)
+        <input type="text" id="header" value="Hello World" placeholder="🚀 My Awesome Project" />
+      </label>
+
+      <label>Background</label>
+      <div class="bg-options">
+        <div class="bg-option">
+          <input type="radio" name="bg" id="bg-gradient-mono" value="gradient-mono" />
+          <label for="bg-gradient-mono">
+            <span class="swatch" style="background: linear-gradient(90deg, #1a1a1a, #4a4a4a);"></span>
+            Monochrome
+          </label>
+        </div>
+        <div class="bg-option">
+          <input type="radio" name="bg" id="bg-gradient-modern" value="gradient-modern" checked />
+          <label for="bg-gradient-modern">
+            <span class="swatch" style="background: linear-gradient(90deg, #ec4899, #3b82f6);"></span>
+            Modern
+          </label>
+        </div>
+        <div class="bg-option">
+          <input type="radio" name="bg" id="bg-gradient-fresh" value="gradient-fresh" />
+          <label for="bg-gradient-fresh">
+            <span class="swatch" style="background: linear-gradient(90deg, #14b8a6, #06b6d4);"></span>
+            Fresh
+          </label>
+        </div>
+        <div class="bg-option">
+          <input type="radio" name="bg" id="bg-solid-lightblue" value="solid-lightblue" />
+          <label for="bg-solid-lightblue">
+            <span class="swatch" style="background: #dbeafe;"></span>
+            Light Blue
+          </label>
+        </div>
+        <div class="bg-option">
+          <input type="radio" name="bg" id="bg-solid-salmon" value="solid-salmon" />
+          <label for="bg-solid-salmon">
+            <span class="swatch" style="background: #fecaca;"></span>
+            Salmon
+          </label>
+        </div>
+        <div class="bg-option">
+          <input type="radio" name="bg" id="bg-solid-lightgray" value="solid-lightgray" />
+          <label for="bg-solid-lightgray">
+            <span class="swatch" style="background: #f3f4f6;"></span>
+            Light Gray
+          </label>
+        </div>
+      </div>
+
+      <label>
+        Text Color (hex)
+        <div class="color-row">
+          <div class="hex-input-group">
+            <span class="hex-prefix">#</span>
+            <input type="text" id="color-input" value="" placeholder="default" maxlength="6" />
+          </div>
+          <span class="color-preview" id="color-preview"></span>
+        </div>
+      </label>
+
+      <div class="output-section">
+        <label>Markdown</label>
+        <div class="output-row">
+          <input type="text" id="markdown" readonly />
+          <button id="copy-btn">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const headerInput = document.getElementById('header');
+    const previewImg = document.getElementById('preview');
+    const markdownInput = document.getElementById('markdown');
+    const copyBtn = document.getElementById('copy-btn');
+    const bgRadios = document.querySelectorAll('input[name="bg"]');
+    const colorInput = document.getElementById('color-input');
+    const colorPreview = document.getElementById('color-preview');
+
+    // Default text colors per background
+    const defaultColors = {
+      'gradient-mono': '#ffffff',
+      'gradient-modern': '#ffffff',
+      'gradient-fresh': '#ffffff',
+      'solid-lightblue': '#1e3a5f',
+      'solid-salmon': '#7f1d1d',
+      'solid-lightgray': '#1f2937',
+    };
+
+    let debounceTimer;
+
+    function getSelectedBg() {
+      const checked = document.querySelector('input[name="bg"]:checked');
+      return checked ? checked.value : 'gradient-modern';
+    }
+
+    function getColorHex() {
+      const val = colorInput.value.trim().replace(/^#/, '');
+      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(val)) return val;
+      return '';
+    }
+
+    function updateColorPreview() {
+      const hex = getColorHex();
+      const bg = getSelectedBg();
+      const color = hex ? '#' + hex : (defaultColors[bg] || '#ffffff');
+      colorPreview.style.background = color;
+      colorInput.placeholder = (defaultColors[bg] || '#ffffff').replace('#', '');
+    }
+
+    function buildUrl() {
+      const params = new URLSearchParams();
+      const header = headerInput.value || 'Hello World';
+      params.set('header', header);
+      params.set('bg', getSelectedBg());
+      const hex = getColorHex();
+      if (hex) {
+        params.set('color', hex);
+      }
+      return '/banner?' + params.toString();
+    }
+
+    function update() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const url = buildUrl();
+        // Cache-bust for preview, clean URL for markdown
+        previewImg.src = url + '&_t=' + Date.now();
+        const fullUrl = window.location.origin + url;
+        markdownInput.value = '![Banner](' + fullUrl + ')';
+      }, 300);
+    }
+
+    headerInput.addEventListener('input', update);
+    bgRadios.forEach(r => r.addEventListener('change', () => {
+      updateColorPreview();
+      update();
+    }));
+    colorInput.addEventListener('input', () => {
+      updateColorPreview();
+      update();
+    });
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(markdownInput.value).then(() => {
+        copyBtn.textContent = 'Copied!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      });
+    });
+
+    // Initial render (no debounce)
+    (function() {
+      updateColorPreview();
+      const url = buildUrl();
+      previewImg.src = url + '&_t=' + Date.now();
+      const fullUrl = window.location.origin + url;
+      markdownInput.value = '![Banner](' + fullUrl + ')';
+    })();
+  </script>
+</body>
+</html>
