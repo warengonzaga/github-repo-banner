@@ -1,8 +1,10 @@
 # GitHub Repo Banner
 
-![Banner](https://ghrb.waren.build/banner?header=GitHub+Repo+Banner&bg=gradient-mono)
+![GitHub Repo Banner](https://ghrb.waren.build/banner?header=GitHub+Repo+Banner+%F0%9F%93%A6&subheader=Great+projects+deserve+great+presentation+%F0%9F%92%96&custombg=f3f4f6&color=1f2937)
 
 I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great presentation.
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/github-repo-banner?referralCode=KN9JqT&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
 ## Features
 
