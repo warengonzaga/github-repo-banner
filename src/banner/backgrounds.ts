@@ -3,7 +3,7 @@ import type { BackgroundPreset } from './types.js';
 export const BACKGROUNDS: Record<string, BackgroundPreset> = {
   'gradient-mono': {
     id: 'gradient-mono',
-    name: 'Monochrome',
+    name: 'Midnight',
     type: 'gradient',
     stops: [
       { offset: '0%', color: '#1a1a1a' },
@@ -13,7 +13,7 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
   },
   'gradient-modern': {
     id: 'gradient-modern',
-    name: 'Modern',
+    name: 'Vibe',
     type: 'gradient',
     stops: [
       { offset: '0%', color: '#ec4899' },
@@ -23,7 +23,7 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
   },
   'gradient-fresh': {
     id: 'gradient-fresh',
-    name: 'Fresh',
+    name: 'Ocean',
     type: 'gradient',
     stops: [
       { offset: '0%', color: '#14b8a6' },
@@ -33,21 +33,28 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
   },
   'solid-lightblue': {
     id: 'solid-lightblue',
-    name: 'Light Blue',
+    name: 'Sky',
     type: 'solid',
     color: '#dbeafe',
-    defaultTextColor: '#1e3a5f',
+    defaultTextColor: '#3b82f6',
   },
   'solid-salmon': {
     id: 'solid-salmon',
-    name: 'Salmon',
+    name: 'Molty',
     type: 'solid',
-    color: '#fecaca',
-    defaultTextColor: '#7f1d1d',
+    color: '#fee2e2',
+    defaultTextColor: '#BB2C2C',
+  },
+  'solid-claude': {
+    id: 'solid-claude',
+    name: 'Claude',
+    type: 'solid',
+    color: '#fde8e3',
+    defaultTextColor: '#DE7356',
   },
   'solid-lightgray': {
     id: 'solid-lightgray',
-    name: 'Light Gray',
+    name: 'Minimal',
     type: 'solid',
     color: '#f3f4f6',
     defaultTextColor: '#1f2937',
@@ -60,4 +67,4 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
   },
 };
 
-export const DEFAULT_BG = 'gradient-modern';
+export const DEFAULT_BG = 'gradient-mono';
