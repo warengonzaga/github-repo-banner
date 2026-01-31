@@ -509,6 +509,15 @@
       display: block;
     }
 
+    .author-tagline {
+      font-size: 0.8125rem;
+      color: #7d8590;
+      text-align: center;
+      margin-top: 0.75rem;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
     .sponsor-btn {
       display: flex;
       align-items: center;
@@ -536,6 +545,43 @@
       width: 16px;
       height: 16px;
       fill: currentColor;
+    }
+
+    .follow-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.5rem 1rem;
+      margin-top: 0.5rem;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .follow-btn:hover {
+      background: #333;
+    }
+
+    .follow-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .contribute-message {
+      font-size: 0.75rem;
+      color: #7d8590;
+      text-align: center;
+      margin-top: 0.75rem;
+      line-height: 1.5;
     }
 
     .contribute-links {
@@ -572,6 +618,31 @@
       height: 16px;
       fill: currentColor;
       flex-shrink: 0;
+    }
+
+    .deploy-btn {
+      display: block;
+      width: 100%;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .deploy-btn:hover {
+      opacity: 0.8;
+    }
+
+    .deploy-img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .deploy-message {
+      font-size: 0.75rem;
+      color: #7d8590;
+      text-align: center;
+      margin-top: 0.75rem;
+      line-height: 1.5;
     }
 
     .version-display {
@@ -703,19 +774,19 @@
           <label>Color Presets (click to apply)</label>
           <div class="bg-options">
             <div class="bg-option">
-              <button type="button" class="preset-btn" data-bg="gradient-mono" data-color="ffffff" data-gradient="true">
+              <button type="button" class="preset-btn" data-bg="1a1a1a-4a4a4a" data-color="ffffff" data-gradient="true">
                 <span class="swatch" style="background: linear-gradient(90deg, #1a1a1a, #4a4a4a);"></span>
                 Midnight
               </button>
             </div>
             <div class="bg-option">
-              <button type="button" class="preset-btn" data-bg="gradient-modern" data-color="ffffff" data-gradient="true">
+              <button type="button" class="preset-btn" data-bg="ec4899-3b82f6" data-color="ffffff" data-gradient="true">
                 <span class="swatch" style="background: linear-gradient(90deg, #ec4899, #3b82f6);"></span>
                 Vibe
               </button>
             </div>
             <div class="bg-option">
-              <button type="button" class="preset-btn" data-bg="gradient-fresh" data-color="ffffff" data-gradient="true">
+              <button type="button" class="preset-btn" data-bg="14b8a6-06b6d4" data-color="ffffff" data-gradient="true">
             <span class="swatch" style="background: linear-gradient(90deg, #14b8a6, #06b6d4);"></span>
             Ocean
           </button>
@@ -727,13 +798,13 @@
           </button>
         </div>
         <div class="bg-option">
-          <button type="button" class="preset-btn" data-bg="fee2e2" data-color="BB2C2C">
+          <button type="button" class="preset-btn" data-bg="fee2e2" data-color="bb2c2c">
             <span class="swatch" style="background: #fee2e2;"></span>
             Molty
           </button>
         </div>
         <div class="bg-option">
-          <button type="button" class="preset-btn" data-bg="fde8e3" data-color="DE7356">
+          <button type="button" class="preset-btn" data-bg="fde8e3" data-color="de7356">
             <span class="swatch" style="background: #fde8e3;"></span>
             Claude
           </button>
@@ -745,7 +816,7 @@
           </button>
         </div>
         <div class="bg-option">
-          <button type="button" class="preset-btn" data-bg="transparent" data-color="ffffff" data-transparent="true">
+          <button type="button" class="preset-btn" data-bg="00000000" data-color="ffffff">
             <span class="swatch" style="background: repeating-conic-gradient(#d1d5db 0% 25%, transparent 0% 50%) 50% / 12px 12px; border: 1px solid #30363d;"></span>
             Transparent
           </button>
@@ -774,6 +845,13 @@
           </svg>
           Sponsor
         </a>
+        <a href="https://x.com/warengonzaga" target="_blank" rel="noopener" class="follow-btn">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M9.52 7.77 15.41 1h-1.4l-5.11 5.93L4.55 1H0l6.18 8.98L0 16h1.4l5.4-6.27L11.45 16H16l-6.48-9.43ZM7.57 8.98l-.62-.89L1.98 2.03h2.13l4.01 5.74.62.89 5.2 7.43h-2.13l-4.24-6.07Z"></path>
+          </svg>
+          Follow @warengonzaga
+        </a>
+        <p class="author-tagline">The man who wastes his time to save yours! ✌️😄</p>
       </div>
 
       <div class="sidebar-section">
@@ -799,6 +877,15 @@
             Feature Request
           </a>
         </div>
+        <p class="contribute-message">Any contributions are welcome and I appreciate any help! 🙏</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>Self Host</h2>
+        <a href="https://railway.app/template/github-repo-banner?referralCode=KN9JqT" target="_blank" rel="noopener" class="deploy-btn">
+          <img src="https://railway.com/button.svg" alt="Deploy on Railway" class="deploy-img">
+        </a>
+        <p class="deploy-message">When you deploy your own copy, you're directly supporting this project! 💖</p>
       </div>
 
       <div class="version-display">v1.0.0</div>
@@ -922,19 +1009,19 @@
 
     function getBgHex() {
       const val = bgInput.value.trim().replace(/^#/, '');
-      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(val)) return val;
+      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/.test(val)) return val;
       return '';
     }
 
     function getColorHex() {
       const val = colorInput.value.trim().replace(/^#/, '');
-      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(val)) return val;
+      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/.test(val)) return val;
       return '';
     }
 
     function getSubheaderColorHex() {
       const val = subheaderColorInput.value.trim().replace(/^#/, '');
-      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(val)) return val;
+      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/.test(val)) return val;
       return '';
     }
 
@@ -983,16 +1070,14 @@
         params.set('subheader', subheader);
       }
       
-      // Use gradient preset if active, otherwise use custom colors
-      if (currentPreset && currentPreset.gradient) {
+      // Use preset bg if active (gradient or transparent), otherwise custom hex
+      if (currentPreset) {
         params.set('bg', currentPreset.bg);
-      } else if (currentPreset && currentPreset.transparent) {
-        params.set('bg', 'transparent');
       } else {
         // Custom background color
         const bgHex = getBgHex();
         if (bgHex) {
-          params.set('custombg', bgHex);
+          params.set('bg', bgHex);
         }
       }
       
@@ -1040,7 +1125,6 @@
         const bgValue = btn.dataset.bg;
         const colorValue = btn.dataset.color;
         const isGradient = btn.dataset.gradient === 'true';
-        const isTransparent = btn.dataset.transparent === 'true';
         
         // Update active state
         clearActivePresets();
@@ -1049,19 +1133,24 @@
         // Store current preset info
         currentPreset = {
           bg: bgValue,
-          gradient: isGradient,
-          transparent: isTransparent
+          gradient: isGradient
         };
         
-        // For solid colors, populate the input fields
-        if (!isGradient && !isTransparent) {
-          bgInput.value = bgValue;
+        // Populate input fields based on preset type
+        if (isGradient) {
+          // For gradients, show the gradient hex codes
+          const [startHex, endHex] = bgValue.split('-');
+          bgInput.value = startHex;
+          bgInput.placeholder = `Gradient: ${startHex}-${endHex}`;
+          bgInput.disabled = true;
           colorInput.value = colorValue;
-        } else if (isTransparent) {
-          bgInput.value = 'ffffff';
+        } else {
+          // For solid colors (including transparent)
+          bgInput.value = bgValue;
+          bgInput.placeholder = 'e.g. f3f4f6 or 00000000';
+          bgInput.disabled = false;
           colorInput.value = colorValue;
         }
-        // For gradients, we just use the preset directly via bg param
         
         updateColorPreview();
         update();
@@ -1071,12 +1160,16 @@
     // When user manually edits, clear preset selection
     bgInput.addEventListener('input', () => {
       clearActivePresets();
+      bgInput.disabled = false;
+      bgInput.placeholder = 'e.g. f3f4f6';
       updateColorPreview();
       update();
     });
 
     colorInput.addEventListener('input', () => {
       clearActivePresets();
+      bgInput.disabled = false;
+      bgInput.placeholder = 'e.g. f3f4f6';
       updateColorPreview();
       update();
     });
@@ -1131,13 +1224,12 @@
     // Initial render (no debounce)
     (function() {
       // Set default Midnight preset as active
-      const defaultPreset = document.querySelector('.preset-btn[data-bg="gradient-mono"]');
+      const defaultPreset = document.querySelector('.preset-btn[data-bg="1a1a1a-4a4a4a"]');
       if (defaultPreset) {
         defaultPreset.classList.add('active');
         currentPreset = {
-          bg: 'gradient-mono',
-          gradient: true,
-          transparent: false
+          bg: '1a1a1a-4a4a4a',
+          gradient: true
         };
       }
       

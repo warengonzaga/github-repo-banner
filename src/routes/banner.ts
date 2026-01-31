@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { buildBannerSVG } from '../banner/svg-template.js';
-import { BACKGROUNDS, DEFAULT_BG } from '../banner/backgrounds.js';
 import { sanitizeHeader, isValidHexColor } from '../utils/sanitize.js';
 
 const bannerRoute = new Hono();
@@ -8,8 +7,7 @@ const bannerRoute = new Hono();
 bannerRoute.get('/banner', async (c) => {
   const rawHeader = c.req.query('header') || 'Hello World';
   const rawSubheader = c.req.query('subheader') || '';
-  const bgKey = c.req.query('bg') || DEFAULT_BG;
-  const customBgParam = c.req.query('custombg') || '';
+  const bgParam = c.req.query('bg') || '1a1a1a-4a4a4a'; // Default gradient
   const colorParam = c.req.query('color') || '';
   const subheaderColorParam = c.req.query('subheadercolor') || '';
   const supportParam = c.req.query('support') || '';
@@ -17,18 +15,59 @@ bannerRoute.get('/banner', async (c) => {
   const header = sanitizeHeader(rawHeader, 50);
   const subheader = rawSubheader ? sanitizeHeader(rawSubheader, 60) : undefined;
   
-  // Custom background overrides preset
+  // Parse bg parameter: gradient (hex-hex) or solid (hex)
   let background;
-  if (customBgParam && isValidHexColor(customBgParam)) {
-    background = {
-      id: 'custom',
-      name: 'Custom',
-      type: 'solid' as const,
-      color: `#${customBgParam}`,
-      defaultTextColor: '#ffffff',
-    };
+  
+  if (bgParam.includes('-')) {
+    // Gradient: two hex codes separated by hyphen
+    const [startHex, endHex] = bgParam.split('-');
+    if (isValidHexColor(startHex) && isValidHexColor(endHex)) {
+      background = {
+        id: 'gradient',
+        name: 'Gradient',
+        type: 'gradient' as const,
+        stops: [
+          { offset: '0%', color: `#${startHex}` },
+          { offset: '100%', color: `#${endHex}` },
+        ],
+        defaultTextColor: '#ffffff',
+      };
+    } else {
+      // Invalid gradient, use default
+      background = {
+        id: 'gradient',
+        name: 'Gradient',
+        type: 'gradient' as const,
+        stops: [
+          { offset: '0%', color: '#1a1a1a' },
+          { offset: '100%', color: '#4a4a4a' },
+        ],
+        defaultTextColor: '#ffffff',
+      };
+    }
   } else {
-    background = BACKGROUNDS[bgKey] ?? BACKGROUNDS[DEFAULT_BG];
+    // Solid color: single hex code (including transparent 00000000)
+    if (isValidHexColor(bgParam)) {
+      background = {
+        id: 'solid',
+        name: 'Solid',
+        type: 'solid' as const,
+        color: `#${bgParam}`,
+        defaultTextColor: '#ffffff',
+      };
+    } else {
+      // Invalid hex, use default gradient
+      background = {
+        id: 'gradient',
+        name: 'Gradient',
+        type: 'gradient' as const,
+        stops: [
+          { offset: '0%', color: '#1a1a1a' },
+          { offset: '100%', color: '#4a4a4a' },
+        ],
+        defaultTextColor: '#ffffff',
+      };
+    }
   }
   
   const textColor =

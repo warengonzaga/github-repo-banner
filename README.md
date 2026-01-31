@@ -1,6 +1,6 @@
 # GitHub Repo Banner
 
-![GitHub Repo Banner](https://ghrb.waren.build/banner?header=GitHub+Repo+Banner+%F0%9F%93%A6&subheader=Great+projects+deserve+great+presentation+%F0%9F%92%96&custombg=f3f4f6&color=1f2937)
+![GitHub Repo Banner](https://ghrb.waren.build/banner?header=GitHub+Repo+Banner+%F0%9F%93%A6&subheader=great+projects+deserve+great+presentation+%F0%9F%92%96&bg=f3f4f6&color=1f2937&support=true)<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->
 
 I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great presentation.
 
@@ -9,9 +9,11 @@ I believe every repository deserves to look beautiful. Your code is art, your pr
 ## Features
 
 - 🎨 **Dynamic Banner Generation** - Create custom banners on-the-fly via URL parameters
-- 🌈 **Multiple Background Presets** - Choose from gradients and solid colors
-- 🎯 **Custom Text Colors** - Override default colors with hex values
+- 🌈 **Gradient Support** - Create custom gradients using hex codes (e.g., `bg=HEX1-HEX2`)
+- 🎯 **Full Color Control** - Use hex codes for background and text colors
+- 💧 **Opacity Support** - 8-digit hex codes with alpha channel (e.g., `FFFFFF80`)
 - 😀 **Emoji Support** - Native emoji rendering in banners
+- 📥 **Download SVG** - Download banners directly from the UI
 - ⚡ **Fast & Lightweight** - Built with Hono for optimal performance
 - 🔒 **Input Sanitization** - Secure text processing and validation
 - 📦 **Zero Dependencies** - Minimal production footprint
@@ -42,34 +44,50 @@ pnpm start
 ### Basic Example
 
 ```text
-https://ghrb.waren.build/banner?header=My%20Awesome%20Project
+https://ghrb.waren.build/banner?header=Hello+World+%F0%9F%91%8B&bg=1a1a1a-4a4a4a&color=ffffff&support=true
 ```
 
-![Basic Example Banner](https://ghrb.waren.build/banner?header=My%20Awesome%20Project)
+![GitHub Repo Banner](https://ghrb.waren.build/banner?header=Hello+World+%F0%9F%91%8B&bg=1a1a1a-4a4a4a&color=ffffff&support=true)<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->
 
-### With Background Preset
+### Gradient Background
 
 ```text
-https://ghrb.waren.build/banner?header=My%20Project&bg=gradient-modern
+https://ghrb.waren.build/banner?header=My%20Project&bg=ec4899-3b82f6&color=ffffff
 ```
 
-![Background Preset Banner](https://ghrb.waren.build/banner?header=My%20Project&bg=gradient-modern)
+![Background Preset Banner](https://ghrb.waren.build/banner?header=My%20Project&bg=ec4899-3b82f6&color=ffffff)
 
-### With Custom Color
+### Solid Color Background
 
 ```text
-https://ghrb.waren.build/banner?header=My%20Project&bg=gradient-fresh&color=ffcc00
+https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=dbeafe&color=3b82f6&support=true
 ```
 
-![Custom Color Banner](https://ghrb.waren.build/banner?header=My%20Project&bg=gradient-fresh&color=ffcc00)
+![GitHub Repo Banner](https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=dbeafe&color=3b82f6&support=true)<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->
 
 ### With Emojis
 
 ```text
-https://ghrb.waren.build/banner?header=🚀%20My%20Project%20✨
+https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.+Any+OS.+Any+Platform.&bg=fee2e2&color=bb2c2c&support=true
 ```
 
-![Emoji Banner](https://ghrb.waren.build/banner?header=🚀%20My%20Project%20✨)
+![GitHub Repo Banner](https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.+Any+OS.+Any+Platform.&bg=fee2e2&color=bb2c2c&support=true)<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->
+
+### Transparent Background
+
+```text
+https://ghrb.waren.build/banner?header=Hi%2C+I%27m+Waren+%F0%9F%91%8B&bg=00000000&color=ffffff&support=true
+```
+
+![GitHub Repo Banner](https://ghrb.waren.build/banner?header=Hi%2C+I%27m+Waren+%F0%9F%91%8B&bg=00000000&color=ffffff&support=true)<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->
+
+### With Opacity
+
+```text
+https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000
+```
+
+![GitHub Repo Banner](https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000)
 
 ## API Reference
 
@@ -82,8 +100,17 @@ Generate a custom SVG banner.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `header` | string | "Hello World" | Banner text (supports emojis) |
-| `bg` | string | "gradient-mono" | Background preset ID |
-| `color` | string | (preset default) | Text color (hex without #) |
+| `subheader` | string | - | Optional subheader text |
+| `bg` | string | "1a1a1a-4a4a4a" | Background hex color. Gradient: `HEX1-HEX2`, Solid: `HEX`, Transparent: `00000000` |
+| `color` | string | "ffffff" | Text color (hex without #, supports 8-digit with opacity) |
+| `subheadercolor` | string | (same as `color`) | Subheader text color (hex without #) |
+| `support` | boolean | false | Show watermark to support the project |
+
+**Background Format:**
+- **Gradient**: Two hex codes separated by hyphen (e.g., `1a1a1a-4a4a4a`)
+- **Solid**: Single hex code (e.g., `ffffff`)
+- **Transparent**: `00000000` (8-digit hex with zero opacity)
+- **With Opacity**: 8-digit hex codes (e.g., `ffffff80` for 50% opacity)
 
 **Response:**
 - Content-Type: `image/svg+xml`
@@ -93,23 +120,41 @@ Generate a custom SVG banner.
 
 Interactive UI for banner customization and preview.
 
-## Background Presets
+### GET `/health`
+
+Health check endpoint for monitoring.
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-02-01T00:00:00.000Z"
+}
+```
+
+## Preset Examples
+
+The UI includes preset buttons for quick access to popular color schemes:
 
 ### Gradients
 
-| ID | Name | Colors | Default Text |
-|----|------|--------|--------------|
-| `gradient-mono` | Monochrome | Dark gray → Medium gray | White |
-| `gradient-modern` | Modern | Pink → Blue | White |
-| `gradient-fresh` | Fresh | Teal → Cyan | White |
+| Name | Hex Codes | Example |
+|------|-----------|----------|
+| Midnight | `1a1a1a-4a4a4a` | Dark gray gradient |
+| Vibe | `ec4899-3b82f6` | Pink to blue gradient |
+| Ocean | `14b8a6-06b6d4` | Teal to cyan gradient |
 
 ### Solid Colors
 
-| ID | Name | Color | Default Text |
-|----|------|-------|--------------|
-| `solid-lightblue` | Light Blue | `#dbeafe` | Dark blue |
-| `solid-salmon` | Salmon | `#fecaca` | Dark red |
-| `solid-lightgray` | Light Gray | `#f3f4f6` | Dark gray |
+| Name | Hex Code | Description |
+|------|----------|-------------|
+| Sky | `dbeafe` / `3b82f6` | Light blue background with dark blue text |
+| Molty | `fee2e2` / `bb2c2c` | Light salmon background with dark red text |
+| Claude | `fde8e3` / `de7356` | Light peach background with rust text |
+| Minimal | `f3f4f6` / `1f2937` | Light gray background with dark gray text |
+| Transparent | `00000000` / `ffffff` | Fully transparent with white text |
+
+**Note:** You can create any gradient or color combination using hex codes directly in the URL.
 
 ## Development
 
@@ -180,6 +225,14 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 3. Commit your changes (follow [Clean Commit](https://github.com/wgtechlabs/clean-commit) convention)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+## Self Host
+
+Want to run your own instance? Deploy to Railway with one click:
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/github-repo-banner?referralCode=KN9JqT&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
+When you deploy your own copy, you're directly supporting this project! 💖
 
 ## License
 
