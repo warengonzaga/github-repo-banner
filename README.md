@@ -81,13 +81,13 @@ https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000
 
 ![Opacity Example](https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000)
 
-### With Custom Font
+### With Custom Fonts
 
 ```text
-https://ghrb.waren.build/banner?header=Beautiful+Typography&subheader=Powered+by+Google+Fonts&bg=1a1a1a-4a4a4a&color=ffffff&font=Playfair+Display
+https://ghrb.waren.build/banner?header=Beautiful+Typography&subheader=Powered+by+Google+Fonts&bg=1a1a1a-4a4a4a&color=ffffff&headerfont=Playfair+Display&subheaderfont=Roboto
 ```
 
-![Custom Font Example](https://ghrb.waren.build/banner?header=Beautiful+Typography&subheader=Powered+by+Google+Fonts&bg=1a1a1a-4a4a4a&color=ffffff&font=Playfair+Display)
+![Custom Font Example](https://ghrb.waren.build/banner?header=Beautiful+Typography&subheader=Powered+by+Google+Fonts&bg=1a1a1a-4a4a4a&color=ffffff&headerfont=Playfair+Display&subheaderfont=Roboto)
 
 ## 🔌 API Reference
 
@@ -104,7 +104,8 @@ Generate a custom SVG banner.
 | `bg` | string | No | `1a1a1a-4a4a4a` | Background color in hex format |
 | `color` | string | No | `ffffff` | Header text color (hex without #) |
 | `subheadercolor` | string | No | Same as `color` | Subheader text color |
-| `font` | string | No | - | Google Fonts family name (e.g., "Roboto", "Playfair Display") |
+| `headerfont` | string | No | - | Google Fonts family name for header (e.g., "Roboto") |
+| `subheaderfont` | string | No | - | Google Fonts family name for subheader (e.g., "Playfair Display") |
 | `support` | boolean | No | `false` | Show support watermark |
 
 #### Background Format
