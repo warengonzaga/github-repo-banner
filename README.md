@@ -107,6 +107,7 @@ Generate a custom SVG banner.
 | `headerfont` | string | No | - | Google Fonts family name for header (e.g., "Roboto") |
 | `subheaderfont` | string | No | - | Google Fonts family name for subheader (e.g., "Playfair Display") |
 | `support` | boolean | No | `false` | Show support watermark |
+| `watermarkpos` | string | No | `bottom-right` | Watermark position: `top-left`, `top-right`, `bottom-left`, `bottom-right` |
 
 #### Background Format
 
@@ -194,11 +195,4 @@ MIT License - see [LICENSE](LICENSE) file.
 
 ---
 
-<div align="center">
-
-💖 **[Support this project](https://github.com/sponsors/warengonzaga)** • Give it a ⭐ on **[GitHub](https://github.com/warengonzaga/github-repo-banner)**!
-
-Built with [Hono](https://hono.dev/) • Part of [WG Technology Labs](https://github.com/wgtechlabs)
-
-</div>
-
+💻💖☕ by [Waren Gonzaga](https://warengonzaga.com/) | [YHWH](https://www.youtube.com/watch?v=VOZbswniA-g) 🙏
