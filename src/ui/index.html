@@ -1241,6 +1241,11 @@
           canvas.height = 304;
           const ctx = canvas.getContext('2d');
           
+          if (!ctx) {
+            console.error('Failed to get 2D context from canvas');
+            return;
+          }
+          
           // Draw the image onto canvas
           ctx.drawImage(img, 0, 0);
           
@@ -1254,7 +1259,12 @@
             const downloadUrl = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = downloadUrl;
-            a.download = `banner-${headerInput.value.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`;
+            
+            // Generate safe filename from header, with fallback
+            const headerText = headerInput.value.trim() || 'banner';
+            const safeFilename = headerText.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-');
+            a.download = `banner-${safeFilename}.png`;
+            
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
