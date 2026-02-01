@@ -1246,6 +1246,11 @@
           
           // Convert canvas to blob and download
           canvas.toBlob((blob) => {
+            if (!blob) {
+              console.error('Failed to convert canvas to PNG blob');
+              return;
+            }
+            
             const downloadUrl = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = downloadUrl;
@@ -1264,8 +1269,8 @@
           }, 'image/png');
         };
         
-        img.onerror = () => {
-          console.error('Failed to load SVG image');
+        img.onerror = (e) => {
+          console.error('Failed to load SVG image for conversion. URL:', url, 'Error:', e);
         };
         
         img.src = svgDataUrl;
