@@ -13,7 +13,7 @@ I believe every repository deserves to look beautiful. Your code is art, your pr
 - 💧 **Opacity Control** - 8-digit hex codes with alpha channel (RRGGBBAA)
 - 🔤 **Google Fonts Integration** - Use any font from Google Fonts for custom typography
 - 😀 **Native Emoji** - Full emoji support with proper rendering
-- 📥 **SVG Download** - Download banners directly from the UI
+- 📥 **SVG & PNG Download** - Download banners as SVG or PNG directly from the UI
 - ⚡ **Lightning Fast** - Built with Hono framework for optimal performance
 - 🔒 **Secure** - Input sanitization and validation
 - 🚀 **Edge-Ready** - Deploy to modern platforms like Railway
