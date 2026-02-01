@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { buildBannerSVG } from '../banner/svg-template.js';
-import { sanitizeHeader, isValidHexColor } from '../utils/sanitize.js';
+import { sanitizeHeader, sanitizeFontName, isValidHexColor } from '../utils/sanitize.js';
 
 const bannerRoute = new Hono();
 
@@ -11,6 +11,7 @@ bannerRoute.get('/banner', async (c) => {
   const colorParam = c.req.query('color') || '';
   const subheaderColorParam = c.req.query('subheadercolor') || '';
   const supportParam = c.req.query('support') || '';
+  const fontParam = c.req.query('font') || '';
 
   const header = sanitizeHeader(rawHeader, 50);
   const subheader = rawSubheader ? sanitizeHeader(rawSubheader, 60) : undefined;
@@ -80,6 +81,9 @@ bannerRoute.get('/banner', async (c) => {
       : undefined;
 
   const showWatermark = supportParam === 'true';
+  
+  // Sanitize and validate font parameter
+  const googleFont = fontParam ? sanitizeFontName(fontParam, 50) : undefined;
 
   const svg = await buildBannerSVG({
     header,
@@ -88,6 +92,7 @@ bannerRoute.get('/banner', async (c) => {
     textColor,
     subheaderColor,
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    googleFont,
     showWatermark,
   });
 
