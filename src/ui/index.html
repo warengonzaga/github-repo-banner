@@ -699,10 +699,11 @@
         </div>
 
         <div class="content-section">
-          <h2>Markdown Output</h2>
+          <h2>Output</h2>
           <div class="output-row">
             <input type="text" id="markdown" readonly />
-            <button id="copy-btn">Copy</button>
+            <button id="copy-btn">Copy Markdown</button>
+            <button id="copy-url-btn">Copy Image URL</button>
             <button id="download-btn">Download SVG</button>
             <button id="download-png-btn">Download PNG</button>
           </div>
@@ -899,6 +900,7 @@
     const previewImg = document.getElementById('preview');
     const markdownInput = document.getElementById('markdown');
     const copyBtn = document.getElementById('copy-btn');
+    const copyUrlBtn = document.getElementById('copy-url-btn');
     const downloadBtn = document.getElementById('download-btn');
     const downloadPngBtn = document.getElementById('download-png-btn');
     const bgInput = document.getElementById('bg-input');
@@ -1191,8 +1193,50 @@
         copyBtn.textContent = 'Copied!';
         copyBtn.classList.add('copied');
         setTimeout(() => {
-          copyBtn.textContent = 'Copy';
+          copyBtn.textContent = 'Copy Markdown';
           copyBtn.classList.remove('copied');
+        }, 2000);
+      });
+    });
+
+    copyUrlBtn.addEventListener('click', () => {
+      // Build URL without support parameter
+      const params = new URLSearchParams();
+      const header = headerInput.value || 'Hello World';
+      params.set('header', header);
+      const subheader = subheaderInput.value.trim();
+      if (subheader) {
+        params.set('subheader', subheader);
+      }
+      
+      // Use preset bg if active (gradient or transparent), otherwise custom hex
+      if (currentPreset) {
+        params.set('bg', currentPreset.bg);
+      } else {
+        // Custom background color
+        const bgHex = getBgHex();
+        if (bgHex) {
+          params.set('bg', bgHex);
+        }
+      }
+      
+      const hex = getColorHex();
+      if (hex) {
+        params.set('color', hex);
+      }
+      const subHex = getSubheaderColorHex();
+      if (subHex && subheader) {
+        params.set('subheadercolor', subHex);
+      }
+      // Note: We intentionally do NOT include the support parameter here
+      
+      const imageUrl = window.location.origin + '/banner?' + params.toString();
+      navigator.clipboard.writeText(imageUrl).then(() => {
+        copyUrlBtn.textContent = 'Copied!';
+        copyUrlBtn.classList.add('copied');
+        setTimeout(() => {
+          copyUrlBtn.textContent = 'Copy Image URL';
+          copyUrlBtn.classList.remove('copied');
         }, 2000);
       });
     });
