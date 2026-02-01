@@ -48,35 +48,94 @@ function buildWatermark(): string {
 }
 
 /**
- * Fetch and embed Google Fonts CSS directly in SVG
+ * Fetch a font file and return it as a base64 data URI.
+ */
+async function fetchFontAsBase64(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch font: ${response.status}`);
+  const buffer = await response.arrayBuffer();
+  const base64 = Buffer.from(buffer).toString('base64');
+  // Determine MIME type from URL
+  const mime = url.includes('.woff2')
+    ? 'font/woff2'
+    : url.includes('.woff')
+      ? 'font/woff'
+      : url.includes('.ttf')
+        ? 'font/ttf'
+        : 'application/octet-stream';
+  return `data:${mime};base64,${base64}`;
+}
+
+/**
+ * Fetch and embed Google Fonts CSS with inlined font data directly in SVG.
+ * Font files are fetched and converted to base64 data URIs so the SVG
+ * is fully self-contained and works in contexts that block external resources
+ * (e.g., GitHub README img tags, PNG conversion).
  * Note: Font names are already sanitized in the route handler
  */
 async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string): Promise<string> {
   const fonts = new Set<string>();
   if (headerFont) fonts.add(headerFont);
   if (subheaderFont) fonts.add(subheaderFont);
-  
+
   if (fonts.size === 0) return '';
-  
+
   try {
     // Build Google Fonts URL with weights for better rendering
     const fontFamilies = Array.from(fonts)
       .map(font => `family=${encodeURIComponent(font)}:wght@400;700`)
       .join('&');
-    
+
     const fontUrl = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
-    
+
     console.log('Fetching Google Fonts:', fontUrl);
-    
-    // Fetch the CSS from Google Fonts
-    const response = await fetch(fontUrl);
+
+    // Fetch the CSS with a browser User-Agent to get woff2 format (smaller files)
+    const response = await fetch(fontUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    });
     if (!response.ok) {
       console.error('Google Fonts fetch failed:', response.status);
       return '';
     }
-    
-    const css = await response.text();
+
+    let css = await response.text();
     console.log('Google Fonts CSS length:', css.length);
+
+    // Extract all external font url() references and replace with inline base64 data URIs
+    // This makes the SVG self-contained so fonts work everywhere
+    const urlPattern = /url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g;
+    const matches = [...css.matchAll(urlPattern)];
+
+    if (matches.length > 0) {
+      // Deduplicate URLs (same font file may appear multiple times)
+      const uniqueUrls = [...new Set(matches.map(m => m[1]))];
+
+      // Fetch all unique font files in parallel
+      const urlToDataUri = new Map<string, string>();
+      const results = await Promise.allSettled(
+        uniqueUrls.map(async (url) => {
+          const dataUri = await fetchFontAsBase64(url);
+          urlToDataUri.set(url, dataUri);
+        })
+      );
+
+      // Log any failures
+      results.forEach((result, i) => {
+        if (result.status === 'rejected') {
+          console.error('Failed to inline font file:', uniqueUrls[i], result.reason);
+        }
+      });
+
+      // Replace all external URLs with their base64 data URIs
+      css = css.replace(urlPattern, (_match, url) => {
+        const dataUri = urlToDataUri.get(url);
+        return dataUri ? `url(${dataUri})` : `url(${url})`;
+      });
+    }
+
     return `<style>${css}</style>`;
   } catch (error) {
     // If fetch fails, gracefully fallback to no custom fonts
