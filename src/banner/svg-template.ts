@@ -49,16 +49,13 @@ function buildWatermark(): string {
 
 /**
  * Build Google Fonts style import for embedding in SVG
+ * Note: Font name is already sanitized in the route handler
  */
 function buildGoogleFontsStyle(googleFont?: string): string {
   if (!googleFont) return '';
   
-  // Sanitize font name - remove any potentially dangerous characters
-  const safeFontName = googleFont.replace(/[^a-zA-Z0-9\s+]/g, '');
-  if (!safeFontName) return '';
-  
   // Build Google Fonts URL with weights for better rendering
-  const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(safeFontName)}:wght@400;700&display=swap`;
+  const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(googleFont)}:wght@400;700&display=swap`;
   
   return `@import url('${fontUrl}');`;
 }
@@ -152,8 +149,9 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   const watermark = showWatermark ? buildWatermark() : '';
   
   // Determine font family to use - Google Font if specified, otherwise default
+  // Escape the font name for safe insertion into CSS
   const actualFontFamily = googleFont 
-    ? `'${googleFont}', ${fontFamily}`
+    ? `'${escapeXml(googleFont)}', ${fontFamily}`
     : fontFamily;
   
   // Build Google Fonts import style if needed
