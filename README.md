@@ -12,7 +12,7 @@ I believe every repository deserves to look beautiful. Your code is art, your pr
 - 🌈 **Gradient Support** - Create custom gradients using `bg=HEX1-HEX2` format
 - 💧 **Opacity Control** - 8-digit hex codes with alpha channel (RRGGBBAA)
 - 😀 **Native Emoji** - Full emoji support with proper rendering
-- 📥 **SVG Download** - Download banners directly from the UI
+- 📥 **SVG & PNG Download** - Download banners as SVG or PNG directly from the UI
 - ⚡ **Lightning Fast** - Built with Hono framework for optimal performance
 - 🔒 **Secure** - Input sanitization and validation
 - 🚀 **Edge-Ready** - Deploy to modern platforms like Railway
