@@ -148,6 +148,39 @@
       border-bottom: 1px solid #21262d;
     }
 
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.875rem 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 768px) {
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .settings-grid .form-group {
+      margin-bottom: 0;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .settings-grid .form-group {
+      margin-bottom: 0;
+    }
+
     .form-group {
       margin-bottom: 0.625rem;
     }
@@ -234,7 +267,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 0.5rem;
-      margin-bottom: 1rem;
+      margin-bottom: 2rem;
     }
 
     .bg-option {
@@ -411,15 +444,58 @@
       }
     }
 
-    .output-row {
+    .output-container {
       display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .output-container textarea {
+      width: 100%;
+      height: auto;
+      min-height: 40px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+      font-size: 0.875rem;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 0.75rem;
+      color: #c9d1d9;
+      outline: none;
+      transition: border-color 0.15s;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      overflow: hidden;
+    }
+
+    .output-container textarea:focus {
+      border-color: #1f6feb;
+      box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.1);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .button-row button {
+      flex: 1;
+      min-width: fit-content;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       gap: 0.5rem;
     }
 
-    .output-row input {
-      flex: 1;
-      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-      font-size: 0.75rem;
+    .button-row button svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+      flex-shrink: 0;
     }
 
     button {
@@ -431,12 +507,23 @@
       font-size: 0.875rem;
       font-weight: 500;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: all 0.15s;
       white-space: nowrap;
     }
 
     button:hover {
       background: #2ea043;
+    }
+
+    button.secondary {
+      background: #0d1117;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+    }
+
+    button.secondary:hover {
+      background: rgba(31, 111, 235, 0.05);
+      border-color: #58a6ff;
     }
 
     .copied {
@@ -700,12 +787,37 @@
 
         <div class="content-section">
           <h2>Output</h2>
-          <div class="output-row">
-            <input type="text" id="markdown" readonly />
-            <button id="copy-btn">Copy Markdown</button>
-            <button id="copy-url-btn">Copy Image URL</button>
-            <button id="download-btn">Download SVG</button>
-            <button id="download-png-btn">Download PNG</button>
+          <div class="output-container">
+            <textarea id="markdown" readonly></textarea>
+            <div class="button-row">
+              <button id="copy-btn">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                  <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                </svg>
+                Copy Markdown
+              </button>
+              <button id="copy-url-btn" class="secondary">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path>
+                </svg>
+                Copy Image URL
+              </button>
+              <button id="download-btn" class="secondary">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"></path>
+                  <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"></path>
+                </svg>
+                Download SVG
+              </button>
+              <button id="download-png-btn" class="secondary">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"></path>
+                  <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"></path>
+                </svg>
+                Download PNG
+              </button>
+            </div>
           </div>
 
           <div class="form-group" style="margin-top: 1.5rem;">
@@ -729,6 +841,7 @@
         <div class="content-section">
           <h2>Settings</h2>
         
+        <div class="settings-grid">
         <div class="form-group">
           <label for="header">Header Text</label>
           <input type="text" id="header" value="Hello World" placeholder="🚀 My Awesome Project" maxlength="50" />
@@ -767,7 +880,18 @@
         </div>
 
         <div class="form-group">
-          <label for="color-input">Text Color</label>
+          <label for="bg-input-2">Background Color 2 (optional for gradient)</label>
+          <div class="color-row">
+            <div class="hex-input-group">
+              <span class="hex-prefix">#</span>
+              <input type="text" id="bg-input-2" value="4a4a4a" placeholder="leave empty for solid" maxlength="6" />
+            </div>
+            <span class="color-preview" id="bg-preview-2"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="color-input">Header Text Color</label>
           <div class="color-row">
             <div class="hex-input-group">
               <span class="hex-prefix">#</span>
@@ -786,6 +910,7 @@
             </div>
             <span class="color-preview" id="subheader-color-preview"></span>
           </div>
+        </div>
         </div>
 
         <div class="form-group">
@@ -810,8 +935,14 @@
           </button>
         </div>
         <div class="bg-option">
-          <button type="button" class="preset-btn" data-bg="dbeafe" data-color="3b82f6">
-            <span class="swatch" style="background: #dbeafe;"></span>
+          <button type="button" class="preset-btn" data-bg="E7F9FF-90C4E8" data-color="0060A0" data-gradient="true">
+            <span class="swatch" style="background: linear-gradient(90deg, #E7F9FF, #90C4E8);"></span>
+            OSSPH
+          </button>
+        </div>
+        <div class="bg-option">
+          <button type="button" class="preset-btn" data-bg="87CEEB" data-color="1e3a8a">
+            <span class="swatch" style="background: #87CEEB;"></span>
             Sky
           </button>
         </div>
@@ -825,6 +956,12 @@
           <button type="button" class="preset-btn" data-bg="fde8e3" data-color="de7356">
             <span class="swatch" style="background: #fde8e3;"></span>
             Claude
+          </button>
+        </div>
+        <div class="bg-option">
+          <button type="button" class="preset-btn" data-bg="10a37f" data-color="ffffff">
+            <span class="swatch" style="background: #10a37f;"></span>
+            GPT
           </button>
         </div>
         <div class="bg-option">
@@ -920,7 +1057,9 @@
     const downloadBtn = document.getElementById('download-btn');
     const downloadPngBtn = document.getElementById('download-png-btn');
     const bgInput = document.getElementById('bg-input');
+    const bgInput2 = document.getElementById('bg-input-2');
     const bgPreview = document.getElementById('bg-preview');
+    const bgPreview2 = document.getElementById('bg-preview-2');
     const colorInput = document.getElementById('color-input');
     const colorPreview = document.getElementById('color-preview');
     const subheaderColorInput = document.getElementById('subheader-color-input');
@@ -1036,6 +1175,12 @@
       return '';
     }
 
+    function getBgHex2() {
+      const val = bgInput2.value.trim().replace(/^#/, '');
+      if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/.test(val)) return val;
+      return '';
+    }
+
     function getColorHex() {
       const val = colorInput.value.trim().replace(/^#/, '');
       if (/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/.test(val)) return val;
@@ -1055,6 +1200,14 @@
         bgPreview.style.background = '#' + bgHex;
       } else {
         bgPreview.style.background = 'transparent';
+      }
+
+      // Background 2 preview
+      const bgHex2 = getBgHex2();
+      if (bgHex2) {
+        bgPreview2.style.background = '#' + bgHex2;
+      } else {
+        bgPreview2.style.background = 'transparent';
       }
 
       // Text color preview
@@ -1094,15 +1247,16 @@
         params.set('subheader', subheader);
       }
       
-      // Use preset bg if active (gradient or transparent), otherwise custom hex
-      if (currentPreset) {
-        params.set('bg', currentPreset.bg);
-      } else {
-        // Custom background color
-        const bgHex = getBgHex();
-        if (bgHex) {
-          params.set('bg', bgHex);
-        }
+      // Check if second bg exists to determine gradient or solid
+      const bgHex = getBgHex();
+      const bgHex2 = getBgHex2();
+      
+      if (bgHex2) {
+        // Gradient: two colors
+        params.set('bg', bgHex + '-' + bgHex2);
+      } else if (bgHex) {
+        // Solid: one color
+        params.set('bg', bgHex);
       }
       
       const hex = getColorHex();
@@ -1131,6 +1285,13 @@
       return '/banner?' + params.toString();
     }
 
+    function autoResizeTextarea() {
+      // Reset to min-height first to allow proper shrinking
+      markdownInput.style.height = '40px';
+      // Then set to content height
+      markdownInput.style.height = markdownInput.scrollHeight + 'px';
+    }
+
     function update() {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
@@ -1140,12 +1301,13 @@
         const fullUrl = window.location.origin + url;
         let markdown = '![GitHub Repo Banner](' + fullUrl + ')';
         
-        // Add credit comment when support is enabled
+        // Add attribution as a new line when support is enabled
         if (supportCheckbox.checked) {
           markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
         }
         
         markdownInput.value = markdown;
+        autoResizeTextarea();
       }, 300);
     }
 
@@ -1176,17 +1338,15 @@
         
         // Populate input fields based on preset type
         if (isGradient) {
-          // For gradients, show the gradient hex codes
+          // For gradients, populate both bg fields
           const [startHex, endHex] = bgValue.split('-');
           bgInput.value = startHex;
-          bgInput.placeholder = `Gradient: ${startHex}-${endHex}`;
-          bgInput.disabled = true;
+          bgInput2.value = endHex;
           colorInput.value = colorValue;
         } else {
           // For solid colors (including transparent)
           bgInput.value = bgValue;
-          bgInput.placeholder = 'e.g. f3f4f6 or 00000000';
-          bgInput.disabled = false;
+          bgInput2.value = ''; // Clear second bg for solid
           colorInput.value = colorValue;
         }
         
@@ -1198,16 +1358,19 @@
     // When user manually edits, clear preset selection
     bgInput.addEventListener('input', () => {
       clearActivePresets();
-      bgInput.disabled = false;
-      bgInput.placeholder = 'e.g. f3f4f6';
+      currentPreset = null;
+      updateColorPreview();
+      update();
+    });
+
+    bgInput2.addEventListener('input', () => {
+      clearActivePresets();
+      currentPreset = null;
       updateColorPreview();
       update();
     });
 
     colorInput.addEventListener('input', () => {
-      clearActivePresets();
-      bgInput.disabled = false;
-      bgInput.placeholder = 'e.g. f3f4f6';
       updateColorPreview();
       update();
     });
@@ -1406,6 +1569,7 @@
         markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
       }
       markdownInput.value = markdown;
+      autoResizeTextarea();
     })();
   </script>
 </body>

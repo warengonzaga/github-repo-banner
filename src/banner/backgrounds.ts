@@ -31,12 +31,22 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
     ],
     defaultTextColor: '#ffffff',
   },
+  'gradient-ossph': {
+    id: 'gradient-ossph',
+    name: 'OSSPH',
+    type: 'gradient',
+    stops: [
+      { offset: '0%', color: '#E7F9FF' },
+      { offset: '100%', color: '#90C4E8' },
+    ],
+    defaultTextColor: '#0060A0',
+  },
   'solid-lightblue': {
     id: 'solid-lightblue',
     name: 'Sky',
     type: 'solid',
-    color: '#dbeafe',
-    defaultTextColor: '#3b82f6',
+    color: '#87CEEB',
+    defaultTextColor: '#1e3a8a',
   },
   'solid-salmon': {
     id: 'solid-salmon',
@@ -51,6 +61,13 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
     type: 'solid',
     color: '#fde8e3',
     defaultTextColor: '#DE7356',
+  },
+  'solid-gpt': {
+    id: 'solid-gpt',
+    name: 'GPT',
+    type: 'solid',
+    color: '#10a37f',
+    defaultTextColor: '#ffffff',
   },
   'solid-lightgray': {
     id: 'solid-lightgray',

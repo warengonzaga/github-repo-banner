@@ -48,24 +48,41 @@ function buildWatermark(): string {
 }
 
 /**
- * Build Google Fonts style import for embedding in SVG
+ * Fetch and embed Google Fonts CSS directly in SVG
  * Note: Font names are already sanitized in the route handler
  */
-function buildGoogleFontsStyles(headerFont?: string, subheaderFont?: string): string {
+async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string): Promise<string> {
   const fonts = new Set<string>();
   if (headerFont) fonts.add(headerFont);
   if (subheaderFont) fonts.add(subheaderFont);
   
   if (fonts.size === 0) return '';
   
-  // Build Google Fonts URL with weights for better rendering
-  const fontFamilies = Array.from(fonts)
-    .map(font => `family=${encodeURIComponent(font)}:wght@400;700`)
-    .join('&');
-  
-  const fontUrl = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
-  
-  return `@import url('${fontUrl}');`;
+  try {
+    // Build Google Fonts URL with weights for better rendering
+    const fontFamilies = Array.from(fonts)
+      .map(font => `family=${encodeURIComponent(font)}:wght@400;700`)
+      .join('&');
+    
+    const fontUrl = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
+    
+    console.log('Fetching Google Fonts:', fontUrl);
+    
+    // Fetch the CSS from Google Fonts
+    const response = await fetch(fontUrl);
+    if (!response.ok) {
+      console.error('Google Fonts fetch failed:', response.status);
+      return '';
+    }
+    
+    const css = await response.text();
+    console.log('Google Fonts CSS length:', css.length);
+    return `<style>${css}</style>`;
+  } catch (error) {
+    // If fetch fails, gracefully fallback to no custom fonts
+    console.error('Google Fonts error:', error);
+    return '';
+  }
 }
 
 /**
@@ -167,20 +184,20 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     ? `'${escapeXml(subheaderFont)}', ${fontFamily}`
     : fontFamily;
   
-  // Build Google Fonts import style if needed
-  const googleFontsStyle = buildGoogleFontsStyles(headerFont, subheaderFont);
+  // Fetch and embed Google Fonts CSS if needed
+  const googleFontsStyle = await buildGoogleFontsStyle(headerFont, subheaderFont);
 
   // Use foreignObject with HTML — browser renders text + emoji natively
   const subColorValue = subheaderColor || textColor;
 
   const htmlContent = hasSubheader
     ? `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${WIDTH}px;height:${HEIGHT}px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:${VERTICAL_PAD}px ${MARGIN}px;box-sizing:border-box;">
-  ${googleFontsStyle ? `<style>${googleFontsStyle}</style>` : ''}
+  ${googleFontsStyle}
   <div style="font-family:${escapeXml(headerFontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${escapeXml(header)}</div>
   <div style="font-family:${escapeXml(subheaderFontFamily)};font-size:${effSubSize}px;font-weight:400;color:${subColorValue};line-height:1;text-align:center;white-space:nowrap;margin-top:${effGap}px;">${escapeXml(subheader!)}</div>
 </div>`
     : `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${WIDTH}px;height:${HEIGHT}px;display:flex;align-items:center;justify-content:center;padding:0 ${MARGIN}px;box-sizing:border-box;">
-  ${googleFontsStyle ? `<style>${googleFontsStyle}</style>` : ''}
+  ${googleFontsStyle}
   <div style="font-family:${escapeXml(headerFontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${escapeXml(header)}</div>
 </div>`;
 
