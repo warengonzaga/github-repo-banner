@@ -141,7 +141,7 @@ The UI includes presets for quick access:
 
 **Gradients**: `1a1a1a-4a4a4a` (Midnight) • `ec4899-3b82f6` (Vibe) • `14b8a6-06b6d4` (Ocean)
 
-**Solids**: `dbeafe`/`3b82f6` (Sky) • `fee2e2`/`bb2c2c` (Molty) • `fde8e3`/`de7356` (Claude) • `f3f4f6`/`1f2937` (Minimal)
+**Solids**: `dbeafe`/`3b82f6` (OSSPH) • `fee2e2`/`bb2c2c` (Molty) • `fde8e3`/`de7356` (Claude) • `f3f4f6`/`1f2937` (Minimal)
 
 **Special**: `00000000`/`ffffff` (Transparent)
 
