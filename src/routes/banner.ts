@@ -13,6 +13,7 @@ bannerRoute.get('/banner', async (c) => {
   const supportParam = c.req.query('support') || '';
   const headerFontParam = c.req.query('headerfont') || '';
   const subheaderFontParam = c.req.query('subheaderfont') || '';
+  const watermarkPosParam = c.req.query('watermarkpos') || 'bottom-right';
 
   const header = sanitizeHeader(rawHeader, 50);
   const subheader = rawSubheader ? sanitizeHeader(rawSubheader, 60) : undefined;
@@ -83,6 +84,10 @@ bannerRoute.get('/banner', async (c) => {
 
   const showWatermark = supportParam === 'true';
   
+  // Validate watermark position
+  const validPositions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+  const watermarkPosition = validPositions.includes(watermarkPosParam) ? watermarkPosParam : 'bottom-right';
+  
   // Sanitize and validate font parameters
   const headerFont = headerFontParam ? sanitizeFontName(headerFontParam, 50) : undefined;
   const subheaderFont = subheaderFontParam ? sanitizeFontName(subheaderFontParam, 50) : undefined;
@@ -97,6 +102,7 @@ bannerRoute.get('/banner', async (c) => {
     headerFont,
     subheaderFont,
     showWatermark,
+    watermarkPosition,
   });
 
   const isDev = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';

@@ -28,7 +28,7 @@ function buildBackground(bg: BackgroundPreset): string {
   return `<rect width="${WIDTH}" height="${HEIGHT}" fill="${fill}" />`;
 }
 
-function buildWatermark(): string {
+function buildWatermark(position: string = 'bottom-right'): string {
   const text = 'made with ghrb.waren.build';
   const fontSize = 16;
   const rectPaddingX = 8;
@@ -36,14 +36,46 @@ function buildWatermark(): string {
   const textWidth = text.length * fontSize * 0.55;
   const rectWidth = textWidth + rectPaddingX * 2;
   const rectHeight = fontSize + rectPaddingY * 2;
-  const rectX = WIDTH - rectWidth;
-  const rectY = HEIGHT - rectHeight;
-  const textX = rectX + rectPaddingX + textWidth;
+  
+  // Calculate position based on parameter
+  let rectX: number;
+  let rectY: number;
+  let textAnchor: string;
+  let textXOffset: number;
+  
+  switch (position) {
+    case 'top-left':
+      rectX = 0;
+      rectY = 0;
+      textAnchor = 'start';
+      textXOffset = rectX + rectPaddingX;
+      break;
+    case 'top-right':
+      rectX = WIDTH - rectWidth;
+      rectY = 0;
+      textAnchor = 'end';
+      textXOffset = rectX + rectPaddingX + textWidth;
+      break;
+    case 'bottom-left':
+      rectX = 0;
+      rectY = HEIGHT - rectHeight;
+      textAnchor = 'start';
+      textXOffset = rectX + rectPaddingX;
+      break;
+    case 'bottom-right':
+    default:
+      rectX = WIDTH - rectWidth;
+      rectY = HEIGHT - rectHeight;
+      textAnchor = 'end';
+      textXOffset = rectX + rectPaddingX + textWidth;
+      break;
+  }
+  
   const textY = rectY + rectPaddingY + fontSize * 0.8;
 
   return `<g opacity="0.6">
   <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="#000000" fill-opacity="0.3" />
-  <text x="${textX}" y="${textY}" text-anchor="end" font-family="monospace, sans-serif" font-size="${fontSize}" font-weight="500" fill="#f5f5f5">${text}</text>
+  <text x="${textXOffset}" y="${textY}" text-anchor="${textAnchor}" font-family="monospace, sans-serif" font-size="${fontSize}" font-weight="500" fill="#f5f5f5">${text}</text>
 </g>`;
 }
 
@@ -203,6 +235,7 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     headerFont,
     subheaderFont,
     showWatermark = false,
+    watermarkPosition = 'bottom-right',
   } = options;
 
   const hasSubheader = !!subheader;
@@ -231,7 +264,7 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
 
   const defs = buildGradientDef(background);
   const bgRect = buildBackground(background);
-  const watermark = showWatermark ? buildWatermark() : '';
+  const watermark = showWatermark ? buildWatermark(watermarkPosition) : '';
   
   // Determine font families to use - Google Font if specified, otherwise default
   // Escape the font names for safe insertion into CSS

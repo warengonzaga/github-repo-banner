@@ -24,4 +24,5 @@ export interface BannerOptions {
   headerFont?: string;
   subheaderFont?: string;
   showWatermark?: boolean;
+  watermarkPosition?: string;
 }

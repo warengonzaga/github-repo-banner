@@ -365,6 +365,54 @@
       fill: currentColor;
     }
 
+    .position-selector {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .position-selector.visible {
+      display: block;
+    }
+
+    .position-selector-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #7d8590;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .position-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    .position-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #c9d1d9;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .position-btn:hover {
+      border-color: #58a6ff;
+      background: rgba(31, 111, 235, 0.05);
+    }
+
+    .position-btn.active {
+      border-color: #1f6feb;
+      background: rgba(31, 111, 235, 0.1);
+    }
+
     .swatch {
       width: 24px;
       height: 24px;
@@ -894,6 +942,16 @@
               </div>
               <span class="toggle-switch"></span>
             </label>
+            
+            <div class="position-selector" id="position-selector">
+              <span class="position-selector-label">Watermark Position</span>
+              <div class="position-options">
+                <button type="button" class="position-btn active" data-position="bottom-right">Bottom Right</button>
+                <button type="button" class="position-btn" data-position="bottom-left">Bottom Left</button>
+                <button type="button" class="position-btn" data-position="top-right">Top Right</button>
+                <button type="button" class="position-btn" data-position="top-left">Top Left</button>
+              </div>
+            </div>
           </div>
 
           <div class="form-group" id="sponsor-link" style="margin-top: 1rem;">
@@ -1149,9 +1207,12 @@
     const sponsorNotice = document.querySelector('.sponsor-notice');
     const presetBtns = document.querySelectorAll('.preset-btn');
     const resetBtn = document.getElementById('reset-btn');
+    const positionSelector = document.getElementById('position-selector');
+    const positionBtns = document.querySelectorAll('.position-btn');
 
     let debounceTimer;
     let currentPreset = null;
+    let watermarkPosition = 'bottom-right';
 
     function createEmojiExplosion(emojis, count = 6) {
       const toggleSwitch = document.querySelector('.toggle-switch');
@@ -1194,6 +1255,9 @@
         sponsorMessage.innerHTML = '🙏 Thank you for your support! If you\'d like to go further, I\'d be incredibly grateful for any <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener">sponsorship</a> 💝';
         sponsorLink.style.display = 'block';
         
+        // Show position selector
+        positionSelector.classList.add('visible');
+        
         // Trigger emoji explosion with mix of appreciation emojis
         if (animate) {
           createEmojiExplosion(['💖', '🙏', '🫡', '👍'], 6);
@@ -1203,6 +1267,9 @@
         sponsorNotice.classList.remove('thank-you');
         sponsorMessage.innerHTML = '💝 Want a clean, brand-free banner? A <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener">sponsorship</a> would mean the world to me! It keeps this tool free for everyone.';
         sponsorLink.style.display = 'block';
+        
+        // Hide position selector
+        positionSelector.classList.remove('visible');
         
         // Trigger sad emoji explosion - much slower and longer reach
         if (animate) {
@@ -1357,6 +1424,7 @@
       
       if (supportCheckbox.checked) {
         params.set('support', 'true');
+        params.set('watermarkpos', watermarkPosition);
       }
       return '/banner?' + params.toString();
     }
@@ -1470,6 +1538,20 @@
       update();
     });
 
+    // Position selector buttons
+    positionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Remove active class from all position buttons
+        positionBtns.forEach(b => b.classList.remove('active'));
+        // Add active class to clicked button
+        btn.classList.add('active');
+        // Update watermark position
+        watermarkPosition = btn.dataset.position;
+        // Update preview
+        update();
+      });
+    });
+
     resetBtn.addEventListener('click', () => {
       // Reset all form fields to defaults
       headerInput.value = 'Hello World 👋';
@@ -1481,6 +1563,16 @@
       colorInput.value = 'FFFFFF';
       subheaderColorInput.value = '';
       supportCheckbox.checked = false;
+      
+      // Reset watermark position
+      watermarkPosition = 'bottom-right';
+      positionBtns.forEach(btn => {
+        if (btn.dataset.position === 'bottom-right') {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
       
       // Reset to Midnight preset
       clearActivePresets();
