@@ -1270,8 +1270,8 @@
             
             // Generate safe filename from header, with fallback
             const headerText = headerInput.value.trim() || 'banner';
-            const safeFilename = headerText.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-');
-            a.download = `banner-${safeFilename}.png`;
+            const safeFilename = headerText.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+            a.download = `banner-${safeFilename || 'download'}.png`;
             
             document.body.appendChild(a);
             a.click();
