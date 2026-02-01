@@ -21,5 +21,7 @@ export interface BannerOptions {
   textColor: string;
   subheaderColor?: string;
   fontFamily: string;
+  headerFont?: string;
+  subheaderFont?: string;
   showWatermark?: boolean;
 }

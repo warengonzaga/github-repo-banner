@@ -48,6 +48,27 @@ function buildWatermark(): string {
 }
 
 /**
+ * Build Google Fonts style import for embedding in SVG
+ * Note: Font names are already sanitized in the route handler
+ */
+function buildGoogleFontsStyles(headerFont?: string, subheaderFont?: string): string {
+  const fonts = new Set<string>();
+  if (headerFont) fonts.add(headerFont);
+  if (subheaderFont) fonts.add(subheaderFont);
+  
+  if (fonts.size === 0) return '';
+  
+  // Build Google Fonts URL with weights for better rendering
+  const fontFamilies = Array.from(fonts)
+    .map(font => `family=${encodeURIComponent(font)}:wght@400;700`)
+    .join('&');
+  
+  const fontUrl = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
+  
+  return `@import url('${fontUrl}');`;
+}
+
+/**
  * Estimate text width for font sizing decisions.
  * Properly accounts for emojis which render wider than text.
  */
@@ -103,6 +124,8 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     textColor,
     subheaderColor,
     fontFamily,
+    headerFont,
+    subheaderFont,
     showWatermark = false,
   } = options;
 
@@ -133,17 +156,32 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   const defs = buildGradientDef(background);
   const bgRect = buildBackground(background);
   const watermark = showWatermark ? buildWatermark() : '';
+  
+  // Determine font families to use - Google Font if specified, otherwise default
+  // Escape the font names for safe insertion into CSS
+  const headerFontFamily = headerFont 
+    ? `'${escapeXml(headerFont)}', ${fontFamily}`
+    : fontFamily;
+  
+  const subheaderFontFamily = subheaderFont
+    ? `'${escapeXml(subheaderFont)}', ${fontFamily}`
+    : fontFamily;
+  
+  // Build Google Fonts import style if needed
+  const googleFontsStyle = buildGoogleFontsStyles(headerFont, subheaderFont);
 
   // Use foreignObject with HTML — browser renders text + emoji natively
   const subColorValue = subheaderColor || textColor;
 
   const htmlContent = hasSubheader
     ? `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${WIDTH}px;height:${HEIGHT}px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:${VERTICAL_PAD}px ${MARGIN}px;box-sizing:border-box;">
-  <div style="font-family:${escapeXml(fontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${escapeXml(header)}</div>
-  <div style="font-family:${escapeXml(fontFamily)};font-size:${effSubSize}px;font-weight:400;color:${subColorValue};line-height:1;text-align:center;white-space:nowrap;margin-top:${effGap}px;">${escapeXml(subheader!)}</div>
+  ${googleFontsStyle ? `<style>${googleFontsStyle}</style>` : ''}
+  <div style="font-family:${escapeXml(headerFontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${escapeXml(header)}</div>
+  <div style="font-family:${escapeXml(subheaderFontFamily)};font-size:${effSubSize}px;font-weight:400;color:${subColorValue};line-height:1;text-align:center;white-space:nowrap;margin-top:${effGap}px;">${escapeXml(subheader!)}</div>
 </div>`
     : `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${WIDTH}px;height:${HEIGHT}px;display:flex;align-items:center;justify-content:center;padding:0 ${MARGIN}px;box-sizing:border-box;">
-  <div style="font-family:${escapeXml(fontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${escapeXml(header)}</div>
+  ${googleFontsStyle ? `<style>${googleFontsStyle}</style>` : ''}
+  <div style="font-family:${escapeXml(headerFontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${escapeXml(header)}</div>
 </div>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">

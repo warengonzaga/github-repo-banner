@@ -733,8 +733,24 @@
         </div>
 
         <div class="form-group">
+          <label for="header-font-input">Header Font (Google Fonts)</label>
+          <input type="text" id="header-font-input" value="" placeholder="e.g. Roboto, Playfair Display, Poppins" maxlength="50" />
+          <p style="font-size: 0.75rem; color: #7d8590; margin-top: 0.5rem;">
+            Enter any font from <a href="https://fonts.google.com" target="_blank" rel="noopener" style="color: #58a6ff;">Google Fonts</a>. Leave empty for default.
+          </p>
+        </div>
+
+        <div class="form-group">
           <label for="subheader">Sub Header Text (optional)</label>
           <input type="text" id="subheader" value="" placeholder="A short description here" maxlength="60" />
+        </div>
+
+        <div class="form-group" id="subheader-font-group" style="display: none;">
+          <label for="subheader-font-input">Sub Header Font (Google Fonts)</label>
+          <input type="text" id="subheader-font-input" value="" placeholder="e.g. Roboto, Playfair Display, Poppins" maxlength="50" />
+          <p style="font-size: 0.75rem; color: #7d8590; margin-top: 0.5rem;">
+            Enter any font from <a href="https://fonts.google.com" target="_blank" rel="noopener" style="color: #58a6ff;">Google Fonts</a>. Leave empty for default.
+          </p>
         </div>
 
         <div class="form-group">
@@ -906,6 +922,9 @@
     const subheaderColorInput = document.getElementById('subheader-color-input');
     const subheaderColorPreview = document.getElementById('subheader-color-preview');
     const subheaderColorGroup = document.getElementById('subheader-color-group');
+    const headerFontInput = document.getElementById('header-font-input');
+    const subheaderFontInput = document.getElementById('subheader-font-input');
+    const subheaderFontGroup = document.getElementById('subheader-font-group');
     const supportCheckbox = document.getElementById('support');
     const sponsorLink = document.getElementById('sponsor-link');
     const sponsorMessage = document.getElementById('sponsor-message');
@@ -1056,9 +1075,10 @@
       currentPreset = null;
     }
 
-    function toggleSubheaderColor() {
+    function toggleSubheaderFields() {
       const hasSubheader = subheaderInput.value.trim().length > 0;
       subheaderColorGroup.style.display = hasSubheader ? 'block' : 'none';
+      subheaderFontGroup.style.display = hasSubheader ? 'block' : 'none';
     }
 
     function buildUrl() {
@@ -1089,6 +1109,18 @@
       if (subHex && subheader) {
         params.set('subheadercolor', subHex);
       }
+      
+      // Add font parameters if specified
+      const headerFont = headerFontInput.value.trim();
+      if (headerFont) {
+        params.set('headerfont', headerFont);
+      }
+      
+      const subheaderFont = subheaderFontInput.value.trim();
+      if (subheaderFont && subheader) {
+        params.set('subheaderfont', subheaderFont);
+      }
+      
       if (supportCheckbox.checked) {
         params.set('support', 'true');
       }
@@ -1115,9 +1147,11 @@
 
     headerInput.addEventListener('input', update);
     subheaderInput.addEventListener('input', () => {
-      toggleSubheaderColor();
+      toggleSubheaderFields();
       update();
     });
+    headerFontInput.addEventListener('input', update);
+    subheaderFontInput.addEventListener('input', update);
 
     // Preset buttons populate input fields
     presetBtns.forEach(btn => {
@@ -1234,7 +1268,7 @@
       }
       
       toggleSponsorLink(false); // Don't animate on initial load
-      toggleSubheaderColor();
+      toggleSubheaderFields();
       updateColorPreview();
       const url = buildUrl();
       previewImg.src = url + '&_t=' + Date.now();

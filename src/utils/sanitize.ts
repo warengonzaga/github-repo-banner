@@ -15,6 +15,16 @@ export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   return stripped.slice(0, maxLength);
 }
 
+/**
+ * Sanitize Google Font name
+ * Only allows alphanumeric, spaces, and plus signs (for multi-word fonts)
+ * Limits length to prevent abuse
+ */
+export function sanitizeFontName(raw: string, maxLength: number = 50): string {
+  const cleaned = raw.replace(/[^a-zA-Z0-9\s+]/g, '').trim();
+  return cleaned.slice(0, maxLength);
+}
+
 const HEX_COLOR_RE = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/;
 
 export function isValidHexColor(value: string): boolean {
