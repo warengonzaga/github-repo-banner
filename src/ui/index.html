@@ -704,7 +704,7 @@
             <input type="text" id="markdown" readonly />
             <button id="copy-btn">Copy</button>
             <button id="download-btn">Download SVG</button>
-            <button id="download-png-btn">Download PNG</button>
+            <button id="download-png-btn" aria-label="Download banner as PNG image">Download PNG</button>
           </div>
 
           <div class="form-group" style="margin-top: 1.5rem;">
@@ -1243,6 +1243,10 @@
           
           if (!ctx) {
             console.error('Failed to get 2D context from canvas');
+            downloadPngBtn.textContent = 'Download failed';
+            setTimeout(() => {
+              downloadPngBtn.textContent = 'Download PNG';
+            }, 2000);
             return;
           }
           
@@ -1253,6 +1257,10 @@
           canvas.toBlob((blob) => {
             if (!blob) {
               console.error('Failed to convert canvas to PNG blob');
+              downloadPngBtn.textContent = 'Download failed';
+              setTimeout(() => {
+                downloadPngBtn.textContent = 'Download PNG';
+              }, 2000);
               return;
             }
             
@@ -1281,11 +1289,19 @@
         
         img.onerror = (e) => {
           console.error('Failed to load SVG image for conversion. URL:', url, 'Error:', e);
+          downloadPngBtn.textContent = 'Download failed';
+          setTimeout(() => {
+            downloadPngBtn.textContent = 'Download PNG';
+          }, 2000);
         };
         
         img.src = svgDataUrl;
       } catch (error) {
         console.error('PNG download failed:', error);
+        downloadPngBtn.textContent = 'Download failed';
+        setTimeout(() => {
+          downloadPngBtn.textContent = 'Download PNG';
+        }, 2000);
       }
     });
 
