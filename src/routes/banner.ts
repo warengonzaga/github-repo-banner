@@ -8,7 +8,7 @@ const bannerRoute = new Hono();
 bannerRoute.get('/banner', async (c) => {
   // Track repository usage if stats enabled
   const referer = c.req.header('referer') || '';
-  const repoMatch = referer.match(/github\.com\/([^\/]+\/[^\/]+)/);
+  const repoMatch = referer.match(/github\.com\/([^\/]+\/[^\/]+)(?:\/|$)/);
 
   if (repoMatch && isStatsEnabled()) {
     const repo = repoMatch[1];
