@@ -79,6 +79,65 @@ Projects and organizations using GitHub Repo Banner:
 - [gogcli](https://github.com/steipete/gogcli) by [steipete](https://github.com/steipete) - Google in your terminal
 - [BetterGov PH](https://github.com/bettergovph/bettergov) - Making government services better for Filipinos
 
+## 🔒 Privacy & Transparency
+
+**Privacy by default.** This service does **NOT** track anything by default. If you're using the hosted version at `ghrb.waren.build`, stats tracking status is available at `/health`.
+
+### What We Track (When Enabled)
+- ✅ **Repository names only** - GitHub repository URLs from browser Referer headers
+- ✅ **Public data only** - Already publicly visible on GitHub
+
+### What We DON'T Track
+- ❌ No IP addresses
+- ❌ No personal information  
+- ❌ No user identities
+- ❌ No analytics or behavioral data
+- ❌ No cookies or tracking pixels
+- ❌ No timestamps or usage patterns
+
+### Why Track (When Enabled)
+Understanding which repositories use this service helps:
+- Gauge community value and impact
+- Make informed maintenance decisions
+- Justify resources for this free service
+
+### Your Data Rights
+- **Full transparency**: View tracked data at `/stats` (when enabled)
+- **Opt-out**: Self-host with stats disabled (default)
+- **Open source**: Review tracking code in this repository
+
+### Self-Hosting Privacy
+**Self-hosted instances have stats disabled by default.** To enable (optional):
+1. Set `ENABLE_STATS=true` in your `.env`
+2. Add Redis service to your Railway project
+3. See [Railway Deployment](#-railway-deployment) below
+
+## 🚂 Railway Deployment
+
+### Basic Deployment (Stats Disabled - Default)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/github-repo-banner?referralCode=KN9JqT)
+
+No additional configuration needed. The service runs without stats tracking.
+
+### With Stats Tracking (Optional)
+
+If you want to track which repositories use your instance:
+
+1. **Deploy the service** using the button above
+2. **Add Redis service** in Railway dashboard:
+   - Click "New" → "Database" → "Add Redis"
+   - Railway automatically sets `REDIS_URL`
+3. **Enable stats** in your service variables:
+   - Go to your service settings
+   - Add variable: `ENABLE_STATS=true`
+4. **Redeploy** your service
+
+**Accessing Stats:**
+- View at: `https://your-service.railway.app/stats`
+- Health check includes stats status: `https://your-service.railway.app/health`
+
+**Cost Note:** Redis on Railway has a free tier, then usage-based pricing. Stats tracking is lightweight and should stay within free limits for moderate traffic.
+
 ## 🔌 API Reference
 
 ### `GET /banner`
@@ -120,10 +179,51 @@ Interactive banner generator UI with live preview.
 
 ### `GET /health`
 
-Health check endpoint for monitoring.
+Health check endpoint for monitoring and stats status.
 
+**Response (stats disabled):**
 ```json
-{ "status": "ok", "timestamp": "2026-02-01T00:00:00.000Z" }
+{
+  "status": "ok",
+  "timestamp": "2026-02-01T00:00:00.000Z",
+  "stats": {
+    "enabled": false
+  }
+}
+```
+
+**Response (stats enabled):**
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-02-01T00:00:00.000Z",
+  "stats": {
+    "enabled": true,
+    "endpoint": "/stats"
+  }
+}
+```
+
+### `GET /stats`
+
+View repository tracking statistics (when enabled).
+
+**Response (stats disabled):**
+```json
+{
+  "enabled": false,
+  "message": "Stats tracking is disabled"
+}
+```
+
+**Response (stats enabled):**
+```json
+{
+  "enabled": true,
+  "totalRepositories": 42,
+  "repositories": ["owner/repo1", "owner/repo2"],
+  "note": "Only tracking public GitHub repositories using this service"
+}
 ```
 
 ## 🎨 Color Presets
@@ -157,7 +257,13 @@ pnpm start    # Start production server
 ```env
 PORT=3000              # Server port
 NODE_ENV=development   # Environment mode
+
+# Stats Tracking (disabled by default - privacy-first)
+ENABLE_STATS=false     # Set to 'true' to enable repository tracking
+REDIS_URL=             # Required only if ENABLE_STATS=true
 ```
+
+See `.env.example` for complete documentation.
 
 ### Security
 

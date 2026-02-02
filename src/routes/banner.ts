@@ -1,10 +1,22 @@
 import { Hono } from 'hono';
 import { buildBannerSVG } from '../banner/svg-template.js';
 import { sanitizeHeader, sanitizeFontName, isValidHexColor } from '../utils/sanitize.js';
+import { getRedis, isStatsEnabled } from '../config/redis.js';
 
 const bannerRoute = new Hono();
 
 bannerRoute.get('/banner', async (c) => {
+  // Track repository usage if stats enabled
+  const referer = c.req.header('referer') || '';
+  const repoMatch = referer.match(/github\.com\/([^\/]+\/[^\/]+)/);
+
+  if (repoMatch && isStatsEnabled()) {
+    const repo = repoMatch[1];
+    const redis = getRedis();
+    // Fire and forget - don't block banner generation
+    redis?.sadd('repos:tracked', repo).catch(() => {});
+  }
+
   const rawHeader = c.req.query('header') || 'Hello World';
   const rawSubheader = c.req.query('subheader') || '';
   const bgParam = c.req.query('bg') || '1a1a1a-4a4a4a'; // Default gradient
