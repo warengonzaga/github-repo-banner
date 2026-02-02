@@ -263,7 +263,7 @@ ENABLE_STATS=false     # Set to 'true' to enable repository tracking
 REDIS_URL=             # Required only if ENABLE_STATS=true
 ```
 
-See `.env.example` for complete documentation.
+See `.example.env` for complete documentation.
 
 ### Security
 
