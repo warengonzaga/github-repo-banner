@@ -14,7 +14,7 @@ bannerRoute.get('/banner', async (c) => {
     const repo = repoMatch[1];
     // Skip obvious non-repo paths
     const nonRepoPrefixes = ['settings', 'orgs', 'users', 'explore', 'notifications', 'issues', 'pulls'];
-    const isNonRepoPath = nonRepoPrefixes.some(p => repo.startsWith(p + '/'));
+    const isNonRepoPath = nonRepoPrefixes.some(p => repo.startsWith(p + '/') || repo === p);
     
     if (!isNonRepoPath) {
       const redis = getRedis();
