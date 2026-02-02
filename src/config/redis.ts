@@ -50,6 +50,9 @@ export async function initRedis(): Promise<void> {
     console.error('❌ Redis connection failed:', error instanceof Error ? error.message : 'Unknown error');
     console.log('   - Stats tracking disabled');
     statsEnabled = false;
+    if (redisClient) {
+      await redisClient.quit().catch(() => {});
+    }
     redisClient = null;
   }
 }
@@ -75,7 +78,7 @@ export function isStatsEnabled(): boolean {
  */
 export async function closeRedis(): Promise<void> {
   if (redisClient) {
-    await redisClient.quit();
+    await redisClient.quit().catch(() => {});
     redisClient = null;
     statsEnabled = false;
   }

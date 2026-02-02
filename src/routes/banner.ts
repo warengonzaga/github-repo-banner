@@ -12,9 +12,15 @@ bannerRoute.get('/banner', async (c) => {
 
   if (repoMatch && isStatsEnabled()) {
     const repo = repoMatch[1];
-    const redis = getRedis();
-    // Fire and forget - don't block banner generation
-    redis?.sadd('repos:tracked', repo).catch(() => {});
+    // Skip obvious non-repo paths
+    const nonRepoPrefixes = ['settings', 'orgs', 'users', 'explore', 'notifications', 'issues', 'pulls'];
+    const isNonRepoPath = nonRepoPrefixes.some(p => repo.startsWith(p + '/') || repo === p);
+    
+    if (!isNonRepoPath) {
+      const redis = getRedis();
+      // Fire and forget - don't block banner generation
+      redis?.sadd('repos:tracked', repo).catch(() => {});
+    }
   }
 
   const rawHeader = c.req.query('header') || 'Hello World';
