@@ -130,9 +130,9 @@ Health check endpoint for monitoring.
 
 The UI includes presets for quick access:
 
-**Gradients**: `1a1a1a-4a4a4a` (Midnight) • `ec4899-3b82f6` (Vibe) • `14b8a6-06b6d4` (Ocean)
+**Gradients**: `1a1a1a-4a4a4a` (Midnight) • `ec4899-3b82f6` (Vibe) • `14b8a6-06b6d4` (Ocean) • `431586-9231A8` (Railway) 🆕 • `F38020-FBAB41` (Cloudflare) 🆕 • `E7F9FF-90C4E8` (OSSPH)
 
-**Solids**: `dbeafe`/`3b82f6` (OSSPH) • `fee2e2`/`bb2c2c` (Molty) • `fde8e3`/`de7356` (Claude) • `f3f4f6`/`1f2937` (Minimal)
+**Solids**: `fee2e2`/`bb2c2c` (Molty) • `fde8e3`/`de7356` (Claude) • `10a37f`/`ffffff` (GPT) • `f3f4f6`/`1f2937` (Minimal)
 
 **Special**: `00000000`/`ffffff` (Transparent)
 
