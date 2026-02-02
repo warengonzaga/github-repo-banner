@@ -1004,7 +1004,7 @@
           <div class="color-row">
             <div class="hex-input-group">
               <span class="hex-prefix">#</span>
-              <input type="text" id="bg-input" value="1A1A1A" placeholder="000000" maxlength="6" />
+              <input type="text" id="bg-input" value="1A1A1A" placeholder="000000" maxlength="8" />
             </div>
             <span class="color-preview" id="bg-preview"></span>
           </div>
@@ -1015,7 +1015,7 @@
           <div class="color-row">
             <div class="hex-input-group">
               <span class="hex-prefix">#</span>
-              <input type="text" id="bg-input-2" value="4A4A4A" placeholder="FFFFFF" maxlength="6" />
+              <input type="text" id="bg-input-2" value="4A4A4A" placeholder="FFFFFF" maxlength="8" />
             </div>
             <span class="color-preview" id="bg-preview-2"></span>
           </div>
@@ -1026,7 +1026,7 @@
           <div class="color-row">
             <div class="hex-input-group">
               <span class="hex-prefix">#</span>
-              <input type="text" id="color-input" value="FFFFFF" placeholder="FFFFFF" maxlength="6" />
+              <input type="text" id="color-input" value="FFFFFF" placeholder="FFFFFF" maxlength="8" />
             </div>
             <span class="color-preview" id="color-preview"></span>
           </div>
@@ -1037,7 +1037,7 @@
           <div class="color-row">
             <div class="hex-input-group">
               <span class="hex-prefix">#</span>
-              <input type="text" id="subheader-color-input" value="" placeholder="FFFFFF" maxlength="6" />
+              <input type="text" id="subheader-color-input" value="" placeholder="FFFFFF" maxlength="8" />
             </div>
             <span class="color-preview" id="subheader-color-preview"></span>
           </div>
@@ -1508,8 +1508,17 @@
       });
     });
 
+    // Helper function to normalize hex input (strip # prefix)
+    function normalizeHexInput(input) {
+      let val = input.value.trim();
+      if (val.startsWith('#')) {
+        input.value = val.substring(1);
+      }
+    }
+
     // When user manually edits, clear preset selection
     bgInput.addEventListener('input', () => {
+      normalizeHexInput(bgInput);
       clearActivePresets();
       currentPreset = null;
       updateColorPreview();
@@ -1517,6 +1526,7 @@
     });
 
     bgInput2.addEventListener('input', () => {
+      normalizeHexInput(bgInput2);
       clearActivePresets();
       currentPreset = null;
       updateColorPreview();
@@ -1524,11 +1534,13 @@
     });
 
     colorInput.addEventListener('input', () => {
+      normalizeHexInput(colorInput);
       updateColorPreview();
       update();
     });
     
     subheaderColorInput.addEventListener('input', () => {
+      normalizeHexInput(subheaderColorInput);
       updateColorPreview();
       update();
     });
