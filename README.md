@@ -1,10 +1,14 @@
 # GitHub Repo Banner
 
-![GitHub Repo Banner](https://ghrb.waren.build/banner?header=%F0%9F%8E%A8%F0%9F%96%BC%EF%B8%8F&subheader=%E2%9C%A8+great+projects+deserve+great+presentation+%E2%9C%A8&bg=1a1a1a-4a4a4a&color=ffffff&support=true)<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->
+![GitHub Repo Banner](https://ghrb.waren.build/banner?header=%F0%9F%8E%A8%F0%9F%96%BC%EF%B8%8F&subheader=%E2%9C%A8+great+projects+deserve+great+repository+banners+%E2%9C%A8&bg=1a1a1a-4a4a4a&color=ffffff&support=true)<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->
 
-I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great presentation.
+I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great repository banners.
+
+## 🚁 Deploy Your Own
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/github-repo-banner?referralCode=KN9JqT&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
+When you deploy your own copy, you're directly supporting this project! 💖
 
 ## ✨ Features
 
@@ -33,61 +37,47 @@ pnpm install
 pnpm dev
 ```
 
-### Deploy to Railway
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/github-repo-banner?referralCode=KN9JqT&utm_medium=integration&utm_source=template&utm_campaign=generic)
-
-When you deploy your own copy, you're directly supporting this project! 💖
-
 ## 📖 Usage Examples
 
-### Gradient Background
+### Basic Examples
+
+**Gradient Background**
 
 ```text
-https://ghrb.waren.build/banner?header=My+Project&bg=ec4899-3b82f6&color=ffffff
+https://ghrb.waren.build/banner?header=Vibe+Coding%F0%9F%9A%80&bg=ec4899-3b82f6&color=ffffff
 ```
 
-![Gradient Example](https://ghrb.waren.build/banner?header=My+Project&bg=ec4899-3b82f6&color=ffffff)
+![Gradient Example](https://ghrb.waren.build/banner?header=Vibe+Coding%F0%9F%9A%80&bg=ec4899-3b82f6&color=ffffff)
 
-### Solid Color with Subheader
+**Solid Color with Subheader**
 
 ```text
-https://ghrb.waren.build/banner?header=OSSPH&subheader=Open+Source+Community&bg=dbeafe&color=3b82f6
+https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=E7F9FF-90C4E8&color=0060A0
 ```
 
-![Solid Color Example](https://ghrb.waren.build/banner?header=OSSPH&subheader=Open+Source+Community&bg=dbeafe&color=3b82f6)
+![Solid Color Example](https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=E7F9FF-90C4E8&color=0060A0)
 
-### With Emojis
+**With Emojis & Custom Fonts**
 
 ```text
 https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&support=true
 ```
 
-![GitHub Repo Banner](https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&support=true)<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->
+![Emoji Example](https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&support=true)
 
-### Transparent Background
-
+**Transparent/Opacity**
+  
 ```text
 https://ghrb.waren.build/banner?header=Transparent&bg=00000000&color=ffffff
-```
-
-![Transparent Example](https://ghrb.waren.build/banner?header=Transparent&bg=00000000&color=ffffff)
-
-### With Opacity
-
-```text
 https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000
 ```
 
-![Opacity Example](https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000)
+## 🌟 Who Uses This
 
-### With Custom Fonts
+Projects and organizations using GitHub Repo Banner:
 
-```text
-https://ghrb.waren.build/banner?header=Beautiful+Typography&subheader=Powered+by+Google+Fonts&bg=1a1a1a-4a4a4a&color=ffffff&headerfont=Playfair+Display&subheaderfont=Roboto
-```
-
-![Custom Font Example](https://ghrb.waren.build/banner?header=Beautiful+Typography&subheader=Powered+by+Google+Fonts&bg=1a1a1a-4a4a4a&color=ffffff&headerfont=Playfair+Display&subheaderfont=Roboto)
+- [gogcli](https://github.com/steipete/gogcli) by [steipete](https://github.com/steipete) - Google in your terminal
+- [BetterGov PH](https://github.com/bettergovph/bettergov) - Making government services better for Filipinos
 
 ## 🔌 API Reference
 
@@ -171,10 +161,10 @@ NODE_ENV=development   # Environment mode
 
 ### Security
 
-✅ Input sanitization (XSS prevention)
-✅ Hex color validation
-✅ Header length limits
-✅ No external dependencies
+- Input sanitization (XSS prevention)
+- Hex color validation
+- Header length limits
+- No external dependencies
 
 ## 🤝 Contributing
 
