@@ -61,6 +61,16 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
     ],
     defaultTextColor: '#ffffff',
   },
+  'gradient-waren': {
+    id: 'gradient-waren',
+    name: 'Waren',
+    type: 'gradient',
+    stops: [
+      { offset: '0%', color: '#013b84' },
+      { offset: '100%', color: '#016eea' },
+    ],
+    defaultTextColor: '#ffffff',
+  },
   'solid-lightblue': {
     id: 'solid-lightblue',
     name: 'Sky',
