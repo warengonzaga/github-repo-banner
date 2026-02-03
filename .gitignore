@@ -4,3 +4,8 @@ dist/
 .claude/
 .vscode/
 pnpm-workspace.yaml
+
+# Environment variables (contains sensitive data)
+.env
+.env.local
+.env.*.local
