@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
+import { LogEngine } from '@wgtechlabs/log-engine';
 
 const statsRoute = new Hono();
 
@@ -39,6 +40,25 @@ statsRoute.get('/stats', async (c) => {
       },
       500
     );
+  }
+});
+
+statsRoute.post('/log', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { action, url } = body;
+    
+    if (!action) {
+      return c.json({ error: 'Action is required' }, 400);
+    }
+    
+    // Log user action to server console
+    LogEngine.log(`📊 User Action: ${action} | URL: ${url || 'N/A'}`);
+    
+    return c.json({ success: true });
+  } catch (error) {
+    LogEngine.error('Error logging user action:', error instanceof Error ? error.message : 'Unknown error');
+    return c.json({ error: 'Failed to log action' }, 500);
   }
 });
 
