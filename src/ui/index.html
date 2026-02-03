@@ -267,7 +267,6 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 0.5rem;
-      margin-bottom: 2rem;
     }
 
     .bg-option {
@@ -570,7 +569,7 @@
       resize: vertical;
       font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
       font-size: 0.875rem;
-      background: #0d1117;
+      background: #262C36;
       border: 1px solid #30363d;
       border-radius: 6px;
       padding: 0.75rem;
@@ -899,69 +898,6 @@
         </div>
 
         <div class="content-section">
-          <h2>Output</h2>
-          <div class="output-container">
-            <textarea id="markdown" readonly></textarea>
-            <div class="button-row">
-              <button id="copy-btn">
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
-                  <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
-                </svg>
-                Copy Markdown
-              </button>
-              <button id="copy-url-btn" class="secondary">
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path>
-                </svg>
-                Copy Image URL
-              </button>
-              <button id="download-btn" class="secondary">
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"></path>
-                  <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"></path>
-                </svg>
-                Download SVG
-              </button>
-              <button id="download-png-btn" class="secondary">
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"></path>
-                  <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"></path>
-                </svg>
-                Download PNG
-              </button>
-            </div>
-          </div>
-
-          <div class="form-group" style="margin-top: 1.5rem;">
-            <label class="checkbox-container">
-              <input type="checkbox" id="support" checked />
-              <div class="checkbox-label">
-                <div class="title">💖 Help spread the word</div>
-                <div class="description">Add a small watermark to help others discover this tool</div>
-              </div>
-              <span class="toggle-switch"></span>
-            </label>
-            
-            <div class="position-selector" id="position-selector">
-              <span class="position-selector-label">Watermark Position</span>
-              <div class="position-options">
-                <button type="button" class="position-btn active" data-position="bottom-right">Bottom Right</button>
-                <button type="button" class="position-btn" data-position="bottom-left">Bottom Left</button>
-                <button type="button" class="position-btn" data-position="top-right">Top Right</button>
-                <button type="button" class="position-btn" data-position="top-left">Top Left</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group" id="sponsor-link" style="margin-top: 1rem;">
-            <div class="sponsor-notice">
-              <span id="sponsor-message">Prefer brand-free banners? Consider <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener">sponsoring</a> instead! 💖</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="content-section">
           <div class="settings-header">
             <h2>Settings</h2>
             <button id="reset-btn" class="reset-btn" title="Reset to defaults">
@@ -1132,6 +1068,70 @@
         </div>
 
         </div>
+
+        <div class="content-section">
+          <h2>Output</h2>
+          <div class="output-container">
+            <textarea id="markdown" readonly></textarea>
+            <div class="button-row">
+              <button id="copy-btn">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                  <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                </svg>
+                Copy Markdown
+              </button>
+              <button id="copy-url-btn" class="secondary">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path>
+                </svg>
+                Copy Image URL
+              </button>
+              <button id="download-btn" class="secondary">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"></path>
+                  <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"></path>
+                </svg>
+                Download SVG
+              </button>
+              <button id="download-png-btn" class="secondary">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"></path>
+                  <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"></path>
+                </svg>
+                Download PNG
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 1.5rem;">
+            <label class="checkbox-container">
+              <input type="checkbox" id="support" checked />
+              <div class="checkbox-label">
+                <div class="title">💖 Help spread the word</div>
+                <div class="description">Add a small watermark to help others discover this tool</div>
+              </div>
+              <span class="toggle-switch"></span>
+            </label>
+            
+            <div class="position-selector" id="position-selector">
+              <span class="position-selector-label">Watermark Position</span>
+              <div class="position-options">
+                <button type="button" class="position-btn active" data-position="bottom-right">Bottom Right</button>
+                <button type="button" class="position-btn" data-position="bottom-left">Bottom Left</button>
+                <button type="button" class="position-btn" data-position="top-right">Top Right</button>
+                <button type="button" class="position-btn" data-position="top-left">Top Left</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" id="sponsor-link" style="margin-top: 1rem;">
+            <div class="sponsor-notice">
+              <span id="sponsor-message">Prefer brand-free banners? Consider <a href="https://github.com/sponsors/warengonzaga" target="_blank" rel="noopener">sponsoring</a> instead! 💖</span>
+            </div>
+          </div>
+        </div>
+
         </div>
       </div>
     </main>
