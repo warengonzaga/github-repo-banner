@@ -12,7 +12,31 @@ export function escapeXml(str: string): string {
 
 export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   const stripped = raw.replace(/<[^>]*>/g, '');
-  return stripped.slice(0, maxLength);
+  
+  // If within limit, return as is
+  if (stripped.length <= maxLength) {
+    return stripped;
+  }
+  
+  // Truncate at maxLength
+  let truncated = stripped.slice(0, maxLength);
+  
+  // Check if we're in the middle of an icon syntax ![...]
+  // If the truncated string has an unclosed icon, remove it
+  const lastOpenBracket = truncated.lastIndexOf('![');
+  
+  if (lastOpenBracket !== -1) {
+    // Check if there's a closing bracket after the last opening
+    const afterOpen = truncated.slice(lastOpenBracket);
+    const hasClosing = afterOpen.includes(']');
+    
+    // If no closing bracket, we cut in the middle of an icon - remove it
+    if (!hasClosing) {
+      truncated = truncated.slice(0, lastOpenBracket);
+    }
+  }
+  
+  return truncated.trimEnd();
 }
 
 /**
