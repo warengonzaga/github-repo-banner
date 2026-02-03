@@ -1865,6 +1865,12 @@
     }
 
     // Character counting and validation functions
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
     function removeEmojis(text) {
       // Remove emojis using regex (matches all emoji characters)
       return text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '');
@@ -1956,13 +1962,13 @@
       if (validation.icons.length > 0) {
         // Compact display with tooltip for details
         const iconCount = validation.icons.length;
-        const iconDetails = validation.icons.map(i => `![${i.name}] (${i.name.length} chars)`).join('\n');
+        const iconDetails = validation.icons.map(i => `![${escapeHtml(i.name)}] (${i.name.length} chars)`).join('\n');
 
-        iconCountEl.innerHTML = `Icons: ${iconCount} <span class="char-counter-info"><span class="char-counter-info-icon" title="Click for details">i</span><span class="char-counter-tooltip">${iconDetails}</span></span> | Max: ${validation.maxIconLength}/${validation.iconLimit}`;
+        iconCountEl.innerHTML = `Icons: ${iconCount} <span class="char-counter-info"><span class="char-counter-info-icon" title="Click for details">i</span><span class="char-counter-tooltip">${escapeHtml(iconDetails)}</span></span> | Max: ${validation.maxIconLength}/${validation.iconLimit}`;
         iconCountEl.classList.toggle('exceeded', validation.iconExceeded);
         iconCountEl.classList.toggle('warning', !validation.iconExceeded && validation.maxIconLength > iconLimit * 0.9);
       } else {
-        iconCountEl.innerHTML = `Icons: none`;
+        iconCountEl.textContent = `Icons: none`;
         iconCountEl.classList.remove('exceeded', 'warning');
       }
       
