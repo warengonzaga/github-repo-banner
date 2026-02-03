@@ -263,6 +263,123 @@
       flex-shrink: 0;
     }
 
+    .input-with-info {
+      position: relative;
+    }
+
+    .input-with-info input[type="text"] {
+      padding-right: 2.5rem;
+    }
+
+    .info-icon-btn {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #7d8590;
+      cursor: pointer;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .info-icon-btn:hover {
+      color: #58a6ff;
+      background: rgba(88, 166, 255, 0.1);
+    }
+
+    .info-icon-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .info-tooltip {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 0;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 1rem;
+      width: 320px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      display: none;
+    }
+
+    .info-tooltip.show {
+      display: block;
+      animation: tooltipFadeIn 0.2s ease-out;
+    }
+
+    @keyframes tooltipFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .info-tooltip h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #c9d1d9;
+      margin: 0 0 0.75rem 0;
+    }
+
+    .info-tooltip p {
+      font-size: 0.75rem;
+      color: #7d8590;
+      margin: 0 0 0.75rem 0;
+      line-height: 1.5;
+    }
+
+    .info-tooltip ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 0.75rem 0;
+    }
+
+    .info-tooltip li {
+      font-size: 0.75rem;
+      color: #7d8590;
+      padding: 0.25rem 0;
+      line-height: 1.5;
+    }
+
+    .info-tooltip li strong {
+      color: #c9d1d9;
+      font-weight: 600;
+    }
+
+    .info-tooltip a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    .info-tooltip a:hover {
+      text-decoration: underline;
+    }
+
+    .info-tooltip code {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 3px;
+      padding: 0.125rem 0.375rem;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+      font-size: 0.75rem;
+      color: #c9d1d9;
+    }
+
     .bg-options {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -911,28 +1028,100 @@
         <div class="settings-grid">
         <div class="form-group">
           <label for="header">Header Text</label>
-          <input type="text" id="header" value="Hello World 👋" placeholder="Enter your repository title or project name" maxlength="50" />
+          <div class="input-with-info">
+            <input type="text" id="header" value="Hello World 👋" placeholder="Enter your repository title or project name" maxlength="50" />
+            <button type="button" class="info-icon-btn" id="header-info-btn" aria-label="Show emoji and icon help">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
+              </svg>
+            </button>
+            <div class="info-tooltip" id="header-info-tooltip">
+              <h4>Using Emojis & Icons</h4>
+              <p><strong>Emojis:</strong> Copy from <a href="https://emojipedia.org" target="_blank" rel="noopener">Emojipedia</a> and paste</p>
+              <ul>
+                <li>Example: "Hello World 👋"</li>
+              </ul>
+              <p><strong>Simple Icons:</strong> Use <code>![icon-name]</code> from <a href="https://simpleicons.org" target="_blank" rel="noopener">Simple Icons</a></p>
+              <ul>
+                <li>Auto theme: "React ![react] App"</li>
+                <li>Light theme: "GitHub ![github](light)"</li>
+                <li>Dark theme: "Node ![node](dark)"</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
           <label for="header-font-input">Header Font (Google Fonts)</label>
-          <input type="text" id="header-font-input" value="Permanent Marker" placeholder="Try Roboto, Poppins, Montserrat..." maxlength="50" />
-          <p style="font-size: 0.75rem; color: #7d8590; margin-top: 0.5rem;">
-            Enter any font from <a href="https://fonts.google.com" target="_blank" rel="noopener" style="color: #58a6ff;">Google Fonts</a>. Leave empty for default.
-          </p>
+          <div class="input-with-info">
+            <input type="text" id="header-font-input" value="Permanent Marker" placeholder="Try Roboto, Poppins, Montserrat..." maxlength="50" />
+            <button type="button" class="info-icon-btn" id="header-font-info-btn" aria-label="Show font help">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
+              </svg>
+            </button>
+            <div class="info-tooltip" id="header-font-info-tooltip">
+              <h4>Using Google Fonts</h4>
+              <p>Browse fonts at <a href="https://fonts.google.com" target="_blank" rel="noopener">Google Fonts</a> and copy the font name exactly as shown.</p>
+              <p><strong>Examples:</strong></p>
+              <ul>
+                <li>Roboto</li>
+                <li>Permanent Marker</li>
+                <li>Montserrat</li>
+                <li>Poppins</li>
+              </ul>
+              <p style="margin-top: 0.5rem;">Leave empty to use the default font.</p>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
           <label for="subheader">Sub Header Text (optional)</label>
-          <input type="text" id="subheader" value="Great projects deserve great repository banners" placeholder="Add a compelling tagline or description" maxlength="60" />
+          <div class="input-with-info">
+            <input type="text" id="subheader" value="Great projects deserve great repository banners" placeholder="Add a compelling tagline or description" maxlength="60" />
+            <button type="button" class="info-icon-btn" id="subheader-info-btn" aria-label="Show emoji and icon help">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
+              </svg>
+            </button>
+            <div class="info-tooltip" id="subheader-info-tooltip">
+              <h4>Using Emojis & Icons</h4>
+              <p><strong>Emojis:</strong> Copy from <a href="https://emojipedia.org" target="_blank" rel="noopener">Emojipedia</a> and paste</p>
+              <ul>
+                <li>Example: "Made with ❤️"</li>
+              </ul>
+              <p><strong>Simple Icons:</strong> Use <code>![icon-name]</code> from <a href="https://simpleicons.org" target="_blank" rel="noopener">Simple Icons</a></p>
+              <ul>
+                <li>Auto theme: "Built with ![typescript]"</li>
+                <li>Light theme: "Powered by ![vercel](light)"</li>
+                <li>Dark theme: "Made by ![github](dark)"</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         <div class="form-group" id="subheader-font-group">
           <label for="subheader-font-input">Sub Header Font (Google Fonts)</label>
-          <input type="text" id="subheader-font-input" value="Kinewave" placeholder="Try Inter, Open Sans, Lato..." maxlength="50" />
-          <p style="font-size: 0.75rem; color: #7d8590; margin-top: 0.5rem;">
-            Enter any font from <a href="https://fonts.google.com" target="_blank" rel="noopener" style="color: #58a6ff;">Google Fonts</a>. Leave empty for default.
-          </p>
+          <div class="input-with-info">
+            <input type="text" id="subheader-font-input" value="Kinewave" placeholder="Try Inter, Open Sans, Lato..." maxlength="50" />
+            <button type="button" class="info-icon-btn" id="subheader-font-info-btn" aria-label="Show font help">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
+              </svg>
+            </button>
+            <div class="info-tooltip" id="subheader-font-info-tooltip">
+              <h4>Using Google Fonts</h4>
+              <p>Browse fonts at <a href="https://fonts.google.com" target="_blank" rel="noopener">Google Fonts</a> and copy the font name exactly as shown.</p>
+              <p><strong>Examples:</strong></p>
+              <ul>
+                <li>Inter</li>
+                <li>Open Sans</li>
+                <li>Lato</li>
+                <li>Kinewave</li>
+              </ul>
+              <p style="margin-top: 0.5rem;">Leave empty to use the default font.</p>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
@@ -1812,6 +2001,55 @@
       markdownInput.value = markdown;
       autoResizeTextarea();
     })();
+
+    // Info tooltip functionality
+    const headerInfoBtn = document.getElementById('header-info-btn');
+    const headerInfoTooltip = document.getElementById('header-info-tooltip');
+    const subheaderInfoBtn = document.getElementById('subheader-info-btn');
+    const subheaderInfoTooltip = document.getElementById('subheader-info-tooltip');
+    const headerFontInfoBtn = document.getElementById('header-font-info-btn');
+    const headerFontInfoTooltip = document.getElementById('header-font-info-tooltip');
+    const subheaderFontInfoBtn = document.getElementById('subheader-font-info-btn');
+    const subheaderFontInfoTooltip = document.getElementById('subheader-font-info-tooltip');
+
+    function toggleTooltip(tooltip) {
+      // Close other tooltips
+      document.querySelectorAll('.info-tooltip').forEach(t => {
+        if (t !== tooltip) {
+          t.classList.remove('show');
+        }
+      });
+      tooltip.classList.toggle('show');
+    }
+
+    headerInfoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleTooltip(headerInfoTooltip);
+    });
+
+    subheaderInfoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleTooltip(subheaderInfoTooltip);
+    });
+
+    headerFontInfoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleTooltip(headerFontInfoTooltip);
+    });
+
+    subheaderFontInfoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleTooltip(subheaderFontInfoTooltip);
+    });
+
+    // Close tooltips when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.input-with-info')) {
+        document.querySelectorAll('.info-tooltip').forEach(t => {
+          t.classList.remove('show');
+        });
+      }
+    });
   </script>
 </body>
 </html>
