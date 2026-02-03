@@ -268,8 +268,8 @@ export async function renderSegmentsAsHTML(
           `<img src="data:image/svg+xml;base64,${base64}" style="display:inline-block;width:${fontSize}px;height:${fontSize}px;vertical-align:middle;margin:0 0.1em;" alt="" />`,
         );
       }
-      // If icon not found, don't render anything (silent fail)
-      // This gives users feedback that the icon name is invalid
+      // If icon fetch fails, skip it silently and continue rendering other segments
+      // This prevents invalid icons from breaking the layout or hiding subsequent text
     }
   }
 

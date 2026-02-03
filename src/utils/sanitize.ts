@@ -13,43 +13,59 @@ export function escapeXml(str: string): string {
 export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   const stripped = raw.replace(/<[^>]*>/g, '');
   
-  // If within limit, return as is
-  if (stripped.length <= maxLength) {
+  // Calculate display length by removing icon syntax from the count
+  // Icons render as images, not text, so they shouldn't count toward text limits
+  const displayText = stripped.replace(/!\[[a-z0-9-]+\](?:\((light|dark|auto)\))?/gi, '');
+  
+  // If display content is within limit, return as is
+  if (displayText.length <= maxLength) {
     return stripped;
   }
   
-  // Truncate at maxLength
-  let truncated = stripped.slice(0, maxLength);
+  // Need to truncate while preserving complete icon syntax
+  // Build string character by character, skipping icon syntax in count
+  let result = '';
+  let displayCount = 0;
+  let i = 0;
   
-  // Check if we're in the middle of an icon syntax ![...] or ![...](theme)
-  // If the truncated string has an unclosed icon, remove it
-  const lastOpenBracket = truncated.lastIndexOf('![');
+  while (i < stripped.length && displayCount < maxLength) {
+    // Check if we're at the start of an icon
+    if (stripped.slice(i).match(/^!\[[a-z0-9-]+\](?:\((light|dark|auto)\))?/i)) {
+      const iconMatch = stripped.slice(i).match(/^!\[[a-z0-9-]+\](?:\((light|dark|auto)\))?/i);
+      if (iconMatch) {
+        // Add the entire icon syntax without counting it
+        result += iconMatch[0];
+        i += iconMatch[0].length;
+        continue;
+      }
+    }
+    
+    // Regular character - add and count it
+    result += stripped[i];
+    displayCount++;
+    i++;
+  }
   
+  // Check if we ended in the middle of an icon and remove it if so
+  const lastOpenBracket = result.lastIndexOf('![');
   if (lastOpenBracket !== -1) {
-    // Check if there's a closing bracket after the last opening
-    const afterOpen = truncated.slice(lastOpenBracket);
+    const afterOpen = result.slice(lastOpenBracket);
     const hasClosing = afterOpen.includes(']');
     
-    // If no closing bracket, we cut in the middle of an icon - remove it
     if (!hasClosing) {
-      truncated = truncated.slice(0, lastOpenBracket);
+      result = result.slice(0, lastOpenBracket);
     } else {
-      // Check if there's a '](' sequence (optional theme suffix)
       const themeStartIndex = afterOpen.indexOf('](');
       if (themeStartIndex !== -1) {
-        // Verify if there's a closing ')' after ']('
         const afterThemeStart = afterOpen.slice(themeStartIndex + 2);
-        const hasClosingParen = afterThemeStart.includes(')');
-        
-        // If no closing ')', we cut in the middle of the theme - remove it
-        if (!hasClosingParen) {
-          truncated = truncated.slice(0, lastOpenBracket);
+        if (!afterThemeStart.includes(')')) {
+          result = result.slice(0, lastOpenBracket);
         }
       }
     }
   }
   
-  return truncated.trimEnd();
+  return result.trimEnd();
 }
 
 /**
