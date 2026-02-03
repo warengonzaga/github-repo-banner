@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { buildBannerSVG } from '../banner/svg-template.js';
 import { sanitizeHeader, sanitizeFontName, isValidHexColor } from '../utils/sanitize.js';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
+import { LogEngine } from '@wgtechlabs/log-engine';
 
 const bannerRoute = new Hono();
 
@@ -19,7 +20,9 @@ bannerRoute.get('/banner', async (c) => {
     if (!isNonRepoPath) {
       const redis = getRedis();
       // Fire and forget - don't block banner generation
-      redis?.sadd('repos:tracked', repo).catch(() => {});
+      redis?.sadd('repos:tracked', repo).then(() => {
+        LogEngine.log(`📊 Repository using banner: ${repo}`);
+      }).catch(() => {});
     }
   }
 

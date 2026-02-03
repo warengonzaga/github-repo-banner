@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { LogEngine } from '@wgtechlabs/log-engine';
 
 let redisClient: Redis | null = null;
 let statsEnabled = false;
@@ -12,13 +13,13 @@ export async function initRedis(): Promise<void> {
   const redisUrl = process.env.REDIS_URL;
 
   if (!enableStats) {
-    console.log('📊 Stats tracking: DISABLED (privacy-first default)');
+    LogEngine.info('Stats tracking: DISABLED (privacy-first default)');
     statsEnabled = false;
     return;
   }
 
   if (!redisUrl) {
-    console.warn('⚠️  Stats tracking enabled but REDIS_URL not configured. Stats will be disabled.');
+    LogEngine.warn('Stats tracking enabled but REDIS_URL not configured. Stats will be disabled.');
     statsEnabled = false;
     return;
   }
@@ -28,14 +29,14 @@ export async function initRedis(): Promise<void> {
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
         if (times > 3) {
-          console.error('❌ Redis connection failed after 3 retries. Stats tracking disabled.');
+          LogEngine.error('Redis connection failed after 3 retries. Stats tracking disabled.');
           return null; // Stop retrying
         }
         const delay = Math.min(times * 100, 2000);
         return delay;
       },
       reconnectOnError(err) {
-        console.error('Redis connection error:', err.message);
+        LogEngine.error('Redis connection error:', err.message);
         return false; // Don't reconnect on error
       },
     });
@@ -43,12 +44,10 @@ export async function initRedis(): Promise<void> {
     // Test connection
     await redisClient.ping();
     statsEnabled = true;
-    console.log('📊 Stats tracking: ENABLED');
-    console.log('   - Repository tracking active');
-    console.log('   - View stats at: /stats');
+    LogEngine.info('Stats tracking: ENABLED');
   } catch (error) {
-    console.error('❌ Redis connection failed:', error instanceof Error ? error.message : 'Unknown error');
-    console.log('   - Stats tracking disabled');
+    LogEngine.error('Redis connection failed:', error instanceof Error ? error.message : 'Unknown error');
+    LogEngine.info('Stats tracking: DISABLED');
     statsEnabled = false;
     if (redisClient) {
       await redisClient.quit().catch(() => {});

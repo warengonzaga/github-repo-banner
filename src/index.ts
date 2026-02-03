@@ -1,10 +1,17 @@
 import 'dotenv/config';
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
+import { LogEngine, LogMode } from '@wgtechlabs/log-engine';
 import bannerRoute from './routes/banner.js';
 import uiRoute from './routes/ui.js';
 import statsRoute from './routes/stats.js';
 import { initRedis, isStatsEnabled } from './config/redis.js';
+
+// Configure log-engine based on environment
+const env = process.env.NODE_ENV || 'development';
+LogEngine.configure({ 
+  mode: env === 'production' ? LogMode.INFO : LogMode.DEBUG 
+});
 
 const app = new Hono();
 
@@ -42,5 +49,12 @@ const port = parseInt(process.env.PORT || '3000', 10);
 await initRedis();
 
 serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`Banner server running at http://localhost:${info.port}`);
+  LogEngine.info('='.repeat(50));
+  LogEngine.info('GitHub Repo Banner Service');
+  LogEngine.info('📦 Version: 1.2.0');
+  LogEngine.info('👤 Author: Waren Gonzaga');
+  LogEngine.info('='.repeat(50));
+  LogEngine.info(`🚀 Server: http://localhost:${info.port}`);
+  LogEngine.info(`📊 Stats: ${isStatsEnabled() ? 'Enabled (/stats)' : 'Disabled'}`);
+  LogEngine.info('='.repeat(50));
 });
