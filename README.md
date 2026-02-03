@@ -19,6 +19,7 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - 💧 **Opacity Control** - 8-digit hex codes with alpha channel (RRGGBBAA)
 - 🔤 **Google Fonts Integration** - Use any font from Google Fonts for custom typography
 - 😀 **Native Emoji** - Full emoji support with proper rendering
+- 🎯 **Simple Icons Support** - Use 3000+ brand icons with `![slug]` syntax (e.g., `![github]`, `![react]`)
 - 📥 **SVG & PNG Download** - Download banners as SVG or PNG directly from the UI
 - ⚡ **Lightning Fast** - Built with Hono framework for optimal performance
 - 🔒 **Secure** - Input sanitization and validation
@@ -67,6 +68,17 @@ https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+p
 
 ![Emoji Example](https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&support=true)
 
+**With Brand Icons (Simple Icons)**
+
+```text
+https://ghrb.waren.build/banner?header=![github]+Hello+World&bg=1a1a1a-4a4a4a&color=ffffff
+https://ghrb.waren.build/banner?header=![react]+![typescript]+Modern+Stack&bg=14b8a6-06b6d4&color=ffffff
+```
+
+![Icon Example](https://ghrb.waren.build/banner?header=![github]+Hello+World&bg=1a1a1a-4a4a4a&color=ffffff)
+
+> Use `![slug]` syntax to embed any icon from [Simple Icons](https://simpleicons.org). Over 3000+ brand icons available! Icons automatically adapt to your text color.
+
 **Transparent/Opacity**
   
 ```text
@@ -82,6 +94,72 @@ Projects and organizations using GitHub Repo Banner:
 - [summarize](https://github.com/steipete/summarize) by [steipete](https://github.com/steipete) - Fast summaries from URLs, files, and media.
 - [BetterGov PH](https://github.com/bettergovph/bettergov) - Making government services better for Filipinos
 
+## 🔒 Privacy & Transparency
+
+**Privacy by default.** This service does **NOT** track anything by default. If you're using the hosted version at `ghrb.waren.build`, stats tracking status is available at `/health`.
+
+### What We Track (When Enabled)
+- ✅ **Repository names only** - GitHub repository URLs from browser Referer headers
+- ✅ **Public data only** - Already publicly visible on GitHub
+
+### What We Log (Always)
+- 📊 **User actions** - Button clicks (Copy Markdown, Download SVG, etc.) and the banner URL generated
+- 🎨 **Banner content** - Text and styling parameters (publicly displayed content only)
+- 💡 **Purpose** - Understand feature usage and popular banner styles to improve the service
+
+**Note:** All logs are ephemeral (console only, not stored in database). The content you generate is meant to be publicly displayed on GitHub, so logging helps improve the service without violating privacy.
+
+### What We DON'T Track
+- ❌ No IP addresses
+- ❌ No personal information  
+- ❌ No user identities
+- ❌ No analytics or behavioral data
+- ❌ No cookies or tracking pixels
+- ❌ No session data or persistent storage
+
+### Why Track (When Enabled)
+Understanding which repositories use this service helps:
+- Gauge community value and impact
+- Make informed maintenance decisions
+- Justify resources for this free service
+
+### Your Data Rights
+- **Full transparency**: View tracked data at `/stats` (when enabled)
+- **Opt-out**: Self-host with stats disabled (default)
+- **Open source**: Review tracking code in this repository
+
+### Self-Hosting Privacy
+**Self-hosted instances have stats disabled by default.** To enable (optional):
+1. Set `ENABLE_STATS=true` in your `.env`
+2. Add Redis service to your Railway project
+3. See [Railway Deployment](#-railway-deployment) below
+
+## 🚂 Railway Deployment
+
+### Basic Deployment (Stats Disabled - Default)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/github-repo-banner?referralCode=KN9JqT)
+
+No additional configuration needed. The service runs without stats tracking.
+
+### With Stats Tracking (Optional)
+
+If you want to track which repositories use your instance:
+
+1. **Deploy the service** using the button above
+2. **Add Redis service** in Railway dashboard:
+   - Click "New" → "Database" → "Add Redis"
+   - Railway automatically sets `REDIS_URL`
+3. **Enable stats** in your service variables:
+   - Go to your service settings
+   - Add variable: `ENABLE_STATS=true`
+4. **Redeploy** your service
+
+**Accessing Stats:**
+- View at: `https://your-service.railway.app/stats`
+- Health check includes stats status: `https://your-service.railway.app/health`
+
+**Cost Note:** Redis on Railway has a free tier, then usage-based pricing. Stats tracking is lightweight and should stay within free limits for moderate traffic.
+
 ## 🔌 API Reference
 
 ### `GET /banner`
@@ -92,7 +170,7 @@ Generate a custom SVG banner.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `header` | string | No | "Hello World" | Main text (supports emojis) |
+| `header` | string | No | "Hello World" | Main text (supports emojis and icons) |
 | `subheader` | string | No | - | Optional subtitle text |
 | `bg` | string | No | `1a1a1a-4a4a4a` | Background color in hex format |
 | `color` | string | No | `ffffff` | Header text color (hex without #) |
@@ -123,21 +201,84 @@ Interactive banner generator UI with live preview.
 
 ### `GET /health`
 
-Health check endpoint for monitoring.
+Health check endpoint for monitoring and stats status.
 
+**Response (stats disabled):**
 ```json
-{ "status": "ok", "timestamp": "2026-02-01T00:00:00.000Z" }
+{
+  "status": "ok",
+  "timestamp": "2026-02-01T00:00:00.000Z",
+  "stats": {
+    "enabled": false
+  }
+}
+```
+
+**Response (stats enabled):**
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-02-01T00:00:00.000Z",
+  "stats": {
+    "enabled": true,
+    "endpoint": "/stats"
+  }
+}
+```
+
+### `GET /stats`
+
+View repository tracking statistics (when enabled).
+
+**Response (stats disabled):**
+```json
+{
+  "enabled": false,
+  "message": "Stats tracking is disabled"
+}
+```
+
+**Response (stats enabled):**
+```json
+{
+  "enabled": true,
+  "totalRepositories": 42,
+  "repositories": ["owner/repo1", "owner/repo2"],
+  "note": "Only tracking public GitHub repositories using this service"
+}
 ```
 
 ## 🎨 Color Presets
 
 The UI includes presets for quick access:
 
-**Gradients**: `1a1a1a-4a4a4a` (Midnight) • `ec4899-3b82f6` (Vibe) • `14b8a6-06b6d4` (Ocean)
+### Gradients
 
-**Solids**: `dbeafe`/`3b82f6` (OSSPH) • `fee2e2`/`bb2c2c` (Molty) • `fde8e3`/`de7356` (Claude) • `f3f4f6`/`1f2937` (Minimal)
+| Name | Background | Text Color | Preview |
+|------|------------|------------|---------|
+| Midnight | `1a1a1a-4a4a4a` | `ffffff` | ![Midnight](https://ghrb.waren.build/banner?header=Midnight&bg=1a1a1a-4a4a4a&color=ffffff) |
+| Vibe | `ec4899-3b82f6` | `ffffff` | ![Vibe](https://ghrb.waren.build/banner?header=Vibe&bg=ec4899-3b82f6&color=ffffff) |
+| Ocean | `14b8a6-06b6d4` | `ffffff` | ![Ocean](https://ghrb.waren.build/banner?header=Ocean&bg=14b8a6-06b6d4&color=ffffff) |
+| Railway 🆕 | `431586-9231A8` | `ffffff` | ![Railway](https://ghrb.waren.build/banner?header=Railway&bg=431586-9231A8&color=ffffff) |
+| Cloudflare 🆕 | `F38020-FBAB41` | `ffffff` | ![Cloudflare](https://ghrb.waren.build/banner?header=Cloudflare&bg=F38020-FBAB41&color=ffffff) |
+| Waren 🆕 | `013B84-016EEA` | `ffffff` | ![Waren](https://ghrb.waren.build/banner?header=Waren&bg=013B84-016EEA&color=ffffff) |
+| OSSPH | `E7F9FF-90C4E8` | `0060A0` | ![OSSPH](https://ghrb.waren.build/banner?header=OSSPH&bg=E7F9FF-90C4E8&color=0060A0) |
 
-**Special**: `00000000`/`ffffff` (Transparent)
+### Solid Colors
+
+| Name | Background | Text Color | Preview |
+|------|------------|------------|---------|
+| Sky | `87ceeb` | `1e3a8a` | ![Sky](https://ghrb.waren.build/banner?header=Sky&bg=87ceeb&color=1e3a8a) |
+| Molty | `fee2e2` | `bb2c2c` | ![Molty](https://ghrb.waren.build/banner?header=Molty&bg=fee2e2&color=bb2c2c) |
+| Claude | `fde8e3` | `de7356` | ![Claude](https://ghrb.waren.build/banner?header=Claude&bg=fde8e3&color=de7356) |
+| GPT | `10a37f` | `ffffff` | ![GPT](https://ghrb.waren.build/banner?header=GPT&bg=10a37f&color=ffffff) |
+| Minimal | `f3f4f6` | `1f2937` | ![Minimal](https://ghrb.waren.build/banner?header=Minimal&bg=f3f4f6&color=1f2937) |
+
+### Special
+
+| Name | Background | Text Color | Preview |
+|------|------------|------------|---------|
+| Transparent | `00000000` | `ffffff` | ![Transparent](https://ghrb.waren.build/banner?header=Transparent&bg=00000000&color=ffffff) |
 
 > **Tip:** Create any custom gradient or color using hex codes directly in the URL.
 
@@ -160,7 +301,13 @@ pnpm start    # Start production server
 ```env
 PORT=3000              # Server port
 NODE_ENV=development   # Environment mode
+
+# Stats Tracking (disabled by default - privacy-first)
+ENABLE_STATS=false     # Set to 'true' to enable repository tracking
+REDIS_URL=             # Required only if ENABLE_STATS=true
 ```
+
+See `.example.env` for complete documentation.
 
 ### Security
 

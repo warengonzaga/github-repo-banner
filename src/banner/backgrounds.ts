@@ -41,6 +41,36 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
     ],
     defaultTextColor: '#0060A0',
   },
+  'gradient-railway': {
+    id: 'gradient-railway',
+    name: 'Railway',
+    type: 'gradient',
+    stops: [
+      { offset: '0%', color: '#431586' },
+      { offset: '100%', color: '#9231A8' },
+    ],
+    defaultTextColor: '#ffffff',
+  },
+  'gradient-cloudflare': {
+    id: 'gradient-cloudflare',
+    name: 'Cloudflare',
+    type: 'gradient',
+    stops: [
+      { offset: '0%', color: '#F38020' },
+      { offset: '100%', color: '#FBAB41' },
+    ],
+    defaultTextColor: '#ffffff',
+  },
+  'gradient-waren': {
+    id: 'gradient-waren',
+    name: 'Waren',
+    type: 'gradient',
+    stops: [
+      { offset: '0%', color: '#013b84' },
+      { offset: '100%', color: '#016eea' },
+    ],
+    defaultTextColor: '#ffffff',
+  },
   'solid-lightblue': {
     id: 'solid-lightblue',
     name: 'Sky',

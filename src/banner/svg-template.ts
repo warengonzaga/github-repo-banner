@@ -1,9 +1,14 @@
 import type { BannerOptions, BackgroundPreset } from './types.js';
 import { escapeXml } from '../utils/sanitize.js';
+import {
+  detectBackgroundTheme,
+  parseHeaderWithIcons,
+  renderSegmentsAsHTML,
+} from './icons.js';
 
 const WIDTH = 1280;
 const HEIGHT = 304;
-const MARGIN = 100;
+const MARGIN = 50;
 const MAX_CONTENT_WIDTH = WIDTH - MARGIN * 2;
 const BASE_FONT_SIZE = 192;
 const MIN_FONT_SIZE = 24;
@@ -29,7 +34,7 @@ function buildBackground(bg: BackgroundPreset): string {
 }
 
 function buildWatermark(position: string = 'bottom-right'): string {
-  const text = 'made with ghrb.waren.build';
+  const text = 'ghrb.waren.build';
   const fontSize = 16;
   const rectPaddingX = 8;
   const rectPaddingY = 6;
@@ -120,8 +125,6 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
 
     const fontUrl = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
 
-    console.log('Fetching Google Fonts:', fontUrl);
-
     // Fetch the CSS with a browser User-Agent to get woff2 format (smaller files)
     const response = await fetch(fontUrl, {
       headers: {
@@ -129,12 +132,10 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
       },
     });
     if (!response.ok) {
-      console.error('Google Fonts fetch failed:', response.status);
       return '';
     }
 
     let css = await response.text();
-    console.log('Google Fonts CSS length:', css.length);
 
     // Extract all external font url() references and replace with inline base64 data URIs
     // This makes the SVG self-contained so fonts work everywhere
@@ -178,38 +179,34 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
 
 /**
  * Estimate text width for font sizing decisions.
- * Properly accounts for emojis which render wider than text.
+ * Properly accounts for emojis and icons which render wider than text.
  */
 function estimateTextWidth(text: string, fontSize: number): number {
   // Regex to detect emojis (including multi-codepoint sequences)
   const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(\u200D(\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*/gu;
-  
+  // Regex to detect icons: ![slug] or ![slug](theme)
+  const iconRegex = /!\[([a-z0-9-]+)\](?:\((light|dark|auto)\))?/g;
+
+  // Count icons and emojis to add their width
+  const iconCount = (text.match(iconRegex) || []).length;
+  const emojiCount = (text.match(emojiRegex) || []).length;
+
+  // Remove icons and emojis from text for accurate character width calculation
+  let cleanText = text.replace(iconRegex, '').replace(emojiRegex, '');
+
   let width = 0;
-  let lastIndex = 0;
-  
-  // Process emojis
-  for (const match of text.matchAll(emojiRegex)) {
-    // Add text before this emoji
-    if (match.index! > lastIndex) {
-      const textBefore = text.slice(lastIndex, match.index!);
-      for (const ch of textBefore) {
-        width += fontSize * (ch === ' ' ? SPACE_WIDTH_RATIO : CHAR_WIDTH_RATIO);
-      }
-    }
-    
-    // Add emoji width
-    width += fontSize * EMOJI_WIDTH_RATIO;
-    lastIndex = match.index! + match[0].length;
+
+  // Calculate width of regular text
+  for (const ch of cleanText) {
+    width += fontSize * (ch === ' ' ? SPACE_WIDTH_RATIO : CHAR_WIDTH_RATIO);
   }
-  
-  // Add remaining text after last emoji
-  if (lastIndex < text.length) {
-    const remainingText = text.slice(lastIndex);
-    for (const ch of remainingText) {
-      width += fontSize * (ch === ' ' ? SPACE_WIDTH_RATIO : CHAR_WIDTH_RATIO);
-    }
-  }
-  
+
+  // Add width for icons and emojis
+  // Each icon/emoji is rendered as fontSize width + 0.2em margin (0.1em on each side)
+  // EMOJI_WIDTH_RATIO already accounts for the visual size, add extra for margins
+  const marginWidth = fontSize * 0.2; // 0.1em on each side
+  width += (iconCount + emojiCount) * (fontSize * EMOJI_WIDTH_RATIO + marginWidth);
+
   return width;
 }
 
@@ -279,18 +276,44 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   // Fetch and embed Google Fonts CSS if needed
   const googleFontsStyle = await buildGoogleFontsStyle(headerFont, subheaderFont);
 
-  // Use foreignObject with HTML — browser renders text + emoji natively
+  // Detect background theme for auto icon coloring
+  const backgroundTheme = detectBackgroundTheme(background);
+
+  // Parse header and subheader into segments (text, emoji, icons)
+  const headerSegments = parseHeaderWithIcons(header);
+  const subheaderSegments = hasSubheader
+    ? parseHeaderWithIcons(subheader!)
+    : [];
+
+  // Use foreignObject with HTML — browser renders text + emoji + icons natively
   const subColorValue = subheaderColor || textColor;
+
+  // Render segments as HTML with inline images for emoji and icons
+  const headerHTML = await renderSegmentsAsHTML(
+    headerSegments,
+    effHeaderSize,
+    textColor,
+    backgroundTheme,
+  );
+
+  const subheaderHTML = hasSubheader
+    ? await renderSegmentsAsHTML(
+        subheaderSegments,
+        effSubSize,
+        subColorValue,
+        backgroundTheme,
+      )
+    : '';
 
   const htmlContent = hasSubheader
     ? `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${WIDTH}px;height:${HEIGHT}px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:${VERTICAL_PAD}px ${MARGIN}px;box-sizing:border-box;">
   ${googleFontsStyle}
-  <div style="font-family:${escapeXml(headerFontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${escapeXml(header)}</div>
-  <div style="font-family:${escapeXml(subheaderFontFamily)};font-size:${effSubSize}px;font-weight:400;color:${subColorValue};line-height:1;text-align:center;white-space:nowrap;margin-top:${effGap}px;">${escapeXml(subheader!)}</div>
+  <div style="font-family:${escapeXml(headerFontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${headerHTML}</div>
+  <div style="font-family:${escapeXml(subheaderFontFamily)};font-size:${effSubSize}px;font-weight:400;color:${subColorValue};line-height:1;text-align:center;white-space:nowrap;margin-top:${effGap}px;">${subheaderHTML}</div>
 </div>`
     : `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${WIDTH}px;height:${HEIGHT}px;display:flex;align-items:center;justify-content:center;padding:0 ${MARGIN}px;box-sizing:border-box;">
   ${googleFontsStyle}
-  <div style="font-family:${escapeXml(headerFontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${escapeXml(header)}</div>
+  <div style="font-family:${escapeXml(headerFontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${headerHTML}</div>
 </div>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">

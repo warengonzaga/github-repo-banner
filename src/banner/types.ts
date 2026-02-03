@@ -8,8 +8,10 @@ export interface BackgroundPreset {
 }
 
 export interface HeaderSegment {
-  type: 'text' | 'emoji';
+  type: 'text' | 'emoji' | 'icon';
   value: string;
+  /** Theme for icons (auto, light, or dark) */
+  theme?: 'light' | 'dark' | 'auto';
   /** Width in SVG units — computed during rendering */
   width?: number;
 }

@@ -4,3 +4,9 @@ dist/
 .claude/
 .vscode/
 pnpm-workspace.yaml
+package-lock.json
+
+# Environment variables (contains sensitive data)
+.env
+.env.local
+.env.*.local
