@@ -175,6 +175,8 @@ export function parseHeaderWithIcons(header: string): HeaderSegment[] {
 /**
  * Helper to parse emoji within text
  * Splits text into text and emoji segments
+ * @param text Text string that may contain emoji
+ * @returns Array of text and emoji segments
  */
 function parseEmojiInText(text: string): HeaderSegment[] {
   const segments: HeaderSegment[] = [];

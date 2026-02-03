@@ -7,7 +7,10 @@ const uiRoute = new Hono();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Works in both dev (src/routes/) and production (dist/)
+/**
+ * Find the HTML file path, works in both dev (src/) and production (dist/) environments
+ * @returns Absolute path to index.html file
+ */
 function findHtmlPath(): string {
   const candidates = [
     resolve(__dirname, '..', 'ui', 'index.html'), // dev: src/routes/../ui/

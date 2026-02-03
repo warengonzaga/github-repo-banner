@@ -6,10 +6,22 @@ const XML_ESCAPE_MAP: Record<string, string> = {
   "'": '&apos;',
 };
 
+/**
+ * Escape XML special characters to prevent injection attacks
+ * @param str String to escape
+ * @returns XML-safe string
+ */
 export function escapeXml(str: string): string {
   return str.replace(/[&<>"']/g, (ch) => XML_ESCAPE_MAP[ch] ?? ch);
 }
 
+/**
+ * Sanitize and truncate header text to prevent abuse
+ * Removes HTML tags and ensures proper icon syntax isn't broken during truncation
+ * @param raw Raw header string
+ * @param maxLength Maximum allowed length (default: 50)
+ * @returns Sanitized header string
+ */
 export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   const stripped = raw.replace(/<[^>]*>/g, '');
   
@@ -61,6 +73,11 @@ export function sanitizeIconSlug(raw: string, maxLength: number = 50): string {
 
 const HEX_COLOR_RE = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/;
 
+/**
+ * Validate hex color format (supports 3, 6, and 8 character hex codes)
+ * @param value Hex color string without # prefix
+ * @returns True if valid hex color format
+ */
 export function isValidHexColor(value: string): boolean {
   return HEX_COLOR_RE.test(value);
 }

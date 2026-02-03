@@ -16,6 +16,11 @@ const CHAR_WIDTH_RATIO = 0.65; // More conservative for wide characters like 'A'
 const SPACE_WIDTH_RATIO = 0.25;
 const EMOJI_WIDTH_RATIO = 1.3; // Emojis need more space for proper rendering
 
+/**
+ * Build SVG gradient definition from background preset
+ * @param bg Background preset with gradient stops
+ * @returns SVG linearGradient definition string
+ */
 function buildGradientDef(bg: BackgroundPreset): string {
   if (!bg.stops) return '';
   const stops = bg.stops
@@ -24,6 +29,11 @@ function buildGradientDef(bg: BackgroundPreset): string {
   return `<linearGradient id="bg-gradient" x1="0" y1="0" x2="1" y2="0">${stops}</linearGradient>`;
 }
 
+/**
+ * Build SVG background rectangle with gradient, solid color, or transparent fill
+ * @param bg Background preset configuration
+ * @returns SVG rect element string
+ */
 function buildBackground(bg: BackgroundPreset): string {
   if (bg.type === 'transparent') {
     return `<rect width="${WIDTH}" height="${HEIGHT}" fill="none" />`;
@@ -33,6 +43,11 @@ function buildBackground(bg: BackgroundPreset): string {
   return `<rect width="${WIDTH}" height="${HEIGHT}" fill="${fill}" />`;
 }
 
+/**
+ * Build SVG watermark with positioned text and semi-transparent background
+ * @param position Watermark position (top-left, top-right, bottom-left, bottom-right)
+ * @returns SVG group element with watermark
+ */
 function buildWatermark(position: string = 'bottom-right'): string {
   const text = 'ghrb.waren.build';
   const fontSize = 16;
@@ -86,6 +101,8 @@ function buildWatermark(position: string = 'bottom-right'): string {
 
 /**
  * Fetch a font file and return it as a base64 data URI.
+ * @param url Font file URL (typically from fonts.gstatic.com)
+ * @returns Base64-encoded data URI string
  */
 async function fetchFontAsBase64(url: string): Promise<string> {
   const response = await fetch(url);
@@ -109,6 +126,9 @@ async function fetchFontAsBase64(url: string): Promise<string> {
  * is fully self-contained and works in contexts that block external resources
  * (e.g., GitHub README img tags, PNG conversion).
  * Note: Font names are already sanitized in the route handler
+ * @param headerFont Optional Google Font name for header
+ * @param subheaderFont Optional Google Font name for subheader
+ * @returns SVG style element with embedded font data
  */
 async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string): Promise<string> {
   const fonts = new Set<string>();
@@ -180,6 +200,9 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
 /**
  * Estimate text width for font sizing decisions.
  * Properly accounts for emojis and icons which render wider than text.
+ * @param text Text string containing regular text, emojis, and/or icon syntax
+ * @param fontSize Font size in pixels
+ * @returns Estimated width in pixels
  */
 function estimateTextWidth(text: string, fontSize: number): number {
   // Regex to detect emojis (including multi-codepoint sequences)
@@ -212,6 +235,9 @@ function estimateTextWidth(text: string, fontSize: number): number {
 
 /**
  * Compute the font size that fits within MAX_CONTENT_WIDTH.
+ * @param text Text string to fit
+ * @param baseSize Base font size to start from
+ * @returns Scaled font size that fits within width constraints
  */
 function fitFontSize(text: string, baseSize: number): number {
   const widthAtBase = estimateTextWidth(text, baseSize);
@@ -221,6 +247,11 @@ function fitFontSize(text: string, baseSize: number): number {
   return Math.max(MIN_FONT_SIZE, Math.round(scaled));
 }
 
+/**
+ * Build complete banner SVG with header, optional subheader, background, and watermark
+ * @param options Banner configuration options including text, colors, fonts, and background
+ * @returns Complete SVG string with embedded fonts and rendered content
+ */
 export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   const {
     header,
