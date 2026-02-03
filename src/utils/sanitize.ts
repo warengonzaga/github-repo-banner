@@ -25,6 +25,16 @@ export function sanitizeFontName(raw: string, maxLength: number = 50): string {
   return cleaned.slice(0, maxLength);
 }
 
+/**
+ * Sanitize Simple Icons slug
+ * Only allows lowercase letters, numbers, and hyphens (Simple Icons format)
+ * Limits length to prevent abuse
+ */
+export function sanitizeIconSlug(raw: string, maxLength: number = 50): string {
+  const cleaned = raw.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  return cleaned.slice(0, maxLength);
+}
+
 const HEX_COLOR_RE = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/;
 
 export function isValidHexColor(value: string): boolean {
