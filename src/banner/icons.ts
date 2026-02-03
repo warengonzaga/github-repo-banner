@@ -250,12 +250,9 @@ export async function renderSegmentsAsHTML(
       if (iconTheme === 'light') {
         // Light background needs dark icon for contrast
         iconColor = '000000';
-      } else if (iconTheme === 'dark') {
+      } else {
         // Dark background needs light icon for contrast
         iconColor = 'ffffff';
-      } else {
-        // Auto mode: use text color for consistency
-        iconColor = textColor.replace('#', '');
       }
 
       // Fetch Simple Icon SVG
