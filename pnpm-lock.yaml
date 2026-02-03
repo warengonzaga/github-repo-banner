@@ -11,6 +11,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.13.0
         version: 1.19.9(hono@4.11.7)
+      '@wgtechlabs/log-engine':
+        specifier: ^2.2.0
+        version: 2.2.0
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -357,6 +360,10 @@ packages:
 
   '@types/node@22.19.7':
     resolution: {integrity: sha512-MciR4AKGHWl7xwxkBa6xUGxQJ4VBOmPTF7sL+iGzuahOFaO0jHCsuEfS80pan1ef4gWId1oWOweIhrDEYLuaOw==}
+
+  '@wgtechlabs/log-engine@2.2.0':
+    resolution: {integrity: sha512-TIvzfDPiWUWW7EX+kZ3q7id12inpe6t9n/OIX9ewIHaBeA7q8YY631f2RjHdkB33Wew9A0H1HGzTx98nKan+MQ==}
+    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
 
   acorn@8.15.0:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
@@ -789,6 +796,8 @@ snapshots:
   '@types/node@22.19.7':
     dependencies:
       undici-types: 6.21.0
+
+  '@wgtechlabs/log-engine@2.2.0': {}
 
   acorn@8.15.0: {}
 
