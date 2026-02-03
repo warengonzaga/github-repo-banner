@@ -261,6 +261,27 @@
       border-radius: 6px;
       border: 1px solid #30363d;
       flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .color-preview:hover {
+      transform: scale(1.1);
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+    }
+
+    .color-preview:active {
+      transform: scale(1.05);
+    }
+
+    .color-picker-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      pointer-events: none;
     }
 
     .input-with-info {
@@ -1131,7 +1152,8 @@
               <span class="hex-prefix">#</span>
               <input type="text" id="bg-input" value="1A1A1A" placeholder="000000" maxlength="8" />
             </div>
-            <span class="color-preview" id="bg-preview"></span>
+            <span class="color-preview" id="bg-preview" title="Click to open color picker"></span>
+            <input type="color" id="bg-picker" class="color-picker-input" />
           </div>
         </div>
 
@@ -1142,7 +1164,8 @@
               <span class="hex-prefix">#</span>
               <input type="text" id="bg-input-2" value="4A4A4A" placeholder="FFFFFF" maxlength="8" />
             </div>
-            <span class="color-preview" id="bg-preview-2"></span>
+            <span class="color-preview" id="bg-preview-2" title="Click to open color picker"></span>
+            <input type="color" id="bg-picker-2" class="color-picker-input" />
           </div>
         </div>
 
@@ -1153,7 +1176,8 @@
               <span class="hex-prefix">#</span>
               <input type="text" id="color-input" value="FFFFFF" placeholder="FFFFFF" maxlength="8" />
             </div>
-            <span class="color-preview" id="color-preview"></span>
+            <span class="color-preview" id="color-preview" title="Click to open color picker"></span>
+            <input type="color" id="color-picker" class="color-picker-input" />
           </div>
         </div>
 
@@ -1164,7 +1188,8 @@
               <span class="hex-prefix">#</span>
               <input type="text" id="subheader-color-input" value="" placeholder="FFFFFF" maxlength="8" />
             </div>
-            <span class="color-preview" id="subheader-color-preview"></span>
+            <span class="color-preview" id="subheader-color-preview" title="Click to open color picker"></span>
+            <input type="color" id="subheader-color-picker" class="color-picker-input" />
           </div>
         </div>
         </div>
@@ -1671,6 +1696,42 @@
     });
     headerFontInput.addEventListener('input', update);
     subheaderFontInput.addEventListener('input', update);
+
+    // Color picker functionality
+    const bgPicker = document.getElementById('bg-picker');
+    const bgPicker2 = document.getElementById('bg-picker-2');
+    const colorPicker = document.getElementById('color-picker');
+    const subheaderColorPicker = document.getElementById('subheader-color-picker');
+
+    // Function to setup color picker
+    function setupColorPicker(previewEl, pickerEl, inputEl) {
+      // Click preview to open picker
+      previewEl.addEventListener('click', () => {
+        pickerEl.click();
+      });
+
+      // When picker changes, update hex input
+      pickerEl.addEventListener('input', (e) => {
+        const hex = e.target.value.substring(1).toUpperCase();
+        inputEl.value = hex;
+        updateColorPreview();
+        update();
+      });
+
+      // When hex input changes, update picker
+      inputEl.addEventListener('input', () => {
+        const hex = inputEl.value.replace(/^#/, '');
+        if (/^[0-9A-Fa-f]{6}$/.test(hex)) {
+          pickerEl.value = '#' + hex;
+        }
+      });
+    }
+
+    // Setup all color pickers
+    setupColorPicker(bgPreview, bgPicker, bgInput);
+    setupColorPicker(bgPreview2, bgPicker2, bgInput2);
+    setupColorPicker(colorPreview, colorPicker, colorInput);
+    setupColorPicker(subheaderColorPreview, subheaderColorPicker, subheaderColorInput);
 
     // Preset buttons populate input fields
     presetBtns.forEach(btn => {
