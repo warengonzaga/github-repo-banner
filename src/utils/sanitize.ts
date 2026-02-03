@@ -21,7 +21,7 @@ export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   // Truncate at maxLength
   let truncated = stripped.slice(0, maxLength);
   
-  // Check if we're in the middle of an icon syntax ![...]
+  // Check if we're in the middle of an icon syntax ![...] or ![...](theme)
   // If the truncated string has an unclosed icon, remove it
   const lastOpenBracket = truncated.lastIndexOf('![');
   
@@ -33,6 +33,19 @@ export function sanitizeHeader(raw: string, maxLength: number = 50): string {
     // If no closing bracket, we cut in the middle of an icon - remove it
     if (!hasClosing) {
       truncated = truncated.slice(0, lastOpenBracket);
+    } else {
+      // Check if there's a '](' sequence (optional theme suffix)
+      const themeStartIndex = afterOpen.indexOf('](');
+      if (themeStartIndex !== -1) {
+        // Verify if there's a closing ')' after ']('
+        const afterThemeStart = afterOpen.slice(themeStartIndex + 2);
+        const hasClosingParen = afterThemeStart.includes(')');
+        
+        // If no closing ')', we cut in the middle of the theme - remove it
+        if (!hasClosingParen) {
+          truncated = truncated.slice(0, lastOpenBracket);
+        }
+      }
     }
   }
   
