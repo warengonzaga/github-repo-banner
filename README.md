@@ -79,6 +79,7 @@ https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000
 Projects and organizations using GitHub Repo Banner:
 
 - [gogcli](https://github.com/steipete/gogcli) by [steipete](https://github.com/steipete) - Google in your terminal
+- [summarize](https://github.com/steipete/summarize) by [steipete](https://github.com/steipete) - Fast summaries from URLs, files, and media.
 - [BetterGov PH](https://github.com/bettergovph/bettergov) - Making government services better for Filipinos
 
 ## 🔌 API Reference
