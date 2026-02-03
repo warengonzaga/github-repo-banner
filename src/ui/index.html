@@ -2020,14 +2020,14 @@
     headerInput.addEventListener('input', () => {
       updateCharCounter(headerInput, document.getElementById('header-counter'), 
         document.getElementById('header-text-count'), 
-        document.getElementById('header-icon-count'), 50, 20);
+        document.getElementById('header-icon-count'), 50, 50);
       update();
     });
     
     subheaderInput.addEventListener('input', () => {
       updateCharCounter(subheaderInput, document.getElementById('subheader-counter'),
         document.getElementById('subheader-text-count'),
-        document.getElementById('subheader-icon-count'), 60, 20);
+        document.getElementById('subheader-icon-count'), 60, 50);
       toggleSubheaderFields();
       update();
     });
