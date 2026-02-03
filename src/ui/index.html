@@ -1542,10 +1542,10 @@
       <div class="sidebar-section">
         <h2>🔒 Privacy Notice</h2>
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590; margin-bottom: 0.75rem;">
-          This service logs button clicks and generated banner URLs to improve features. All content is meant to be publicly displayed on GitHub.
+          This service logs button clicks and generated banner URLs via the <code>/log</code> handler (console only) to improve features. When <code>ENABLE_STATS</code> is enabled, the <code>/banner</code> endpoint also stores repository names in Redis for usage statistics—<strong>not user identities or IPs</strong>. All content is meant to be publicly displayed on GitHub.
         </p>
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590;">
-          We <strong>don't track</strong> IPs, personal info, or user identities. Logs are ephemeral (console only). 
+          We <strong>don't track</strong> IPs, personal info, or user identities. Console logs are ephemeral; Redis stores only repository names for optional stats tracking. 
           <a href="https://github.com/warengonzaga/github-repo-banner#-privacy--transparency" target="_blank" rel="noopener" style="color: #58a6ff;">Learn more</a>
         </p>
       </div>

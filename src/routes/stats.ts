@@ -44,19 +44,45 @@ statsRoute.get('/stats', async (c) => {
 });
 
 statsRoute.post('/log', async (c) => {
+  let body: any;
+  
   try {
-    const body = await c.req.json();
-    const { action, url } = body;
-    
-    if (!action) {
-      return c.json({ error: 'Action is required' }, 400);
-    }
-    
-    // Log user action to server console
-    LogEngine.log(`📊 User Action: ${action} | URL: ${url || 'N/A'}`);
+    body = await c.req.json();
+  } catch (error) {
+    return c.json({ error: 'Invalid JSON payload' }, 400);
+  }
+
+  const { action, url } = body;
+
+  // Validate types
+  if (typeof action !== 'string' || !action) {
+    return c.json({ error: 'Action must be a non-empty string' }, 400);
+  }
+
+  if (url !== undefined && typeof url !== 'string') {
+    return c.json({ error: 'URL must be a string' }, 400);
+  }
+
+  // Enforce max lengths
+  if (action.length > 200) {
+    return c.json({ error: 'Action exceeds maximum length of 200 characters' }, 400);
+  }
+
+  if (url && url.length > 2048) {
+    return c.json({ error: 'URL exceeds maximum length of 2048 characters' }, 400);
+  }
+
+  // Sanitize by stripping CR/LF to prevent log injection
+  const sanitizedAction = action.replace(/[\r\n]/g, '');
+  const sanitizedUrl = url ? url.replace(/[\r\n]/g, '') : 'N/A';
+
+  try {
+    // Log user action to server console with sanitized values
+    LogEngine.log(`📊 User Action: ${sanitizedAction} | URL: ${sanitizedUrl}`);
     
     return c.json({ success: true });
   } catch (error) {
+    // Log internal error details separately
     LogEngine.error('Error logging user action:', error instanceof Error ? error.message : 'Unknown error');
     return c.json({ error: 'Failed to log action' }, 500);
   }
