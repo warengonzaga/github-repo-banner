@@ -267,10 +267,9 @@ export async function renderSegmentsAsHTML(
         parts.push(
           `<img src="data:image/svg+xml;base64,${base64}" style="display:inline-block;width:${fontSize}px;height:${fontSize}px;vertical-align:middle;margin:0 0.1em;" alt="" />`,
         );
-      } else {
-        // Fallback: render as text in brackets if icon not found
-        parts.push(`[${escapeXml(segment.value)}]`);
       }
+      // If icon not found, don't render anything (silent fail)
+      // This gives users feedback that the icon name is invalid
     }
   }
 
