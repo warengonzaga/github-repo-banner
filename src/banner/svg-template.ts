@@ -29,7 +29,7 @@ function buildBackground(bg: BackgroundPreset): string {
 }
 
 function buildWatermark(position: string = 'bottom-right'): string {
-  const text = 'made with ghrb.waren.build';
+  const text = 'ghrb.waren.build';
   const fontSize = 16;
   const rectPaddingX = 8;
   const rectPaddingY = 6;
@@ -120,8 +120,6 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
 
     const fontUrl = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
 
-    console.log('Fetching Google Fonts:', fontUrl);
-
     // Fetch the CSS with a browser User-Agent to get woff2 format (smaller files)
     const response = await fetch(fontUrl, {
       headers: {
@@ -134,7 +132,6 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
     }
 
     let css = await response.text();
-    console.log('Google Fonts CSS length:', css.length);
 
     // Extract all external font url() references and replace with inline base64 data URIs
     // This makes the SVG self-contained so fonts work everywhere

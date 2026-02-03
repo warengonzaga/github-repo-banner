@@ -935,7 +935,7 @@
 
           <div class="form-group" style="margin-top: 1.5rem;">
             <label class="checkbox-container">
-              <input type="checkbox" id="support" />
+              <input type="checkbox" id="support" checked />
               <div class="checkbox-label">
                 <div class="title">💖 Help spread the word</div>
                 <div class="description">Add a small watermark to help others discover this tool</div>
@@ -1441,8 +1441,9 @@
         params.set('subheaderfont', subheaderFont);
       }
       
-      if (supportCheckbox.checked) {
-        params.set('support', 'true');
+      if (!supportCheckbox.checked) {
+        params.set('support', 'false');
+      } else {
         params.set('watermarkpos', watermarkPosition);
       }
       return '/banner?' + params.toString();
@@ -1593,7 +1594,7 @@
       bgInput2.value = '4A4A4A';
       colorInput.value = 'FFFFFF';
       subheaderColorInput.value = '';
-      supportCheckbox.checked = false;
+      supportCheckbox.checked = true;
       
       // Reset watermark position
       watermarkPosition = 'bottom-right';

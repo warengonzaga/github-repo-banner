@@ -100,7 +100,7 @@ bannerRoute.get('/banner', async (c) => {
       ? `#${subheaderColorParam}`
       : undefined;
 
-  const showWatermark = supportParam === 'true';
+  const showWatermark = supportParam !== 'false';
   
   // Validate watermark position
   const validPositions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
