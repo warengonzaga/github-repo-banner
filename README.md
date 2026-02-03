@@ -19,6 +19,7 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - 💧 **Opacity Control** - 8-digit hex codes with alpha channel (RRGGBBAA)
 - 🔤 **Google Fonts Integration** - Use any font from Google Fonts for custom typography
 - 😀 **Native Emoji** - Full emoji support with proper rendering
+- 🎯 **Simple Icons Support** - Use 3000+ brand icons with `![slug]` syntax (e.g., `![github]`, `![react]`)
 - 📥 **SVG & PNG Download** - Download banners as SVG or PNG directly from the UI
 - ⚡ **Lightning Fast** - Built with Hono framework for optimal performance
 - 🔒 **Secure** - Input sanitization and validation
@@ -67,6 +68,17 @@ https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+p
 
 ![Emoji Example](https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&support=true)
 
+**With Brand Icons (Simple Icons)**
+
+```text
+https://ghrb.waren.build/banner?header=![github]+Hello+World&bg=1a1a1a-4a4a4a&color=ffffff
+https://ghrb.waren.build/banner?header=![react]+![typescript]+Modern+Stack&bg=14b8a6-06b6d4&color=ffffff
+```
+
+![Icon Example](https://ghrb.waren.build/banner?header=![github]+Hello+World&bg=1a1a1a-4a4a4a&color=ffffff)
+
+> Use `![slug]` syntax to embed any icon from [Simple Icons](https://simpleicons.org). Over 3000+ brand icons available! Icons automatically adapt to your text color.
+
 **Transparent/Opacity**
   
 ```text
@@ -89,13 +101,20 @@ Projects and organizations using GitHub Repo Banner:
 - ✅ **Repository names only** - GitHub repository URLs from browser Referer headers
 - ✅ **Public data only** - Already publicly visible on GitHub
 
+### What We Log (Always)
+- 📊 **User actions** - Button clicks (Copy Markdown, Download SVG, etc.) and the banner URL generated
+- 🎨 **Banner content** - Text and styling parameters (publicly displayed content only)
+- 💡 **Purpose** - Understand feature usage and popular banner styles to improve the service
+
+**Note:** All logs are ephemeral (console only, not stored in database). The content you generate is meant to be publicly displayed on GitHub, so logging helps improve the service without violating privacy.
+
 ### What We DON'T Track
 - ❌ No IP addresses
 - ❌ No personal information  
 - ❌ No user identities
 - ❌ No analytics or behavioral data
 - ❌ No cookies or tracking pixels
-- ❌ No timestamps or usage patterns
+- ❌ No session data or persistent storage
 
 ### Why Track (When Enabled)
 Understanding which repositories use this service helps:
@@ -150,7 +169,7 @@ Generate a custom SVG banner.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `header` | string | No | "Hello World" | Main text (supports emojis) |
+| `header` | string | No | "Hello World" | Main text (supports emojis and icons) |
 | `subheader` | string | No | - | Optional subtitle text |
 | `bg` | string | No | `1a1a1a-4a4a4a` | Background color in hex format |
 | `color` | string | No | `ffffff` | Header text color (hex without #) |
@@ -232,11 +251,33 @@ View repository tracking statistics (when enabled).
 
 The UI includes presets for quick access:
 
-**Gradients**: `1a1a1a-4a4a4a` (Midnight) • `ec4899-3b82f6` (Vibe) • `14b8a6-06b6d4` (Ocean) • `431586-9231A8` (Railway) 🆕 • `F38020-FBAB41` (Cloudflare) 🆕 • `E7F9FF-90C4E8` (OSSPH)
+### Gradients
 
-**Solids**: `fee2e2`/`bb2c2c` (Molty) • `fde8e3`/`de7356` (Claude) • `10a37f`/`ffffff` (GPT) • `f3f4f6`/`1f2937` (Minimal)
+| Name | Background | Text Color | Preview |
+|------|------------|------------|---------|
+| Midnight | `1a1a1a-4a4a4a` | `ffffff` | ![Midnight](https://ghrb.waren.build/banner?header=Midnight&bg=1a1a1a-4a4a4a&color=ffffff) |
+| Vibe | `ec4899-3b82f6` | `ffffff` | ![Vibe](https://ghrb.waren.build/banner?header=Vibe&bg=ec4899-3b82f6&color=ffffff) |
+| Ocean | `14b8a6-06b6d4` | `ffffff` | ![Ocean](https://ghrb.waren.build/banner?header=Ocean&bg=14b8a6-06b6d4&color=ffffff) |
+| Railway 🆕 | `431586-9231A8` | `ffffff` | ![Railway](https://ghrb.waren.build/banner?header=Railway&bg=431586-9231A8&color=ffffff) |
+| Cloudflare 🆕 | `F38020-FBAB41` | `ffffff` | ![Cloudflare](https://ghrb.waren.build/banner?header=Cloudflare&bg=F38020-FBAB41&color=ffffff) |
+| Waren 🆕 | `013B84-016EEA` | `ffffff` | ![Waren](https://ghrb.waren.build/banner?header=Waren&bg=013B84-016EEA&color=ffffff) |
+| OSSPH | `E7F9FF-90C4E8` | `0060A0` | ![OSSPH](https://ghrb.waren.build/banner?header=OSSPH&bg=E7F9FF-90C4E8&color=0060A0) |
 
-**Special**: `00000000`/`ffffff` (Transparent)
+### Solid Colors
+
+| Name | Background | Text Color | Preview |
+|------|------------|------------|---------|
+| Sky | `87ceeb` | `1e3a8a` | ![Sky](https://ghrb.waren.build/banner?header=Sky&bg=87ceeb&color=1e3a8a) |
+| Molty | `fee2e2` | `bb2c2c` | ![Molty](https://ghrb.waren.build/banner?header=Molty&bg=fee2e2&color=bb2c2c) |
+| Claude | `fde8e3` | `de7356` | ![Claude](https://ghrb.waren.build/banner?header=Claude&bg=fde8e3&color=de7356) |
+| GPT | `10a37f` | `ffffff` | ![GPT](https://ghrb.waren.build/banner?header=GPT&bg=10a37f&color=ffffff) |
+| Minimal | `f3f4f6` | `1f2937` | ![Minimal](https://ghrb.waren.build/banner?header=Minimal&bg=f3f4f6&color=1f2937) |
+
+### Special
+
+| Name | Background | Text Color | Preview |
+|------|------------|------------|---------|
+| Transparent | `00000000` | `ffffff` | ![Transparent](https://ghrb.waren.build/banner?header=Transparent&bg=00000000&color=ffffff) |
 
 > **Tip:** Create any custom gradient or color using hex codes directly in the URL.
 
