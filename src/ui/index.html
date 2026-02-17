@@ -2379,43 +2379,15 @@
     });
 
     copyUrlBtn.addEventListener('click', () => {
-      // Build URL without support parameter
-      const params = new URLSearchParams();
-      const header = headerInput.value || '![github] Hello World 👋';
-      params.set('header', header);
-      const subheader = subheaderInput.value.trim();
-      if (subheader) {
-        params.set('subheader', subheader);
-      }
-      
-      // Use preset bg if active (gradient or transparent), otherwise custom hex
-      if (currentPreset) {
-        params.set('bg', currentPreset.bg);
-      } else {
-        // Custom background color
-        const bgHex = getBgHex();
-        if (bgHex) {
-          params.set('bg', bgHex);
-        }
-      }
-      
-      const hex = getColorHex();
-      if (hex) {
-        params.set('color', hex);
-      }
-      const subHex = getSubheaderColorHex();
-      if (subHex && subheader) {
-        params.set('subheadercolor', subHex);
-      }
-      // Note: We intentionally do NOT include the support parameter here
-      
-      const imageUrl = window.location.origin + '/banner?' + params.toString();
+      // Use the same buildUrl function to ensure consistency with markdown
+      const url = buildUrl();
+      const imageUrl = window.location.origin + url;
       
       // Log action to server
       fetch('/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'Copy Image URL', url: '/banner?' + params.toString() })
+        body: JSON.stringify({ action: 'Copy Image URL', url: url })
       }).catch(() => {}); // Silent fail
       
       navigator.clipboard.writeText(imageUrl).then(() => {
