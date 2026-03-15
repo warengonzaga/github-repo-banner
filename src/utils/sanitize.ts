@@ -84,7 +84,7 @@ export function sanitizeFontName(raw: string, maxLength: number = 50): string {
  * Limits length to prevent abuse
  */
 export function sanitizeIconSlug(raw: string, maxLength: number = 50): string {
-  const cleaned = raw.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const cleaned = raw.toLowerCase().replace(/[^a-z0-9-_]/g, '');
   return cleaned.slice(0, maxLength);
 }
 

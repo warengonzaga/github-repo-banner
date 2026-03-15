@@ -6,7 +6,7 @@ import { escapeXml, sanitizeIconSlug } from '../utils/sanitize.js';
 const iconCache = new Map<string, string>();
 
 // Regex to match icon syntax: ![slug] or ![slug](theme)
-const ICON_RE = /!\[([a-z0-9-]+)\](?:\((light|dark|auto)\))?/g;
+const ICON_RE = /!\[([a-z0-9-_]+)\](?:\((light|dark|auto)\))?/g;
 
 // Regex to detect emojis (same as in emoji.ts)
 const EMOJI_RE =
