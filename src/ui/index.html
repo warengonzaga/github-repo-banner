@@ -2390,6 +2390,15 @@
         body: JSON.stringify({ action: 'Copy Image URL', url: url })
       }).catch(() => {}); // Silent fail
       
+      const imageUrl = window.location.origin + '/banner?' + params.toString();
+      
+      // Log action to server
+      fetch('/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'Copy Image URL', url: '/banner?' + params.toString() })
+      }).catch(() => {}); // Silent fail
+      
       navigator.clipboard.writeText(imageUrl).then(() => {
         copyUrlBtn.textContent = 'Copied!';
         copyUrlBtn.classList.add('copied');

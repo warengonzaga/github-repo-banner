@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: ^1.13.0
-        version: 1.19.9(hono@4.11.10)
+        version: 1.19.9(hono@4.11.7)
       '@wgtechlabs/log-engine':
         specifier: ^2.2.0
         version: 2.2.0
@@ -18,8 +18,8 @@ importers:
         specifier: ^17.2.3
         version: 17.2.3
       hono:
-        specifier: ^4.11.10
-        version: 4.11.10
+        specifier: ^4.11.7
+        version: 4.11.7
       ioredis:
         specifier: ^5.9.2
         version: 5.9.2
@@ -702,6 +702,8 @@ snapshots:
 
   '@ioredis/commands@1.5.0': {}
 
+  '@ioredis/commands@1.5.0': {}
+
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -877,6 +879,20 @@ snapshots:
       resolve-pkg-maps: 1.0.0
 
   hono@4.11.10: {}
+
+  ioredis@5.9.2:
+    dependencies:
+      '@ioredis/commands': 1.5.0
+      cluster-key-slot: 1.1.2
+      debug: 4.4.3
+      denque: 2.1.0
+      lodash.defaults: 4.2.0
+      lodash.isarguments: 3.1.0
+      redis-errors: 1.2.0
+      redis-parser: 3.0.0
+      standard-as-callback: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
 
   ioredis@5.9.2:
     dependencies:

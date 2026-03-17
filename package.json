@@ -12,7 +12,7 @@
     "@hono/node-server": "^1.13.0",
     "@wgtechlabs/log-engine": "^2.2.0",
     "dotenv": "^17.2.3",
-    "hono": "^4.11.10",
+    "hono": "^4.11.7",
     "ioredis": "^5.9.2"
   },
   "devDependencies": {
