@@ -1901,9 +1901,11 @@
       return text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '');
     }
 
+    const iconSyntaxSource = '!\\[([a-z0-9_-]+)\\](?:\\((light|dark|auto)\\))?';
+
     function extractIcons(text) {
       // Match ![icon-name] or ![icon-name](theme)
-      const iconRegex = /!\[([^\]]+)\](?:\([^)]+\))?/g;
+      const iconRegex = new RegExp(iconSyntaxSource, 'g');
       const icons = [];
       let match;
       while ((match = iconRegex.exec(text)) !== null) {
@@ -1917,7 +1919,7 @@
 
     function getTextWithoutIconsAndEmojis(text) {
       // Remove icon syntax first
-      const textWithoutIcons = text.replace(/!\[[^\]]+\](?:\([^)]+\))?/g, '');
+      const textWithoutIcons = text.replace(new RegExp(iconSyntaxSource, 'g'), '');
       // Then remove emojis
       return removeEmojis(textWithoutIcons);
     }

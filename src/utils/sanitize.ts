@@ -1,3 +1,9 @@
+import {
+  createIconSyntaxRegExp,
+  createIconSyntaxStartRegExp,
+  ICON_SLUG_SANITIZE_RE,
+} from './icon-syntax.js';
+
 const XML_ESCAPE_MAP: Record<string, string> = {
   '&': '&amp;',
   '<': '&lt;',
@@ -10,12 +16,15 @@ export function escapeXml(str: string): string {
   return str.replace(/[&<>"']/g, (ch) => XML_ESCAPE_MAP[ch] ?? ch);
 }
 
+const ICON_SYNTAX_RE = createIconSyntaxRegExp('gi');
+const ICON_SYNTAX_START_RE = createIconSyntaxStartRegExp('i');
+
 export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   const stripped = raw.replace(/<[^>]*>/g, '');
   
   // Calculate display length by removing icon syntax from the count
   // Icons render as images, not text, so they shouldn't count toward text limits
-  const displayText = stripped.replace(/!\[[a-z0-9-]+\](?:\((light|dark|auto)\))?/gi, '');
+  const displayText = stripped.replace(ICON_SYNTAX_RE, '');
   
   // If display content is within limit, return as is
   if (displayText.length <= maxLength) {
@@ -30,8 +39,8 @@ export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   
   while (i < stripped.length && displayCount < maxLength) {
     // Check if we're at the start of an icon
-    if (stripped.slice(i).match(/^!\[[a-z0-9-]+\](?:\((light|dark|auto)\))?/i)) {
-      const iconMatch = stripped.slice(i).match(/^!\[[a-z0-9-]+\](?:\((light|dark|auto)\))?/i);
+    if (stripped.slice(i).match(ICON_SYNTAX_START_RE)) {
+      const iconMatch = stripped.slice(i).match(ICON_SYNTAX_START_RE);
       if (iconMatch) {
         // Add the entire icon syntax without counting it
         result += iconMatch[0];
@@ -80,11 +89,11 @@ export function sanitizeFontName(raw: string, maxLength: number = 50): string {
 
 /**
  * Sanitize Simple Icons slug
- * Only allows lowercase letters, numbers, and hyphens (Simple Icons format)
+ * Only allows lowercase letters, numbers, hyphens, and underscores
  * Limits length to prevent abuse
  */
 export function sanitizeIconSlug(raw: string, maxLength: number = 50): string {
-  const cleaned = raw.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const cleaned = raw.toLowerCase().replace(ICON_SLUG_SANITIZE_RE, '');
   return cleaned.slice(0, maxLength);
 }
 

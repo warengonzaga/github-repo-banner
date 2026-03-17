@@ -1,5 +1,6 @@
 import type { BannerOptions, BackgroundPreset } from './types.js';
 import { escapeXml } from '../utils/sanitize.js';
+import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
 import {
   detectBackgroundTheme,
   parseHeaderWithIcons,
@@ -185,7 +186,7 @@ function estimateTextWidth(text: string, fontSize: number): number {
   // Regex to detect emojis (including multi-codepoint sequences)
   const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(\u200D(\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*/gu;
   // Regex to detect icons: ![slug] or ![slug](theme)
-  const iconRegex = /!\[([a-z0-9-]+)\](?:\((light|dark|auto)\))?/g;
+  const iconRegex = createIconSyntaxRegExp('g');
 
   // Count icons and emojis to add their width
   const iconCount = (text.match(iconRegex) || []).length;

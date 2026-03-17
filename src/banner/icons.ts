@@ -1,12 +1,13 @@
 import type { HeaderSegment, BackgroundPreset } from './types.js';
 import { emojiToCodepoint, fetchTwemojiSVG } from './emoji.js';
 import { escapeXml, sanitizeIconSlug } from '../utils/sanitize.js';
+import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
 
 // In-memory cache for fetched Simple Icons SVGs
 const iconCache = new Map<string, string>();
 
 // Regex to match icon syntax: ![slug] or ![slug](theme)
-const ICON_RE = /!\[([a-z0-9-]+)\](?:\((light|dark|auto)\))?/g;
+const ICON_RE = createIconSyntaxRegExp('g');
 
 // Regex to detect emojis (same as in emoji.ts)
 const EMOJI_RE =
