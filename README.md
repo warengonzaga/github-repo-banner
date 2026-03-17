@@ -36,8 +36,8 @@ Visit [ghrb.waren.build](https://ghrb.waren.build) to create your banner using t
 ```bash
 git clone https://github.com/warengonzaga/github-repo-banner.git
 cd github-repo-banner
-pnpm install
-pnpm dev
+bun install
+bun dev
 ```
 
 ## 📖 Usage Examples
@@ -285,14 +285,14 @@ The UI includes presets for quick access:
 
 ### Tech Stack
 
-**Runtime**: Node.js • **Framework**: [Hono](https://hono.dev/) • **Language**: TypeScript • **Build**: tsup • **Package Manager**: pnpm
+**Runtime**: Node.js • **Framework**: [Hono](https://hono.dev/) • **Language**: TypeScript • **Build**: tsup • **Package Manager**: Bun
 
 ### Commands
 
 ```bash
-pnpm dev      # Development with hot-reload
-pnpm build    # Production build
-pnpm start    # Start production server
+bun dev      # Development with hot-reload
+bun build    # Production build
+bun start    # Start production server
 ```
 
 ### Environment Variables

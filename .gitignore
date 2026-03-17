@@ -10,7 +10,6 @@ dist/
 .vscode/
 
 # Package manager artifacts
-pnpm-workspace.yaml
 package-lock.json
 
 # Environment variables (contains sensitive data)

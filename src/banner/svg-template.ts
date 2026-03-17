@@ -1,11 +1,11 @@
-import type { BannerOptions, BackgroundPreset } from './types.js';
-import { escapeXml } from '../utils/sanitize.js';
 import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
+import { escapeXml } from '../utils/sanitize.js';
 import {
   detectBackgroundTheme,
   parseHeaderWithIcons,
   renderSegmentsAsHTML,
 } from './icons.js';
+import type { BackgroundPreset, BannerOptions } from './types.js';
 
 const WIDTH = 1280;
 const HEIGHT = 304;
@@ -30,7 +30,7 @@ function buildBackground(bg: BackgroundPreset): string {
     return `<rect width="${WIDTH}" height="${HEIGHT}" fill="none" />`;
   }
   const fill =
-    bg.type === 'gradient' ? 'url(#bg-gradient)' : bg.color ?? '#f3f4f6';
+    bg.type === 'gradient' ? 'url(#bg-gradient)' : (bg.color ?? '#f3f4f6');
   return `<rect width="${WIDTH}" height="${HEIGHT}" fill="${fill}" />`;
 }
 
@@ -42,13 +42,13 @@ function buildWatermark(position: string = 'bottom-right'): string {
   const textWidth = text.length * fontSize * 0.55;
   const rectWidth = textWidth + rectPaddingX * 2;
   const rectHeight = fontSize + rectPaddingY * 2;
-  
+
   // Calculate position based on parameter
   let rectX: number;
   let rectY: number;
   let textAnchor: string;
   let textXOffset: number;
-  
+
   switch (position) {
     case 'top-left':
       rectX = 0;
@@ -68,7 +68,6 @@ function buildWatermark(position: string = 'bottom-right'): string {
       textAnchor = 'start';
       textXOffset = rectX + rectPaddingX;
       break;
-    case 'bottom-right':
     default:
       rectX = WIDTH - rectWidth;
       rectY = HEIGHT - rectHeight;
@@ -76,7 +75,7 @@ function buildWatermark(position: string = 'bottom-right'): string {
       textXOffset = rectX + rectPaddingX + textWidth;
       break;
   }
-  
+
   const textY = rectY + rectPaddingY + fontSize * 0.8;
 
   return `<g opacity="0.6">
@@ -111,7 +110,10 @@ async function fetchFontAsBase64(url: string): Promise<string> {
  * (e.g., GitHub README img tags, PNG conversion).
  * Note: Font names are already sanitized in the route handler
  */
-async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string): Promise<string> {
+async function buildGoogleFontsStyle(
+  headerFont?: string,
+  subheaderFont?: string,
+): Promise<string> {
   const fonts = new Set<string>();
   if (headerFont) fonts.add(headerFont);
   if (subheaderFont) fonts.add(subheaderFont);
@@ -121,7 +123,7 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
   try {
     // Build Google Fonts URL with weights for better rendering
     const fontFamilies = Array.from(fonts)
-      .map(font => `family=${encodeURIComponent(font)}:wght@400;700`)
+      .map((font) => `family=${encodeURIComponent(font)}:wght@400;700`)
       .join('&');
 
     const fontUrl = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
@@ -129,7 +131,8 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
     // Fetch the CSS with a browser User-Agent to get woff2 format (smaller files)
     const response = await fetch(fontUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       },
     });
     if (!response.ok) {
@@ -145,7 +148,7 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
 
     if (matches.length > 0) {
       // Deduplicate URLs (same font file may appear multiple times)
-      const uniqueUrls = [...new Set(matches.map(m => m[1]))];
+      const uniqueUrls = [...new Set(matches.map((m) => m[1]))];
 
       // Fetch all unique font files in parallel
       const urlToDataUri = new Map<string, string>();
@@ -153,13 +156,17 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
         uniqueUrls.map(async (url) => {
           const dataUri = await fetchFontAsBase64(url);
           urlToDataUri.set(url, dataUri);
-        })
+        }),
       );
 
       // Log any failures
       results.forEach((result, i) => {
         if (result.status === 'rejected') {
-          console.error('Failed to inline font file:', uniqueUrls[i], result.reason);
+          console.error(
+            'Failed to inline font file:',
+            uniqueUrls[i],
+            result.reason,
+          );
         }
       });
 
@@ -184,7 +191,8 @@ async function buildGoogleFontsStyle(headerFont?: string, subheaderFont?: string
  */
 function estimateTextWidth(text: string, fontSize: number): number {
   // Regex to detect emojis (including multi-codepoint sequences)
-  const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(\u200D(\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*/gu;
+  const emojiRegex =
+    /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(\u200D(\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*/gu;
   // Regex to detect icons: ![slug] or ![slug](theme)
   const iconRegex = createIconSyntaxRegExp('g');
 
@@ -193,7 +201,7 @@ function estimateTextWidth(text: string, fontSize: number): number {
   const emojiCount = (text.match(emojiRegex) || []).length;
 
   // Remove icons and emojis from text for accurate character width calculation
-  let cleanText = text.replace(iconRegex, '').replace(emojiRegex, '');
+  const cleanText = text.replace(iconRegex, '').replace(emojiRegex, '');
 
   let width = 0;
 
@@ -206,7 +214,8 @@ function estimateTextWidth(text: string, fontSize: number): number {
   // Each icon/emoji is rendered as fontSize width + 0.2em margin (0.1em on each side)
   // EMOJI_WIDTH_RATIO already accounts for the visual size, add extra for margins
   const marginWidth = fontSize * 0.2; // 0.1em on each side
-  width += (iconCount + emojiCount) * (fontSize * EMOJI_WIDTH_RATIO + marginWidth);
+  width +=
+    (iconCount + emojiCount) * (fontSize * EMOJI_WIDTH_RATIO + marginWidth);
 
   return width;
 }
@@ -237,10 +246,13 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   } = options;
 
   const hasSubheader = !!subheader;
+  const subheaderText = subheader ?? '';
 
   const headerFontSize = fitFontSize(header, BASE_FONT_SIZE);
   const subBaseFontSize = hasSubheader ? Math.round(headerFontSize * 0.4) : 0;
-  const subFontSize = hasSubheader ? fitFontSize(subheader!, subBaseFontSize) : 0;
+  const subFontSize = hasSubheader
+    ? fitFontSize(subheaderText, subBaseFontSize)
+    : 0;
 
   const VERTICAL_PAD = 50; // Always maintain top/bottom padding
   const availableHeight = HEIGHT - VERTICAL_PAD * 2;
@@ -263,19 +275,22 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   const defs = buildGradientDef(background);
   const bgRect = buildBackground(background);
   const watermark = showWatermark ? buildWatermark(watermarkPosition) : '';
-  
+
   // Determine font families to use - Google Font if specified, otherwise default
   // Escape the font names for safe insertion into CSS
-  const headerFontFamily = headerFont 
+  const headerFontFamily = headerFont
     ? `'${escapeXml(headerFont)}', ${fontFamily}`
     : fontFamily;
-  
+
   const subheaderFontFamily = subheaderFont
     ? `'${escapeXml(subheaderFont)}', ${fontFamily}`
     : fontFamily;
-  
+
   // Fetch and embed Google Fonts CSS if needed
-  const googleFontsStyle = await buildGoogleFontsStyle(headerFont, subheaderFont);
+  const googleFontsStyle = await buildGoogleFontsStyle(
+    headerFont,
+    subheaderFont,
+  );
 
   // Detect background theme for auto icon coloring
   const backgroundTheme = detectBackgroundTheme(background);
@@ -283,7 +298,7 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   // Parse header and subheader into segments (text, emoji, icons)
   const headerSegments = parseHeaderWithIcons(header);
   const subheaderSegments = hasSubheader
-    ? parseHeaderWithIcons(subheader!)
+    ? parseHeaderWithIcons(subheaderText)
     : [];
 
   // Use foreignObject with HTML — browser renders text + emoji + icons natively

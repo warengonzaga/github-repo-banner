@@ -21,22 +21,22 @@ const ICON_SYNTAX_START_RE = createIconSyntaxStartRegExp('i');
 
 export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   const stripped = raw.replace(/<[^>]*>/g, '');
-  
+
   // Calculate display length by removing icon syntax from the count
   // Icons render as images, not text, so they shouldn't count toward text limits
   const displayText = stripped.replace(ICON_SYNTAX_RE, '');
-  
+
   // If display content is within limit, return as is
   if (displayText.length <= maxLength) {
     return stripped;
   }
-  
+
   // Need to truncate while preserving complete icon syntax
   // Build string character by character, skipping icon syntax in count
   let result = '';
   let displayCount = 0;
   let i = 0;
-  
+
   while (i < stripped.length && displayCount < maxLength) {
     // Check if we're at the start of an icon
     if (stripped.slice(i).match(ICON_SYNTAX_START_RE)) {
@@ -48,19 +48,19 @@ export function sanitizeHeader(raw: string, maxLength: number = 50): string {
         continue;
       }
     }
-    
+
     // Regular character - add and count it
     result += stripped[i];
     displayCount++;
     i++;
   }
-  
+
   // Check if we ended in the middle of an icon and remove it if so
   const lastOpenBracket = result.lastIndexOf('![');
   if (lastOpenBracket !== -1) {
     const afterOpen = result.slice(lastOpenBracket);
     const hasClosing = afterOpen.includes(']');
-    
+
     if (!hasClosing) {
       result = result.slice(0, lastOpenBracket);
     } else {
@@ -73,7 +73,7 @@ export function sanitizeHeader(raw: string, maxLength: number = 50): string {
       }
     }
   }
-  
+
   return result.trimEnd();
 }
 

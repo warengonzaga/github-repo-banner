@@ -15,7 +15,10 @@ const EMOJI_RE =
 export function emojiToCodepoint(emoji: string): string {
   return [...emoji]
     .filter((cp) => cp !== '\uFE0F') // strip variation selector
-    .map((char) => char.codePointAt(0)!.toString(16))
+    .flatMap((char) => {
+      const codePoint = char.codePointAt(0);
+      return codePoint === undefined ? [] : [codePoint.toString(16)];
+    })
     .join('-');
 }
 
@@ -27,7 +30,10 @@ export async function fetchTwemojiSVG(
   codepoint: string,
 ): Promise<string | null> {
   if (emojiCache.has(codepoint)) {
-    return emojiCache.get(codepoint)!;
+    const cachedSvg = emojiCache.get(codepoint);
+    if (cachedSvg !== undefined) {
+      return cachedSvg;
+    }
   }
 
   const url = `https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/${codepoint}.svg`;
@@ -65,7 +71,10 @@ export function parseHeaderSegments(header: string): HeaderSegment[] {
   let lastIndex = 0;
 
   for (const match of header.matchAll(EMOJI_RE)) {
-    const matchStart = match.index!;
+    const matchStart = match.index;
+    if (matchStart === undefined) {
+      continue;
+    }
 
     // Text before this emoji
     if (matchStart > lastIndex) {

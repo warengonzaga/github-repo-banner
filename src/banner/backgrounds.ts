@@ -106,7 +106,7 @@ export const BACKGROUNDS: Record<string, BackgroundPreset> = {
     color: '#f3f4f6',
     defaultTextColor: '#1f2937',
   },
-  'transparent': {
+  transparent: {
     id: 'transparent',
     name: 'Transparent',
     type: 'transparent',

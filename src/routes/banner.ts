@@ -1,28 +1,46 @@
+import { LogEngine } from '@wgtechlabs/log-engine';
 import { Hono } from 'hono';
 import { buildBannerSVG } from '../banner/svg-template.js';
-import { sanitizeHeader, sanitizeFontName, isValidHexColor } from '../utils/sanitize.js';
+import type { BackgroundPreset } from '../banner/types.js';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
-import { LogEngine } from '@wgtechlabs/log-engine';
+import {
+  isValidHexColor,
+  sanitizeFontName,
+  sanitizeHeader,
+} from '../utils/sanitize.js';
 
 const bannerRoute = new Hono();
 
 bannerRoute.get('/banner', async (c) => {
   // Track repository usage if stats enabled
   const referer = c.req.header('referer') || '';
-  const repoMatch = referer.match(/github\.com\/([^\/]+\/[^\/]+)(?:\/|$)/);
+  const repoMatch = referer.match(/github\.com\/([^/]+\/[^/]+)(?:\/|$)/);
 
   if (repoMatch && isStatsEnabled()) {
     const repo = repoMatch[1];
     // Skip obvious non-repo paths
-    const nonRepoPrefixes = ['settings', 'orgs', 'users', 'explore', 'notifications', 'issues', 'pulls'];
-    const isNonRepoPath = nonRepoPrefixes.some(p => repo.startsWith(p + '/') || repo === p);
-    
+    const nonRepoPrefixes = [
+      'settings',
+      'orgs',
+      'users',
+      'explore',
+      'notifications',
+      'issues',
+      'pulls',
+    ];
+    const isNonRepoPath = nonRepoPrefixes.some(
+      (p) => repo.startsWith(`${p}/`) || repo === p,
+    );
+
     if (!isNonRepoPath) {
       const redis = getRedis();
       // Fire and forget - don't block banner generation
-      redis?.sadd('repos:tracked', repo).then(() => {
-        LogEngine.log(`📊 Repository using banner: ${repo}`);
-      }).catch(() => {});
+      redis
+        ?.sadd('repos:tracked', repo)
+        .then(() => {
+          LogEngine.log(`📊 Repository using banner: ${repo}`);
+        })
+        .catch(() => {});
     }
   }
 
@@ -38,10 +56,10 @@ bannerRoute.get('/banner', async (c) => {
 
   const header = sanitizeHeader(rawHeader, 50);
   const subheader = rawSubheader ? sanitizeHeader(rawSubheader, 60) : undefined;
-  
+
   // Parse bg parameter: gradient (hex-hex) or solid (hex)
-  let background;
-  
+  let background: BackgroundPreset;
+
   if (bgParam.includes('-')) {
     // Gradient: two hex codes separated by hyphen
     const [startHex, endHex] = bgParam.split('-');
@@ -93,7 +111,7 @@ bannerRoute.get('/banner', async (c) => {
       };
     }
   }
-  
+
   const textColor =
     colorParam && isValidHexColor(colorParam)
       ? `#${colorParam}`
@@ -104,14 +122,25 @@ bannerRoute.get('/banner', async (c) => {
       : undefined;
 
   const showWatermark = supportParam !== 'false';
-  
+
   // Validate watermark position
-  const validPositions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
-  const watermarkPosition = validPositions.includes(watermarkPosParam) ? watermarkPosParam : 'bottom-right';
-  
+  const validPositions = [
+    'top-left',
+    'top-right',
+    'bottom-left',
+    'bottom-right',
+  ];
+  const watermarkPosition = validPositions.includes(watermarkPosParam)
+    ? watermarkPosParam
+    : 'bottom-right';
+
   // Sanitize and validate font parameters
-  const headerFont = headerFontParam ? sanitizeFontName(headerFontParam, 50) : undefined;
-  const subheaderFont = subheaderFontParam ? sanitizeFontName(subheaderFontParam, 50) : undefined;
+  const headerFont = headerFontParam
+    ? sanitizeFontName(headerFontParam, 50)
+    : undefined;
+  const subheaderFont = subheaderFontParam
+    ? sanitizeFontName(subheaderFontParam, 50)
+    : undefined;
 
   const svg = await buildBannerSVG({
     header,

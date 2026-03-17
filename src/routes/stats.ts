@@ -1,6 +1,11 @@
+import { LogEngine } from '@wgtechlabs/log-engine';
 import { Hono } from 'hono';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
-import { LogEngine } from '@wgtechlabs/log-engine';
+
+type LogPayload = {
+  action?: unknown;
+  url?: unknown;
+};
 
 const statsRoute = new Hono();
 
@@ -38,17 +43,17 @@ statsRoute.get('/stats', async (c) => {
         error: 'Failed to fetch stats',
         message: 'Redis connection issue',
       },
-      500
+      500,
     );
   }
 });
 
 statsRoute.post('/log', async (c) => {
-  let body: any;
-  
+  let body: LogPayload;
+
   try {
     body = await c.req.json();
-  } catch (error) {
+  } catch {
     return c.json({ error: 'Invalid JSON payload' }, 400);
   }
 
@@ -65,11 +70,17 @@ statsRoute.post('/log', async (c) => {
 
   // Enforce max lengths
   if (action.length > 200) {
-    return c.json({ error: 'Action exceeds maximum length of 200 characters' }, 400);
+    return c.json(
+      { error: 'Action exceeds maximum length of 200 characters' },
+      400,
+    );
   }
 
   if (url && url.length > 2048) {
-    return c.json({ error: 'URL exceeds maximum length of 2048 characters' }, 400);
+    return c.json(
+      { error: 'URL exceeds maximum length of 2048 characters' },
+      400,
+    );
   }
 
   // Sanitize by stripping CR/LF to prevent log injection
@@ -79,11 +90,14 @@ statsRoute.post('/log', async (c) => {
   try {
     // Log user action to server console with sanitized values
     LogEngine.log(`📊 User Action: ${sanitizedAction} | URL: ${sanitizedUrl}`);
-    
+
     return c.json({ success: true });
   } catch (error) {
     // Log internal error details separately
-    LogEngine.error('Error logging user action:', error instanceof Error ? error.message : 'Unknown error');
+    LogEngine.error(
+      'Error logging user action:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
     return c.json({ error: 'Failed to log action' }, 500);
   }
 });
