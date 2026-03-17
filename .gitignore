@@ -1,8 +1,15 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 *.js.map
+
+# Editor and tooling
 .claude/
 .vscode/
+
+# Package manager artifacts
 pnpm-workspace.yaml
 package-lock.json
 
@@ -10,3 +17,6 @@ package-lock.json
 .env
 .env.local
 .env.*.local
+
+# Contribute Now workflow configuration
+.contributerc.json
