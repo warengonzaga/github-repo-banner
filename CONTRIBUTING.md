@@ -27,6 +27,8 @@ Once set up, use `contribute` (or the short alias `cn`) to handle branching, syn
 
 If you prefer the manual approach:
 
+> **Prerequisites:** [Node.js](https://nodejs.org/) `^22`, [pnpm](https://pnpm.io/), and [Git](https://git-scm.com/) are required.
+
 1. **Fork** the repository
 2. **Clone** your fork and install dependencies:
    ```bash
@@ -73,6 +75,7 @@ With optional scope:
 
 ### Rules
 
+- **Always include the matching emoji prefix** — the emoji is mandatory, not optional
 - Use **lowercase** for type — never capitalize it
 - Use **present tense** — write "add" not "added"
 - **No period** at the end of the description
