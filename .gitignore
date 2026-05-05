@@ -11,6 +11,7 @@ dist/
 
 # Package manager artifacts
 package-lock.json
+pnpm-workspace.yaml
 
 # Environment variables (contains sensitive data)
 .env

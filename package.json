@@ -12,10 +12,10 @@
     "check": "biome check ."
   },
   "dependencies": {
-    "@hono/node-server": "^1.13.0",
+    "@hono/node-server": "^1.19.13",
     "@wgtechlabs/log-engine": "^2.2.0",
     "dotenv": "^17.2.3",
-    "hono": "^4.11.7",
+    "hono": "^4.12.14",
     "ioredis": "^5.9.2"
   },
   "devDependencies": {
