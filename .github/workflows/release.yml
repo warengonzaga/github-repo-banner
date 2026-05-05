@@ -19,7 +19,7 @@ jobs:
 
       - name: Create Release
         id: release
-        uses: wgtechlabs/release-build-flow-action@v1.7.0
+        uses: wgtechlabs/release-build-flow-action@caae4110eb1768fda7b73cf2a86a10f3697cdf6b # v1.7.0
         with:
           # Use PAT so the release event triggers downstream workflows
           # (e.g., container build flow)
