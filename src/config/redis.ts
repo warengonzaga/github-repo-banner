@@ -1,5 +1,5 @@
-import Redis from 'ioredis';
 import { LogEngine } from '@wgtechlabs/log-engine';
+import Redis from 'ioredis';
 
 let redisClient: Redis | null = null;
 let statsEnabled = false;
@@ -19,7 +19,9 @@ export async function initRedis(): Promise<void> {
   }
 
   if (!redisUrl) {
-    LogEngine.warn('Stats tracking enabled but REDIS_URL not configured. Stats will be disabled.');
+    LogEngine.warn(
+      'Stats tracking enabled but REDIS_URL not configured. Stats will be disabled.',
+    );
     statsEnabled = false;
     return;
   }
@@ -29,7 +31,9 @@ export async function initRedis(): Promise<void> {
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
         if (times > 3) {
-          LogEngine.error('Redis connection failed after 3 retries. Stats tracking disabled.');
+          LogEngine.error(
+            'Redis connection failed after 3 retries. Stats tracking disabled.',
+          );
           return null; // Stop retrying
         }
         const delay = Math.min(times * 100, 2000);
@@ -46,7 +50,10 @@ export async function initRedis(): Promise<void> {
     statsEnabled = true;
     LogEngine.info('Stats tracking: ENABLED');
   } catch (error) {
-    LogEngine.error('Redis connection failed:', error instanceof Error ? error.message : 'Unknown error');
+    LogEngine.error(
+      'Redis connection failed:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
     LogEngine.info('Stats tracking: DISABLED');
     statsEnabled = false;
     if (redisClient) {

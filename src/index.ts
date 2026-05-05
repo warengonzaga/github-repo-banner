@@ -1,16 +1,20 @@
 import 'dotenv/config';
+import { createRequire } from 'node:module';
 import { serve } from '@hono/node-server';
-import { Hono } from 'hono';
 import { LogEngine, LogMode } from '@wgtechlabs/log-engine';
-import bannerRoute from './routes/banner.js';
-import uiRoute from './routes/ui.js';
-import statsRoute from './routes/stats.js';
+import { Hono } from 'hono';
 import { initRedis, isStatsEnabled } from './config/redis.js';
+import bannerRoute from './routes/banner.js';
+import statsRoute from './routes/stats.js';
+import uiRoute from './routes/ui.js';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json') as { version: string };
 
 // Configure log-engine based on environment
 const env = process.env.NODE_ENV || 'development';
-LogEngine.configure({ 
-  mode: env === 'production' ? LogMode.INFO : LogMode.DEBUG 
+LogEngine.configure({
+  mode: env === 'production' ? LogMode.INFO : LogMode.DEBUG,
 });
 
 const app = new Hono();
@@ -51,10 +55,12 @@ await initRedis();
 serve({ fetch: app.fetch, port }, (info) => {
   LogEngine.info('='.repeat(50));
   LogEngine.info('GitHub Repo Banner Service');
-  LogEngine.info('📦 Version: 1.2.0');
+  LogEngine.info(`📦 Version: ${version}`);
   LogEngine.info('👤 Author: Waren Gonzaga');
   LogEngine.info('='.repeat(50));
   LogEngine.info(`🚀 Server: http://localhost:${info.port}`);
-  LogEngine.info(`📊 Stats: ${isStatsEnabled() ? 'Enabled (/stats)' : 'Disabled'}`);
+  LogEngine.info(
+    `📊 Stats: ${isStatsEnabled() ? 'Enabled (/stats)' : 'Disabled'}`,
+  );
   LogEngine.info('='.repeat(50));
 });

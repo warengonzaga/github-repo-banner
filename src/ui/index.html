@@ -1901,9 +1901,11 @@
       return text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '');
     }
 
+    const iconSyntaxSource = '!\\[([a-z0-9_-]+)\\](?:\\((light|dark|auto)\\))?';
+
     function extractIcons(text) {
       // Match ![icon-name] or ![icon-name](theme)
-      const iconRegex = /!\[([^\]]+)\](?:\([^)]+\))?/g;
+      const iconRegex = new RegExp(iconSyntaxSource, 'g');
       const icons = [];
       let match;
       while ((match = iconRegex.exec(text)) !== null) {
@@ -1917,7 +1919,7 @@
 
     function getTextWithoutIconsAndEmojis(text) {
       // Remove icon syntax first
-      const textWithoutIcons = text.replace(/!\[[^\]]+\](?:\([^)]+\))?/g, '');
+      const textWithoutIcons = text.replace(new RegExp(iconSyntaxSource, 'g'), '');
       // Then remove emojis
       return removeEmojis(textWithoutIcons);
     }
@@ -2379,15 +2381,43 @@
     });
 
     copyUrlBtn.addEventListener('click', () => {
-      // Use the same buildUrl function to ensure consistency with markdown
-      const url = buildUrl();
-      const imageUrl = window.location.origin + url;
+      // Build URL without support parameter
+      const params = new URLSearchParams();
+      const header = headerInput.value || '![github] Hello World 👋';
+      params.set('header', header);
+      const subheader = subheaderInput.value.trim();
+      if (subheader) {
+        params.set('subheader', subheader);
+      }
+      
+      // Use preset bg if active (gradient or transparent), otherwise custom hex
+      if (currentPreset) {
+        params.set('bg', currentPreset.bg);
+      } else {
+        // Custom background color
+        const bgHex = getBgHex();
+        if (bgHex) {
+          params.set('bg', bgHex);
+        }
+      }
+      
+      const hex = getColorHex();
+      if (hex) {
+        params.set('color', hex);
+      }
+      const subHex = getSubheaderColorHex();
+      if (subHex && subheader) {
+        params.set('subheadercolor', subHex);
+      }
+      // Note: We intentionally do NOT include the support parameter here
+      
+      const imageUrl = window.location.origin + '/banner?' + params.toString();
       
       // Log action to server
       fetch('/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'Copy Image URL', url: url })
+        body: JSON.stringify({ action: 'Copy Image URL', url: '/banner?' + params.toString() })
       }).catch(() => {}); // Silent fail
       
       navigator.clipboard.writeText(imageUrl).then(() => {

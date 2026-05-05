@@ -36,8 +36,8 @@ Visit [ghrb.waren.build](https://ghrb.waren.build) to create your banner using t
 ```bash
 git clone https://github.com/warengonzaga/github-repo-banner.git
 cd github-repo-banner
-pnpm install
-pnpm dev
+bun install
+bun dev
 ```
 
 ## 📖 Usage Examples
@@ -91,7 +91,6 @@ https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000
 Projects and organizations using GitHub Repo Banner:
 
 - [gogcli](https://github.com/steipete/gogcli) by [steipete](https://github.com/steipete) - Google in your terminal
-- [summarize](https://github.com/steipete/summarize) by [steipete](https://github.com/steipete) - Fast summaries from URLs, files, and media.
 - [BetterGov PH](https://github.com/bettergovph/bettergov) - Making government services better for Filipinos
 
 ## 🔒 Privacy & Transparency
@@ -286,14 +285,14 @@ The UI includes presets for quick access:
 
 ### Tech Stack
 
-**Runtime**: Node.js • **Framework**: [Hono](https://hono.dev/) • **Language**: TypeScript • **Build**: tsup • **Package Manager**: pnpm
+**Runtime**: Node.js • **Framework**: [Hono](https://hono.dev/) • **Language**: TypeScript • **Build**: tsup • **Package Manager**: Bun
 
 ### Commands
 
 ```bash
-pnpm dev      # Development with hot-reload
-pnpm build    # Production build
-pnpm start    # Start production server
+bun dev      # Development with hot-reload
+bun build    # Production build
+bun start    # Start production server
 ```
 
 ### Environment Variables
@@ -307,7 +306,7 @@ ENABLE_STATS=false     # Set to 'true' to enable repository tracking
 REDIS_URL=             # Required only if ENABLE_STATS=true
 ```
 
-See `.example.env` for complete documentation.
+See `.env.example` for complete documentation.
 
 ### Security
 

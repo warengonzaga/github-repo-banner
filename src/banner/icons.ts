@@ -1,12 +1,13 @@
-import type { HeaderSegment, BackgroundPreset } from './types.js';
-import { emojiToCodepoint, fetchTwemojiSVG } from './emoji.js';
+import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
 import { escapeXml, sanitizeIconSlug } from '../utils/sanitize.js';
+import { emojiToCodepoint, fetchTwemojiSVG } from './emoji.js';
+import type { BackgroundPreset, HeaderSegment } from './types.js';
 
 // In-memory cache for fetched Simple Icons SVGs
 const iconCache = new Map<string, string>();
 
 // Regex to match icon syntax: ![slug] or ![slug](theme)
-const ICON_RE = /!\[([a-z0-9-]+)\](?:\((light|dark|auto)\))?/g;
+const ICON_RE = createIconSyntaxRegExp('g');
 
 // Regex to detect emojis (same as in emoji.ts)
 const EMOJI_RE =
@@ -29,7 +30,10 @@ export async function fetchSimpleIconSVG(
   const cacheKey = `${cleanSlug}-${color}`;
 
   if (iconCache.has(cacheKey)) {
-    return iconCache.get(cacheKey)!;
+    const cachedSvg = iconCache.get(cacheKey);
+    if (cachedSvg !== undefined) {
+      return cachedSvg;
+    }
   }
 
   const url = `https://cdn.simpleicons.org/${cleanSlug}/${color}`;
@@ -61,7 +65,7 @@ export function calculateLuminance(hexColor: string): number {
 
   // Apply gamma correction (linearize RGB values)
   const linearize = (c: number) =>
-    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 
   const R = linearize(r);
   const G = linearize(g);
@@ -124,8 +128,13 @@ export function parseHeaderWithIcons(header: string): HeaderSegment[] {
   }> = [];
 
   for (const match of header.matchAll(ICON_RE)) {
+    const matchIndex = match.index;
+    if (matchIndex === undefined) {
+      continue;
+    }
+
     iconMatches.push({
-      index: match.index!,
+      index: matchIndex,
       length: match[0].length,
       slug: match[1],
       theme: (match[2] as 'light' | 'dark' | 'auto') || 'auto',
@@ -181,13 +190,19 @@ function parseEmojiInText(text: string): HeaderSegment[] {
   let lastIdx = 0;
 
   for (const match of text.matchAll(EMOJI_RE)) {
-    // Add text before this emoji
-    if (match.index! > lastIdx) {
-      segments.push({ type: 'text', value: text.slice(lastIdx, match.index!) });
+    const matchIndex = match.index;
+    if (matchIndex === undefined) {
+      continue;
     }
+
+    // Add text before this emoji
+    if (matchIndex > lastIdx) {
+      segments.push({ type: 'text', value: text.slice(lastIdx, matchIndex) });
+    }
+
     // Add emoji
     segments.push({ type: 'emoji', value: match[0] });
-    lastIdx = match.index! + match[0].length;
+    lastIdx = matchIndex + match[0].length;
   }
 
   // Add remaining text
@@ -214,7 +229,7 @@ function parseEmojiInText(text: string): HeaderSegment[] {
 export async function renderSegmentsAsHTML(
   segments: HeaderSegment[],
   fontSize: number,
-  textColor: string,
+  _textColor: string,
   backgroundTheme: 'light' | 'dark',
 ): Promise<string> {
   const parts: string[] = [];
@@ -241,7 +256,9 @@ export async function renderSegmentsAsHTML(
     } else if (segment.type === 'icon') {
       // Determine the theme to use for this icon
       const iconTheme =
-        segment.theme === 'auto' ? backgroundTheme : segment.theme!;
+        !segment.theme || segment.theme === 'auto'
+          ? backgroundTheme
+          : segment.theme;
 
       // Get color for icon based on theme
       // 'light' theme = icon for light background = dark icon
