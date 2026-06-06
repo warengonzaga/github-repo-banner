@@ -10,7 +10,7 @@ pexelsRoute.get('/api/pexels/search', async (c) => {
     return c.json({ error: 'Pexels API not configured' }, 503);
   }
 
-  const query = c.req.query('q') || 'nature';
+  const query = (c.req.query('q') || 'nature').slice(0, 100);
   const page = Math.max(
     1,
     parseInt(c.req.query('page') || '1', 10) || 1,
