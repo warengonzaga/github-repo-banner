@@ -1395,7 +1395,7 @@
               <button type="button" id="pexels-search-btn" style="padding: 0.5rem 1rem; background: #238636; color: #fff; border: 1px solid rgba(240,246,252,0.1); border-radius: 6px; cursor: pointer; font-size: 0.875rem; white-space: nowrap;">Search</button>
               <button type="button" id="pexels-clear-btn" style="padding: 0.5rem 0.75rem; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; font-size: 0.875rem; display: none; white-space: nowrap;">Clear</button>
             </div>
-            <div id="pexels-results" style="display: none; margin-top: 0.75rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;"></div>
+            <div id="pexels-results" style="display: none; margin-top: 0.75rem; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;"></div>
             <p id="pexels-attribution" style="font-size: 0.7rem; color: #7d8590; margin-top: 0.5rem; display: none;">
               Photos provided by <a href="https://www.pexels.com" target="_blank" rel="noopener" style="color: #58a6ff;">Pexels</a>
             </p>
@@ -2487,6 +2487,17 @@
         params.set('subheader', subheader);
       }
       
+      // Background image URL takes priority
+      const bgImgUrl = bgImgInput.value.trim();
+      if (bgImgUrl) {
+        try {
+          const parsed = new URL(bgImgUrl);
+          if (parsed.protocol === 'https:') {
+            params.set('bgimg', bgImgUrl);
+          }
+        } catch {}
+      }
+
       // Use preset bg if active (gradient or transparent), otherwise custom hex
       if (currentPreset) {
         params.set('bg', currentPreset.bg);

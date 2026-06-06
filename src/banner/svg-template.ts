@@ -28,6 +28,15 @@ function buildGradientDef(bg: BackgroundPreset): string {
 /**
  * Fetch an image and return it as a base64 data URI for SVG embedding.
  */
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/avif',
+];
+
 async function fetchImageAsBase64(url: string): Promise<string | null> {
   try {
     const response = await fetch(url, {
@@ -39,12 +48,42 @@ async function fetchImageAsBase64(url: string): Promise<string | null> {
     });
     if (!response.ok) return null;
 
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    const buffer = await response.arrayBuffer();
-    if (buffer.byteLength === 0 || buffer.byteLength > 10 * 1024 * 1024)
+    const declaredLength = response.headers.get('content-length');
+    if (declaredLength && parseInt(declaredLength, 10) > MAX_IMAGE_BYTES)
       return null;
 
-    const base64 = Buffer.from(buffer).toString('base64');
+    const rawContentType = response.headers.get('content-type') || 'image/jpeg';
+    const contentType =
+      ALLOWED_IMAGE_TYPES.find((t) => rawContentType.startsWith(t)) ||
+      'image/jpeg';
+
+    const body = response.body;
+    if (!body) return null;
+
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    const reader = body.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_IMAGE_BYTES) {
+        reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+
+    if (totalBytes === 0) return null;
+
+    const merged = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      merged.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+
+    const base64 = Buffer.from(merged).toString('base64');
     return `data:${contentType};base64,${base64}`;
   } catch {
     return null;

@@ -11,7 +11,10 @@ pexelsRoute.get('/api/pexels/search', async (c) => {
   }
 
   const query = c.req.query('q') || 'nature';
-  const page = c.req.query('page') || '1';
+  const page = Math.max(
+    1,
+    parseInt(c.req.query('page') || '1', 10) || 1,
+  ).toString();
   const perPage = '9';
   const orientation = 'landscape';
 
