@@ -25,6 +25,33 @@ function buildGradientDef(bg: BackgroundPreset): string {
   return `<linearGradient id="bg-gradient" x1="0" y1="0" x2="1" y2="0">${stops}</linearGradient>`;
 }
 
+/**
+ * Fetch an image and return it as a base64 data URI for SVG embedding.
+ */
+async function fetchImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (compatible; GitHubRepoBanner/1.0; +https://ghrb.waren.build)',
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) return null;
+
+    const contentType =
+      response.headers.get('content-type') || 'image/jpeg';
+    const buffer = await response.arrayBuffer();
+    if (buffer.byteLength === 0 || buffer.byteLength > 10 * 1024 * 1024)
+      return null;
+
+    const base64 = Buffer.from(buffer).toString('base64');
+    return `data:${contentType};base64,${base64}`;
+  } catch {
+    return null;
+  }
+}
+
 function buildBackground(bg: BackgroundPreset): string {
   if (bg.type === 'transparent') {
     return `<rect width="${WIDTH}" height="${HEIGHT}" fill="none" />`;
@@ -273,7 +300,26 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   }
 
   const defs = buildGradientDef(background);
-  const bgRect = buildBackground(background);
+  let bgRect: string;
+
+  if (background.type === 'image' && background.imageUrl) {
+    const dataUri = await fetchImageAsBase64(background.imageUrl);
+    if (dataUri) {
+      bgRect = `<image href="${dataUri}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice" />`;
+    } else {
+      bgRect = buildBackground({
+        ...background,
+        type: 'gradient',
+        stops: [
+          { offset: '0%', color: '#1a1a1a' },
+          { offset: '100%', color: '#4a4a4a' },
+        ],
+      });
+    }
+  } else {
+    bgRect = buildBackground(background);
+  }
+
   const watermark = showWatermark ? buildWatermark(watermarkPosition) : '';
 
   // Determine font families to use - Google Font if specified, otherwise default

@@ -5,6 +5,7 @@ import { LogEngine, LogMode } from '@wgtechlabs/log-engine';
 import { Hono } from 'hono';
 import { initRedis, isStatsEnabled } from './config/redis.js';
 import bannerRoute from './routes/banner.js';
+import pexelsRoute from './routes/pexels.js';
 import statsRoute from './routes/stats.js';
 import uiRoute from './routes/ui.js';
 
@@ -45,6 +46,7 @@ app.get('/health', (c) => {
 
 app.route('/', uiRoute);
 app.route('/', bannerRoute);
+app.route('/', pexelsRoute);
 app.route('/', statsRoute);
 
 const port = parseInt(process.env.PORT || '3000', 10);

@@ -120,3 +120,15 @@ const HEX_COLOR_RE = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/;
 export function isValidHexColor(value: string): boolean {
   return HEX_COLOR_RE.test(value);
 }
+
+const MAX_IMAGE_URL_LENGTH = 2048;
+
+export function isValidImageUrl(value: string): boolean {
+  if (!value || value.length > MAX_IMAGE_URL_LENGTH) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
