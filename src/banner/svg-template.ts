@@ -39,8 +39,7 @@ async function fetchImageAsBase64(url: string): Promise<string | null> {
     });
     if (!response.ok) return null;
 
-    const contentType =
-      response.headers.get('content-type') || 'image/jpeg';
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
     const buffer = await response.arrayBuffer();
     if (buffer.byteLength === 0 || buffer.byteLength > 10 * 1024 * 1024)
       return null;
