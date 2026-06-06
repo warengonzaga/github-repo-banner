@@ -45,6 +45,7 @@ async function fetchImageAsBase64(url: string): Promise<string | null> {
           'Mozilla/5.0 (compatible; GitHubRepoBanner/1.0; +https://ghrb.waren.build)',
       },
       signal: AbortSignal.timeout(10_000),
+      redirect: 'error',
     });
     if (!response.ok) return null;
 
@@ -53,9 +54,10 @@ async function fetchImageAsBase64(url: string): Promise<string | null> {
       return null;
 
     const rawContentType = response.headers.get('content-type') || 'image/jpeg';
-    const contentType =
-      ALLOWED_IMAGE_TYPES.find((t) => rawContentType.startsWith(t)) ||
-      'image/jpeg';
+    const contentType = ALLOWED_IMAGE_TYPES.find((t) =>
+      rawContentType.startsWith(t),
+    );
+    if (!contentType) return null;
 
     const body = response.body;
     if (!body) return null;
@@ -345,14 +347,7 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     if (dataUri) {
       bgRect = `<image href="${dataUri}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice" />`;
     } else {
-      bgRect = buildBackground({
-        ...background,
-        type: 'gradient',
-        stops: [
-          { offset: '0%', color: '#1a1a1a' },
-          { offset: '100%', color: '#4a4a4a' },
-        ],
-      });
+      bgRect = `<rect width="${WIDTH}" height="${HEIGHT}" fill="#1a1a1a" />`;
     }
   } else {
     bgRect = buildBackground(background);
