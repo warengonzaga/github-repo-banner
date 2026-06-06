@@ -133,10 +133,21 @@ const MAX_IMAGE_URL_LENGTH = 2048;
 function isPrivateHost(hostname: string): boolean {
   const host = hostname.replace(/^\[|\]$/g, '').toLowerCase();
 
+  // Block well-known private hostnames
+  if (host === 'localhost') return true;
+  if (
+    host.endsWith('.localhost') ||
+    host.endsWith('.local') ||
+    host.endsWith('.internal') ||
+    host.endsWith('.arpa')
+  )
+    return true;
+
   // IPv6 loopback and unique-local / link-local ranges
   if (host === '::1') return true;
-  if (host.startsWith('fc') || host.startsWith('fd')) return true; // fc00::/7
-  if (host.startsWith('fe80')) return true; // link-local
+  if (host.includes(':') && (host.startsWith('fc') || host.startsWith('fd')))
+    return true; // fc00::/7
+  if (host.includes(':') && host.startsWith('fe80')) return true; // link-local
   // IPv4-mapped IPv6 (e.g. ::ffff:10.0.0.1) - extract the trailing IPv4
   const mapped = host.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
   const ipv4 = mapped ? mapped[1] : host;
