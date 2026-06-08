@@ -1,9 +1,10 @@
 export interface BackgroundPreset {
   id: string;
   name: string;
-  type: 'gradient' | 'solid' | 'transparent';
+  type: 'gradient' | 'solid' | 'transparent' | 'image';
   stops?: Array<{ offset: string; color: string }>;
   color?: string;
+  imageUrl?: string;
   defaultTextColor: string;
 }
 

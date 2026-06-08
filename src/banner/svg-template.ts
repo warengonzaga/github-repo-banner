@@ -25,6 +25,73 @@ function buildGradientDef(bg: BackgroundPreset): string {
   return `<linearGradient id="bg-gradient" x1="0" y1="0" x2="1" y2="0">${stops}</linearGradient>`;
 }
 
+/**
+ * Fetch an image and return it as a base64 data URI for SVG embedding.
+ */
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/avif',
+];
+
+async function fetchImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (compatible; GitHubRepoBanner/1.0; +https://ghrb.waren.build)',
+      },
+      signal: AbortSignal.timeout(10_000),
+      redirect: 'error',
+    });
+    if (!response.ok) return null;
+
+    const declaredLength = response.headers.get('content-length');
+    if (declaredLength && parseInt(declaredLength, 10) > MAX_IMAGE_BYTES)
+      return null;
+
+    const rawContentType = response.headers.get('content-type') || 'image/jpeg';
+    const contentType = ALLOWED_IMAGE_TYPES.find((t) =>
+      rawContentType.startsWith(t),
+    );
+    if (!contentType) return null;
+
+    const body = response.body;
+    if (!body) return null;
+
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    const reader = body.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_IMAGE_BYTES) {
+        reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+
+    if (totalBytes === 0) return null;
+
+    const merged = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      merged.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+
+    const base64 = Buffer.from(merged).toString('base64');
+    return `data:${contentType};base64,${base64}`;
+  } catch {
+    return null;
+  }
+}
+
 function buildBackground(bg: BackgroundPreset): string {
   if (bg.type === 'transparent') {
     return `<rect width="${WIDTH}" height="${HEIGHT}" fill="none" />`;
@@ -273,7 +340,19 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   }
 
   const defs = buildGradientDef(background);
-  const bgRect = buildBackground(background);
+  let bgRect: string;
+
+  if (background.type === 'image' && background.imageUrl) {
+    const dataUri = await fetchImageAsBase64(background.imageUrl);
+    if (dataUri) {
+      bgRect = `<image href="${dataUri}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice" />`;
+    } else {
+      bgRect = `<rect width="${WIDTH}" height="${HEIGHT}" fill="#1a1a1a" />`;
+    }
+  } else {
+    bgRect = buildBackground(background);
+  }
+
   const watermark = showWatermark ? buildWatermark(watermarkPosition) : '';
 
   // Determine font families to use - Google Font if specified, otherwise default

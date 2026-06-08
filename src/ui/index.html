@@ -1383,6 +1383,25 @@
         </div>
         </div>
 
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="bgimg-input">Background Image URL (optional)</label>
+          <input type="text" id="bgimg-input" value="" placeholder="https://images.pexels.com/photos/..." maxlength="2048" />
+          <p style="font-size: 0.75rem; color: #7d8590; margin-top: 0.5rem;">
+            HTTPS image URL. Overrides background color when set. Max 10 MB.
+          </p>
+          <div id="pexels-section" style="margin-top: 0.75rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="text" id="pexels-query" placeholder="Search Pexels for images..." style="flex: 1;" />
+              <button type="button" id="pexels-search-btn" style="padding: 0.5rem 1rem; background: #238636; color: #fff; border: 1px solid rgba(240,246,252,0.1); border-radius: 6px; cursor: pointer; font-size: 0.875rem; white-space: nowrap;">Search</button>
+              <button type="button" id="pexels-clear-btn" style="padding: 0.5rem 0.75rem; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; font-size: 0.875rem; display: none; white-space: nowrap;">Clear</button>
+            </div>
+            <div id="pexels-results" style="display: none; margin-top: 0.75rem; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;"></div>
+            <p id="pexels-attribution" style="font-size: 0.7rem; color: #7d8590; margin-top: 0.5rem; display: none;">
+              Photos provided by <a href="https://www.pexels.com" target="_blank" rel="noopener" style="color: #58a6ff;">Pexels</a>
+            </p>
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Color Presets (click to apply)</label>
           <div class="bg-options">
@@ -1634,6 +1653,7 @@
     const headerFontInput = document.getElementById('header-font-input');
     const subheaderFontInput = document.getElementById('subheader-font-input');
     const subheaderFontGroup = document.getElementById('subheader-font-group');
+    const bgImgInput = document.getElementById('bgimg-input');
     const supportCheckbox = document.getElementById('support');
     const sponsorLink = document.getElementById('sponsor-link');
     const sponsorMessage = document.getElementById('sponsor-message');
@@ -1823,6 +1843,17 @@
         params.set('subheader', subheader);
       }
       
+      // Background image URL takes priority over color
+      const bgImgUrl = bgImgInput.value.trim();
+      if (bgImgUrl) {
+        try {
+          const parsed = new URL(bgImgUrl);
+          if (parsed.protocol === 'https:') {
+            params.set('bgimg', bgImgUrl);
+          }
+        } catch {}
+      }
+
       // Check if second bg exists to determine gradient or solid
       const bgHex = getBgHex();
       const bgHex2 = getBgHex2();
@@ -2299,6 +2330,71 @@
       update();
     });
 
+    bgImgInput.addEventListener('input', () => {
+      update();
+    });
+
+    // Pexels search
+    const pexelsQuery = document.getElementById('pexels-query');
+    const pexelsSearchBtn = document.getElementById('pexels-search-btn');
+    const pexelsClearBtn = document.getElementById('pexels-clear-btn');
+    const pexelsResults = document.getElementById('pexels-results');
+    const pexelsAttribution = document.getElementById('pexels-attribution');
+
+    async function searchPexels() {
+      const query = pexelsQuery.value.trim();
+      if (!query) return;
+      pexelsSearchBtn.textContent = '...';
+      pexelsSearchBtn.disabled = true;
+      try {
+        const res = await fetch('/api/pexels/search?q=' + encodeURIComponent(query));
+        const data = await res.json();
+        if (data.error) {
+          pexelsResults.style.display = 'none';
+          pexelsAttribution.style.display = 'none';
+          pexelsClearBtn.style.display = 'none';
+          return;
+        }
+        pexelsResults.innerHTML = '';
+        pexelsResults.style.display = 'grid';
+        pexelsAttribution.style.display = 'block';
+        pexelsClearBtn.style.display = 'inline-block';
+        data.photos.forEach(photo => {
+          const img = document.createElement('img');
+          img.src = photo.thumb;
+          img.alt = photo.alt || 'Pexels photo';
+          img.title = 'Photo by ' + photo.photographer;
+          img.style.cssText = 'width:100%;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s;';
+          img.addEventListener('mouseenter', () => { img.style.borderColor = '#1f6feb'; });
+          img.addEventListener('mouseleave', () => { img.style.borderColor = 'transparent'; });
+          img.addEventListener('click', () => {
+            bgImgInput.value = photo.url;
+            update();
+          });
+          pexelsResults.appendChild(img);
+        });
+      } catch {
+        pexelsResults.style.display = 'none';
+      } finally {
+        pexelsSearchBtn.textContent = 'Search';
+        pexelsSearchBtn.disabled = false;
+      }
+    }
+
+    pexelsSearchBtn.addEventListener('click', searchPexels);
+    pexelsQuery.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') searchPexels();
+    });
+    pexelsClearBtn.addEventListener('click', () => {
+      bgImgInput.value = '';
+      pexelsResults.innerHTML = '';
+      pexelsResults.style.display = 'none';
+      pexelsAttribution.style.display = 'none';
+      pexelsClearBtn.style.display = 'none';
+      pexelsQuery.value = '';
+      update();
+    });
+
     supportCheckbox.addEventListener('change', () => {
       toggleSponsorLink();
       update();
@@ -2326,6 +2422,7 @@
       subheaderFontInput.value = 'Kinewave';
       bgInput.value = '1A1A1A';
       bgInput2.value = '4A4A4A';
+      bgImgInput.value = '';
       colorInput.value = 'FFFFFF';
       subheaderColorInput.value = '';
       supportCheckbox.checked = true;
@@ -2390,6 +2487,17 @@
         params.set('subheader', subheader);
       }
       
+      // Background image URL takes priority
+      const bgImgUrl = bgImgInput.value.trim();
+      if (bgImgUrl) {
+        try {
+          const parsed = new URL(bgImgUrl);
+          if (parsed.protocol === 'https:') {
+            params.set('bgimg', bgImgUrl);
+          }
+        } catch {}
+      }
+
       // Use preset bg if active (gradient or transparent), otherwise custom hex
       if (currentPreset) {
         params.set('bg', currentPreset.bg);

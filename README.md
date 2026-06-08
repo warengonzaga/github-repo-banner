@@ -23,6 +23,8 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - 📥 **SVG & PNG Download** - Download banners as SVG or PNG directly from the UI
 - ⚡ **Lightning Fast** - Built with Hono framework for optimal performance
 - 🔒 **Secure** - Input sanitization and validation
+- 🖼️ **Background Images** - Use any HTTPS image URL as banner background via `bgimg` parameter
+- 📸 **Pexels Integration** - Search and select background images from Pexels directly in the UI
 - 🚀 **Edge-Ready** - Deploy to modern platforms like Railway
 
 ## 🚀 Quick Start
@@ -85,6 +87,18 @@ https://ghrb.waren.build/banner?header=![react]+![typescript]+Modern+Stack&bg=14
 https://ghrb.waren.build/banner?header=Transparent&bg=00000000&color=ffffff
 https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000
 ```
+
+**Custom Background Image**
+
+```text
+https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&color=ffffff
+```
+
+> Use `bgimg` with any HTTPS image URL. The image is fetched server-side, embedded as base64 in the SVG, and scaled to cover the banner area. If the image fails to load, the banner falls back to the default gradient background. Max image size: 10 MB.
+
+**Pexels Integration**
+
+The UI includes a built-in Pexels image search. To enable it, set the `PEXELS_API_KEY` environment variable with your [Pexels API key](https://www.pexels.com/api/). Search results display landscape-oriented thumbnails that can be selected with a single click.
 
 ## 🌟 Who Uses This
 
@@ -176,6 +190,7 @@ Generate a custom SVG banner.
 | `subheadercolor` | string | No | Same as `color` | Subheader text color |
 | `headerfont` | string | No | - | Google Fonts family name for header (e.g., "Roboto") |
 | `subheaderfont` | string | No | - | Google Fonts family name for subheader (e.g., "Playfair Display") |
+| `bgimg` | string | No | - | HTTPS image URL for background (overrides `bg` when set, max 10 MB) |
 | `support` | boolean | No | `false` | Show support watermark |
 | `watermarkpos` | string | No | `bottom-right` | Watermark position: `top-left`, `top-right`, `bottom-left`, `bottom-right` |
 
@@ -187,6 +202,7 @@ Generate a custom SVG banner.
 | Solid | `HEX` | `ffffff` (single color) |
 | Transparent | `00000000` | Fully transparent |
 | With Opacity | `RRGGBBAA` | `ffffff80` (50% opacity) |
+| Image URL | `bgimg=https://...` | HTTPS URL to any image (fetched and embedded as base64) |
 
 #### Response
 
