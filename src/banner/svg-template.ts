@@ -53,11 +53,10 @@ async function fetchImageAsBase64(url: string): Promise<string | null> {
     if (declaredLength && parseInt(declaredLength, 10) > MAX_IMAGE_BYTES)
       return null;
 
-    const rawContentType = response.headers.get('content-type') || 'image/jpeg';
-    const contentType = ALLOWED_IMAGE_TYPES.find((t) =>
-      rawContentType.startsWith(t),
-    );
-    if (!contentType) return null;
+    const rawContentType = response.headers.get('content-type');
+    if (!rawContentType) return null;
+    const contentType = rawContentType.split(';', 1)[0].trim().toLowerCase();
+    if (!ALLOWED_IMAGE_TYPES.includes(contentType)) return null;
 
     const body = response.body;
     if (!body) return null;
@@ -339,7 +338,7 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     }
   }
 
-  const defs = buildGradientDef(background);
+  let defs = buildGradientDef(background);
   let bgRect: string;
 
   if (background.type === 'image' && background.imageUrl) {
@@ -347,7 +346,18 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     if (dataUri) {
       bgRect = `<image href="${dataUri}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice" />`;
     } else {
-      bgRect = `<rect width="${WIDTH}" height="${HEIGHT}" fill="#1a1a1a" />`;
+      const fallback: BackgroundPreset = {
+        id: 'gradient',
+        name: 'Gradient',
+        type: 'gradient',
+        stops: [
+          { offset: '0%', color: '#1a1a1a' },
+          { offset: '100%', color: '#4a4a4a' },
+        ],
+        defaultTextColor: '#ffffff',
+      };
+      defs = buildGradientDef(fallback);
+      bgRect = buildBackground(fallback);
     }
   } else {
     bgRect = buildBackground(background);
