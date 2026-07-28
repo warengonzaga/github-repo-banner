@@ -22,6 +22,7 @@ pexelsRoute.get('/api/pexels/search', async (c) => {
     const url = `${PEXELS_API_URL}/search?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}&orientation=${orientation}`;
     const response = await fetch(url, {
       headers: { Authorization: apiKey },
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!response.ok) {
