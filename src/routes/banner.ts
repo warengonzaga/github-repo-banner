@@ -5,6 +5,7 @@ import type { BackgroundPreset } from '../banner/types.js';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
 import {
   isValidHexColor,
+  isValidImageUrl,
   sanitizeFontName,
   sanitizeHeader,
 } from '../utils/sanitize.js';
@@ -47,6 +48,7 @@ bannerRoute.get('/banner', async (c) => {
   const rawHeader = c.req.query('header') || 'Hello World';
   const rawSubheader = c.req.query('subheader') || '';
   const bgParam = c.req.query('bg') || '1a1a1a-4a4a4a'; // Default gradient
+  const bgImgParam = c.req.query('bgimg') || '';
   const colorParam = c.req.query('color') || '';
   const subheaderColorParam = c.req.query('subheadercolor') || '';
   const supportParam = c.req.query('support') || '';
@@ -57,10 +59,18 @@ bannerRoute.get('/banner', async (c) => {
   const header = sanitizeHeader(rawHeader, 50);
   const subheader = rawSubheader ? sanitizeHeader(rawSubheader, 60) : undefined;
 
-  // Parse bg parameter: gradient (hex-hex) or solid (hex)
+  // Parse background: image URL takes priority over color
   let background: BackgroundPreset;
 
-  if (bgParam.includes('-')) {
+  if (bgImgParam && isValidImageUrl(bgImgParam)) {
+    background = {
+      id: 'image',
+      name: 'Image',
+      type: 'image' as const,
+      imageUrl: bgImgParam,
+      defaultTextColor: '#ffffff',
+    };
+  } else if (bgParam.includes('-')) {
     // Gradient: two hex codes separated by hyphen
     const [startHex, endHex] = bgParam.split('-');
     if (isValidHexColor(startHex) && isValidHexColor(endHex)) {
