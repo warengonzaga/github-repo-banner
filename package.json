@@ -16,7 +16,7 @@
     "@wgtechlabs/log-engine": "^2.2.0",
     "dotenv": "^17.2.3",
     "hono": "^4.12.14",
-    "ioredis": "^5.9.2"
+    "ioredis": "^6.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.7",
