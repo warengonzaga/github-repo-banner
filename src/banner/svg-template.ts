@@ -1,5 +1,7 @@
+import { request as httpsRequest } from 'node:https';
+import type { LookupFunction } from 'node:net';
 import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
-import { escapeXml } from '../utils/sanitize.js';
+import { escapeXml, resolvePublicImageAddress } from '../utils/sanitize.js';
 import {
   detectBackgroundTheme,
   parseHeaderWithIcons,
@@ -39,53 +41,110 @@ const ALLOWED_IMAGE_TYPES = [
 
 async function fetchImageAsBase64(url: string): Promise<string | null> {
   try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (compatible; GitHubRepoBanner/1.0; +https://ghrb.waren.build)',
-      },
-      signal: AbortSignal.timeout(10_000),
-      redirect: 'error',
-    });
-    if (!response.ok) return null;
-
-    const declaredLength = response.headers.get('content-length');
-    if (declaredLength && parseInt(declaredLength, 10) > MAX_IMAGE_BYTES)
+    const parsedUrl = new URL(url);
+    if (
+      parsedUrl.protocol !== 'https:' ||
+      parsedUrl.username ||
+      parsedUrl.password
+    ) {
       return null;
+    }
+    const address = await resolvePublicImageAddress(
+      parsedUrl.hostname.replace(/^\[|\]$/g, ''),
+    );
+    if (!address) return null;
 
-    const rawContentType = response.headers.get('content-type');
-    if (!rawContentType) return null;
-    const contentType = rawContentType.split(';', 1)[0].trim().toLowerCase();
-    if (!ALLOWED_IMAGE_TYPES.includes(contentType)) return null;
-
-    const body = response.body;
-    if (!body) return null;
-
-    const chunks: Uint8Array[] = [];
-    let totalBytes = 0;
-    const reader = body.getReader();
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      totalBytes += value.byteLength;
-      if (totalBytes > MAX_IMAGE_BYTES) {
-        reader.cancel();
-        return null;
+    const pinnedLookup: LookupFunction = (_hostname, options, callback) => {
+      if (typeof options === 'object' && options.all) {
+        callback(null, [address]);
+      } else {
+        callback(null, address.address, address.family);
       }
-      chunks.push(value);
-    }
+    };
 
-    if (totalBytes === 0) return null;
+    return await new Promise<string | null>((resolve) => {
+      let settled = false;
+      const finish = (dataUri: string | null) => {
+        if (settled) return;
+        settled = true;
+        resolve(dataUri);
+      };
 
-    const merged = new Uint8Array(totalBytes);
-    let offset = 0;
-    for (const chunk of chunks) {
-      merged.set(chunk, offset);
-      offset += chunk.byteLength;
-    }
+      const request = httpsRequest(
+        parsedUrl,
+        {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (compatible; GitHubRepoBanner/1.0; +https://ghrb.waren.build)',
+          },
+          lookup: pinnedLookup,
+          signal: AbortSignal.timeout(10_000),
+        },
+        (response) => {
+          if (
+            response.statusCode === undefined ||
+            response.statusCode < 200 ||
+            response.statusCode >= 300
+          ) {
+            response.destroy();
+            finish(null);
+            return;
+          }
 
-    const base64 = Buffer.from(merged).toString('base64');
-    return `data:${contentType};base64,${base64}`;
+          const declaredLength = response.headers['content-length'];
+          if (
+            declaredLength &&
+            Number.parseInt(declaredLength, 10) > MAX_IMAGE_BYTES
+          ) {
+            response.destroy();
+            finish(null);
+            return;
+          }
+
+          const rawContentType = response.headers['content-type'];
+          if (typeof rawContentType !== 'string') {
+            response.destroy();
+            finish(null);
+            return;
+          }
+          const contentType = rawContentType
+            .split(';', 1)[0]
+            .trim()
+            .toLowerCase();
+          if (!ALLOWED_IMAGE_TYPES.includes(contentType)) {
+            response.destroy();
+            finish(null);
+            return;
+          }
+
+          const chunks: Buffer[] = [];
+          let totalBytes = 0;
+          response.on('data', (chunk: Buffer) => {
+            totalBytes += chunk.byteLength;
+            if (totalBytes > MAX_IMAGE_BYTES) {
+              response.destroy();
+              finish(null);
+              return;
+            }
+            chunks.push(chunk);
+          });
+          response.on('end', () => {
+            if (totalBytes === 0) {
+              finish(null);
+              return;
+            }
+            finish(
+              `data:${contentType};base64,${Buffer.concat(chunks).toString('base64')}`,
+            );
+          });
+          response.on('aborted', () => finish(null));
+          response.on('error', () => finish(null));
+        },
+      );
+
+      request.on('error', () => finish(null));
+      request.end();
+    });
   } catch {
     return null;
   }
