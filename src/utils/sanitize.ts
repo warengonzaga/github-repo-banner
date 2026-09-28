@@ -167,7 +167,10 @@ export async function resolvePublicImageAddress(
 ): Promise<LookupAddress | null> {
   const addresses = await lookup(hostname, { all: true, verbatim: true });
   const firstAddress = addresses[0];
-  if (!firstAddress || addresses.some(({ address }) => isPrivateHost(address))) {
+  if (
+    !firstAddress ||
+    addresses.some(({ address }) => isPrivateHost(address))
+  ) {
     return null;
   }
   return firstAddress;
