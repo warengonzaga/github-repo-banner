@@ -1,3 +1,5 @@
+import type { LookupAddress } from 'node:dns';
+import { lookup } from 'node:dns/promises';
 import {
   createIconSyntaxRegExp,
   createIconSyntaxStartRegExp,
@@ -123,13 +125,7 @@ export function isValidHexColor(value: string): boolean {
 
 const MAX_IMAGE_URL_LENGTH = 2048;
 
-/**
- * Check whether a hostname is a private, loopback, link-local, or otherwise
- * reserved IP literal. This is a best-effort mitigation against SSRF to
- * internal services. It does not protect against DNS rebinding (where a public
- * hostname resolves to a private IP at fetch time); robust protection would
- * require resolving DNS and pinning the validated IP at fetch time.
- */
+/** Block private and special-use hostnames and IP addresses before image fetches. */
 function isPrivateHost(hostname: string): boolean {
   const host = hostname.replace(/^\[|\]$/g, '').toLowerCase();
 
@@ -164,6 +160,17 @@ function isPrivateHost(hostname: string): boolean {
   }
 
   return false;
+}
+
+export async function resolvePublicImageAddress(
+  hostname: string,
+): Promise<LookupAddress | null> {
+  const addresses = await lookup(hostname, { all: true, verbatim: true });
+  const firstAddress = addresses[0];
+  if (!firstAddress || addresses.some(({ address }) => isPrivateHost(address))) {
+    return null;
+  }
+  return firstAddress;
 }
 
 export function isValidImageUrl(value: string): boolean {
