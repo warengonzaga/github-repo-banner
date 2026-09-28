@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [1.3.1] - 2026-09-28
+
 ### Changed
 
+- update dependencies and add Pexels background image support (#36)
+- update CHANGELOG.md for v1.3.0
 - sync dependabot configuration (#42)
 
 ## [1.3.0] - 2026-05-05
