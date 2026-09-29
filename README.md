@@ -305,6 +305,31 @@ The UI includes presets for quick access:
 
 > **Tip:** Create any custom gradient or color using hex codes directly in the URL.
 
+## 🤖 Agent Skill
+
+The standalone `github-repo-banner` skill creates banner URLs and README Markdown using this service, with project branding and explicit preview checks. It needs no other Clean plugin or API key.
+
+With a Codex version supporting plugins, install from the repository's marketplace:
+
+```sh
+codex plugin marketplace add warengonzaga/github-repo-banner
+codex plugin add github-repo-banner@github-repo-banner
+```
+
+Start a fresh session after installation. For a local checkout, use `codex plugin marketplace add /absolute/path/to/github-repo-banner`.
+
+Example requests:
+
+```text
+$github-repo-banner create a banner for this project's README using its existing colors, preview it, and give me the Markdown without editing files
+$github-repo-banner use a transparent background and a GitHub icon, then replace the existing README banner
+$github-repo-banner create a banner using my self-hosted base URL https://banners.example.com
+```
+
+Other Agent Skills-compatible hosts can load [`skills/github-repo-banner`](skills/github-repo-banner) directly. Copy the whole folder, including `references/`, into the host's documented skill directory; no plugin manifest is required for this mode. In Codex, a project-local direct installation can use `.agents/skills/github-repo-banner/`. Do not install both forms in the same project/session if that would expose duplicate skills.
+
+The skill distinguishes generated URLs from verified renders and edits a README only when requested. `/banner` returns SVG; PNG export remains a separate interactive UI feature. Maintain the skill reference alongside the route, sanitizer, renderer, and generator's Markdown behavior. Run `bun scripts/check-banner-skill.ts` to check the documented URL example against the route, encoding, limits, fallback, and package linkage. This does not replace a fresh-session or visual check.
+
 ## 🛠️ Development
 
 Recording failures emit a payload-free operational error. The affected process returns `/stats` as unavailable for the remainder of that UTC day, since later writes cannot recover lost observations. This health signal is process-local and resets on restart; it is not fleet-wide monitoring. Counter and cardinality reads use one Redis transaction.
