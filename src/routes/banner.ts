@@ -1,4 +1,3 @@
-import { LogEngine } from '@wgtechlabs/log-engine';
 import { Hono } from 'hono';
 import { buildBannerSVG } from '../banner/svg-template.js';
 import type { BackgroundPreset } from '../banner/types.js';
@@ -9,42 +8,11 @@ import {
   sanitizeFontName,
   sanitizeHeader,
 } from '../utils/sanitize.js';
+import { recordBannerRequest, usageOptedOut } from '../utils/usage-stats.js';
 
 const bannerRoute = new Hono();
 
 bannerRoute.get('/banner', async (c) => {
-  // Track repository usage if stats enabled
-  const referer = c.req.header('referer') || '';
-  const repoMatch = referer.match(/github\.com\/([^/]+\/[^/]+)(?:\/|$)/);
-
-  if (repoMatch && isStatsEnabled()) {
-    const repo = repoMatch[1];
-    // Skip obvious non-repo paths
-    const nonRepoPrefixes = [
-      'settings',
-      'orgs',
-      'users',
-      'explore',
-      'notifications',
-      'issues',
-      'pulls',
-    ];
-    const isNonRepoPath = nonRepoPrefixes.some(
-      (p) => repo.startsWith(`${p}/`) || repo === p,
-    );
-
-    if (!isNonRepoPath) {
-      const redis = getRedis();
-      // Fire and forget - don't block banner generation
-      redis
-        ?.sadd('repos:tracked', repo)
-        .then(() => {
-          LogEngine.log(`📊 Repository using banner: ${repo}`);
-        })
-        .catch(() => {});
-    }
-  }
-
   const rawHeader = c.req.query('header') || 'Hello World';
   const rawSubheader = c.req.query('subheader') || '';
   const bgParam = c.req.query('bg') || '1a1a1a-4a4a4a'; // Default gradient
@@ -164,6 +132,21 @@ bannerRoute.get('/banner', async (c) => {
     showWatermark,
     watermarkPosition,
   });
+
+  const redis = getRedis();
+  if (
+    c.req.method === 'GET' &&
+    isStatsEnabled() &&
+    redis?.status === 'ready' &&
+    !usageOptedOut(
+      c.req.query('stats'),
+      c.req.header('dnt'),
+      c.req.header('sec-gpc'),
+    )
+  ) {
+    // Successful renders only; measurement failure must not break banner delivery.
+    void recordBannerRequest(redis, c.req.header('referer') || '');
+  }
 
   const isDev = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
   const cacheControl = isDev

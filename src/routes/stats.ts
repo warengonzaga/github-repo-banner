@@ -1,105 +1,119 @@
-import { LogEngine } from '@wgtechlabs/log-engine';
 import { Hono } from 'hono';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
-
-type LogPayload = {
-  action?: unknown;
-  url?: unknown;
-};
+import { isUsageRecordingAvailable, usageKeys } from '../utils/usage-stats.js';
 
 const statsRoute = new Hono();
 
 statsRoute.get('/stats', async (c) => {
+  c.header('Cache-Control', 'no-store');
   if (!isStatsEnabled()) {
     return c.json({
+      schemaVersion: 2,
       enabled: false,
       message: 'Stats tracking is disabled',
     });
   }
 
-  try {
-    const redis = getRedis();
-    if (!redis) {
-      return c.json({
-        enabled: false,
-        message: 'Stats tracking is disabled',
-      });
-    }
-
-    const repositories = await redis.smembers('repos:tracked');
-    const totalRepositories = repositories.length;
-
-    return c.json({
-      enabled: true,
-      totalRepositories,
-      repositories: repositories.sort(),
-      note: 'Only tracking public GitHub repositories using this service',
-    });
-  } catch (error) {
-    console.error('Error fetching stats:', error);
+  const redis = getRedis();
+  if (!redis || redis.status !== 'ready') {
     return c.json(
       {
+        schemaVersion: 2,
         enabled: true,
-        error: 'Failed to fetch stats',
-        message: 'Redis connection issue',
+        available: false,
+        error: 'Stats storage is unavailable',
       },
-      500,
+      503,
     );
   }
-});
 
-statsRoute.post('/log', async (c) => {
-  let body: LogPayload;
+  if (!isUsageRecordingAvailable()) {
+    return c.json(
+      {
+        schemaVersion: 2,
+        enabled: true,
+        available: false,
+        error: 'Stats recording failed for this UTC day on this instance',
+      },
+      503,
+    );
+  }
 
   try {
-    body = await c.req.json();
+    const keys = usageKeys();
+    const snapshot = await redis
+      .multi()
+      .hgetall(keys.counters)
+      .pfcount(keys.repositories)
+      .exec();
+    if (
+      !snapshot ||
+      snapshot.length !== 2 ||
+      snapshot.some(([error]) => error)
+    ) {
+      throw new Error('Stats snapshot failed');
+    }
+    if (!isUsageRecordingAvailable()) throw new Error('Stats recording failed');
+    const counts = snapshot[0][1] as Record<string, string>;
+    const estimatedUniqueRepositories = snapshot[1][1];
+    if (!counts || typeof counts !== 'object' || Array.isArray(counts)) {
+      throw new Error('Invalid stats counters');
+    }
+    const recordedBannerRequests = Number(counts.requests || 0);
+    const requestsWithRepositoryReferer = Number(
+      counts.repositoryRequests || 0,
+    );
+    if (
+      !Number.isSafeInteger(recordedBannerRequests) ||
+      recordedBannerRequests < 0 ||
+      !Number.isSafeInteger(requestsWithRepositoryReferer) ||
+      requestsWithRepositoryReferer < 0 ||
+      typeof estimatedUniqueRepositories !== 'number' ||
+      !Number.isSafeInteger(estimatedUniqueRepositories) ||
+      estimatedUniqueRepositories < 0
+    ) {
+      throw new Error('Invalid stats snapshot');
+    }
+    return c.json({
+      schemaVersion: 2,
+      enabled: true,
+      available: true,
+      window: {
+        day: keys.day,
+        timezone: 'UTC',
+        firstRecordedAt: counts.startedAt || null,
+      },
+      recordedBannerRequests,
+      requestsWithRepositoryReferer,
+      estimatedUniqueRepositories,
+      repositoryRefererCoverage:
+        recordedBannerRequests > 0
+          ? requestsWithRepositoryReferer / recordedBannerRequests
+          : null,
+      coverage: 'partial',
+      note: 'Recorded origin GET /banner responses only, not users, installations, or total usage. Includes previews, bots, and retries. Caches, opt-outs, disabled periods, and failed writes are not counted. Referers may be missing or spoofed; repository existence and visibility are not verified. Unique repositories use HyperLogLog (about 0.81% standard error).',
+      privacy: {
+        retention: 'Daily aggregates expire seven days after their last write.',
+        stored:
+          'Request counts and a cardinality sketch of hashed repository identifiers; no repository list, banner content, IP addresses, or user identifiers.',
+        optOut:
+          'Add stats=false to the banner URL, or send DNT: 1 or Sec-GPC: 1.',
+      },
+    });
   } catch {
-    return c.json({ error: 'Invalid JSON payload' }, 400);
-  }
-
-  const { action, url } = body;
-
-  // Validate types
-  if (typeof action !== 'string' || !action) {
-    return c.json({ error: 'Action must be a non-empty string' }, 400);
-  }
-
-  if (url !== undefined && typeof url !== 'string') {
-    return c.json({ error: 'URL must be a string' }, 400);
-  }
-
-  // Enforce max lengths
-  if (action.length > 200) {
     return c.json(
-      { error: 'Action exceeds maximum length of 200 characters' },
-      400,
+      {
+        schemaVersion: 2,
+        enabled: true,
+        available: false,
+        error: 'Stats could not be read',
+      },
+      503,
     );
-  }
-
-  if (url && url.length > 2048) {
-    return c.json(
-      { error: 'URL exceeds maximum length of 2048 characters' },
-      400,
-    );
-  }
-
-  // Sanitize by stripping CR/LF to prevent log injection
-  const sanitizedAction = action.replace(/[\r\n]/g, '');
-  const sanitizedUrl = url ? url.replace(/[\r\n]/g, '') : 'N/A';
-
-  try {
-    // Log user action to server console with sanitized values
-    LogEngine.log(`📊 User Action: ${sanitizedAction} | URL: ${sanitizedUrl}`);
-
-    return c.json({ success: true });
-  } catch (error) {
-    // Log internal error details separately
-    LogEngine.error(
-      'Error logging user action:',
-      error instanceof Error ? error.message : 'Unknown error',
-    );
-    return c.json({ error: 'Failed to log action' }, 500);
   }
 });
+
+// Compatibility for older UIs: accept the call without reading or logging its body.
+statsRoute.post('/log', (c) => c.json({ success: true, logged: false }));
 
 export default statsRoute;
