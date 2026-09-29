@@ -6,6 +6,7 @@ const html = readFileSync(new URL('../src/ui/index.html', import.meta.url), 'utf
 const source = html.slice(html.indexOf('    function buildUrl()'), html.indexOf('    function autoResizeTextarea()'));
 const input = { value: '' };
 const context = {
+  appendBackgroundEffects() {},
   URL, URLSearchParams, headerInput: input, subheaderInput: input, bgImgInput: input,
   headerFontInput: input, subheaderFontInput: input, supportCheckbox: { checked: true },
   getBgHex: () => '000000', getBgHex2: () => '', getColorHex: () => 'ffffff',

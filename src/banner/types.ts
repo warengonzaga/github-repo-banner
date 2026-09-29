@@ -1,3 +1,5 @@
+import type { BackgroundEffects } from './background-effects.js';
+
 export interface BackgroundPreset {
   id: string;
   name: string;
@@ -21,6 +23,7 @@ export interface BannerOptions {
   header: string;
   subheader?: string;
   background: BackgroundPreset;
+  backgroundEffects?: BackgroundEffects;
   textColor: string;
   subheaderColor?: string;
   fontFamily: string;
