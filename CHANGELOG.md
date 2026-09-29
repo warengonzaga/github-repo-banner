@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING CHANGE (2.0.0):** every deployment requires Redis, including when `ENABLE_STATS=false`. Provision Redis and set `REDIS_URL` before upgrading; Docker Compose supplies the connection automatically. Missing, invalid or unreachable Redis prevents startup.
+- Cache Pexels search results in Redis for five minutes and share a rolling quota of 100 upstream attempts per hour per API key. Cache and quota state survive app restarts; tracking remains optional and disabled by default.
+- Return HTTP 503 from readiness and search during Redis outages, then reconnect automatically. Direct banner rendering remains available from the running process; hosting platforms may remove unhealthy instances from traffic.
+
+### Added
+
+- Non-root Docker image and Docker Compose with private, persistent Redis storage.
+- Publish AMD64/ARM64 release images to Docker Hub and GHCR after a successful release on `main`, using Docker Hub secrets and the built-in `GITHUB_TOKEN` for GHCR.
+
+### Fixed
+
+- Remove navigation scrollbars while preserving horizontal scrolling, visible keyboard focus and access to off-screen tabs.
+- Wait for startup subprocess output streams to close before checking error messages.
+
+## [1.4.1] - 2026-09-29
+
+### Changed
+
+- use the built-in token for releases
 
 ## [1.4.0] - 2026-09-29
 

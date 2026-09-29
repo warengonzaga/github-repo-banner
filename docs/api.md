@@ -74,17 +74,18 @@ Server-side Pexels search. Accepts `q` (default `nature`, normalized and limited
 }
 ```
 
-The image URLs above are illustrative. Request the next page while `hasMore` is true; an empty page ends pagination. Missing server configuration returns HTTP 503, exhausted local capacity/budget returns 429 with `Retry-After: 60`, and upstream failures return 500. See [Resource limits](self-hosting.md#resource-limits).
+The image URLs above are illustrative. Request the next page while `hasMore` is true; an empty page ends pagination. Missing Pexels configuration or unavailable Redis returns HTTP 503, exhausted per-process concurrency or shared Redis budget returns 429 with `Retry-After: 60`, and upstream failures return 500. See [Resource limits](self-hosting.md#resource-limits).
 
 ## `GET /health`
 
-Health check endpoint for monitoring and stats status.
+Readiness endpoint with `Cache-Control: no-store`. Returns HTTP 200 when Redis answers a ping. A disconnected or unresponsive database returns HTTP 503 with `status: "degraded"` and `database.available: false`. The tracking setting does not affect readiness; it is not a guarantee that every write succeeded.
 
 **Response (stats disabled):**
 ```json
 {
   "status": "ok",
   "timestamp": "2026-02-01T00:00:00.000Z",
+  "database": { "available": true },
   "stats": {
     "enabled": false
   }
@@ -96,6 +97,7 @@ Health check endpoint for monitoring and stats status.
 {
   "status": "ok",
   "timestamp": "2026-02-01T00:00:00.000Z",
+  "database": { "available": true },
   "stats": {
     "enabled": true,
     "endpoint": "/stats"

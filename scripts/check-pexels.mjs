@@ -19,7 +19,7 @@ function setup() {
   return { c, more, run: code => runInContext(code, c) };
 }
 const response = (count, hasMore) => ({ok: true, json: async () => ({photos: Array.from({length:count}, (_,id)=>({id,thumb:'photo.svg',url:'https://example.com/photo.jpg',photographer:'Test'})), hasMore})});
-for (const [res, message] of [[{status:503}, /not enabled/], [{status:502}, /unavailable right now/], [response(0,false), /No images found/], [null,/unavailable right now/]]) {
+for (const [res, message] of [[{status:503}, /unavailable on this site right now/], [{status:502}, /unavailable right now/], [response(0,false), /No images found/], [null,/unavailable right now/]]) {
   const {c,run}=setup();c.fetch=async()=>{if(!res)throw Error('offline');return res;};
   await run('searchPexels()');assert.match(c.pexelsStatus.textContent,message);assert.equal(c.pexelsSearchBtn.disabled,false);
 }
