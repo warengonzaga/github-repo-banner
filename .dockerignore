@@ -1,0 +1,13 @@
+# Only build inputs enter the context; local secrets and tooling stay out.
+**
+!package.json
+!bun.lock
+!tsconfig.json
+!tsup.config.ts
+!LICENSE
+!CODE_OF_CONDUCT.md
+!src/
+!src/**
+**/.env*
+**/*.pem
+**/*.key

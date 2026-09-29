@@ -2590,7 +2590,7 @@
         });
         if (request !== pexelsRequest) return;
         if (res.status === 503) {
-          pexelsStatus.textContent = 'Image search is not enabled on this site. Paste a direct HTTPS image URL above, or search on Pexels using the link below.';
+          pexelsStatus.textContent = 'Image search is unavailable on this site right now. Try again later, paste a direct HTTPS image URL above, or search on Pexels using the link below.';
           return;
         }
         if (!res.ok) throw new Error('Search unavailable');

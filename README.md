@@ -23,6 +23,7 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - 💖 **Optional attribution** — Toggle the watermark and choose any corner.
 - 📚 **Accessible controls** — Keyboard-selectable photos and responsive Code of conduct and MIT license tabs.
 - 🔒 **Optional statistics** — Daily aggregate observations, explicit coverage limits, and per-banner opt-out.
+- 🐳 **Self-hosting** — Docker Compose with required Redis for persistent search caching and quota control.
 - 🤖 **Agent skill** — Create banner URLs and README Markdown from compatible AI coding tools.
 
 ## 🚀 Quick Start
@@ -41,17 +42,16 @@ You can also create a banner directly with a URL:
 
 ### Self-Hosting
 
-Use Node.js 22 and Bun 1.3.9:
+Use Docker Compose to run the app and its required Redis database:
 
 ```bash
 git clone https://github.com/warengonzaga/github-repo-banner.git
 cd github-repo-banner
-bun install --frozen-lockfile
 cp .env.example .env
-bun dev
+docker compose up --build -d
 ```
 
-Open `http://localhost:3000`. Pexels search needs `PEXELS_API_KEY`; statistics are disabled by default. See the [self-hosting guide](docs/self-hosting.md) for runtime variables, Railway, production builds, and release configuration. The API requires a running server; GitHub Pages alone cannot host it.
+Open `http://localhost:3000`. Compose connects Redis automatically and keeps its data in a volume. Pexels search needs `PEXELS_API_KEY`; statistics are disabled by default. Redis remains required when tracking is off. See the [self-hosting guide](docs/self-hosting.md) for runtime variables, Railway, production builds, and release configuration. The API requires a running server; GitHub Pages alone cannot host it.
 
 ## 📖 Usage Examples
 
@@ -121,7 +121,7 @@ The skill distinguishes generated URLs from verified renders and edits a README 
 
 ## 🔒 Privacy & Transparency
 
-Statistics are disabled unless `ENABLE_STATS=true` and Redis is configured and available. `/health` reports whether statistics were initialized; `/stats` reports current storage availability and the measurement definitions. The UI shows current-day observations with their limitations.
+Statistics are disabled unless `ENABLE_STATS=true`. Redis is required independently for Pexels caching and quota control. `/health` reports database availability and the tracking setting; `/stats` reports current storage availability and the measurement definitions. The UI shows current-day observations with their limitations.
 
 ### What the metrics mean
 
@@ -135,6 +135,8 @@ All metrics cover the **current UTC day**. `firstRecordedAt` marks its first sto
 ### Privacy, retention, and opt-out
 
 Only daily request counters and a HyperLogLog sketch of SHA-256-hashed repository identifiers are stored. Names are hashed before they reach Redis; raw repository names/lists, full Referers, banner text/URLs, IP addresses, cookies, sessions, and user identifiers are not stored by this measurement. Daily keys expire seven days after their last write. Hashes and aggregate estimates are not proof of anonymous individuals or verified public repositories.
+
+Operational Pexels search results expire after five minutes; query and API-key cache identifiers are hashed. Quota entries contain request timestamps and random identifiers and expire within an hour of the last allowed request. Tracking opt-outs do not disable this operational storage.
 
 Button-click and banner-URL logging has been removed. The legacy `/log` endpoint accepts old clients without reading or logging their payload. Hosting providers and reverse proxies may maintain their own access logs; configure those separately.
 
@@ -150,10 +152,10 @@ Node.js · TypeScript · Hono · tsup · Bun
 
 ```bash
 bun run check  # Static checks
-bun build      # Production build and declaration generation
+bun run build      # Production build and declaration generation
 ```
 
-Regression checks are in `scripts/check-*` (run `.ts` files with Bun and `.mjs` files with Node). CI runs static checks and the build; regression scripts are currently run separately. See [CI and releases](docs/self-hosting.md#ci-and-release-workflow), [security](docs/self-hosting.md#security), and [resource limits](docs/self-hosting.md#resource-limits).
+Regression checks are in `scripts/check-*` (run `.ts` files with Bun and `.mjs` files with Node). CI runs static checks, the build, regression scripts with disposable Redis, and the Docker smoke check. See [CI and releases](docs/self-hosting.md#ci-and-release-workflow), [security](docs/self-hosting.md#security), and [resource limits](docs/self-hosting.md#resource-limits).
 
 ## 🤝 Contributing
 

@@ -23,24 +23,57 @@ jobs:
       ci-install-command: bun install --frozen-lockfile
       ci-lint-command: bun run check
       ci-build-command: bun run build
-      # The previous CI has no separate typecheck, test, or coverage command.
-      # tsup's declaration build remains the existing TypeScript check.
+      # Declaration generation typechecks; integration checks run below.
       ci-typecheck-command: ':'
       ci-test-command: ':'
       ci-coverage-command: ':'
       enable-gitleaks: false # Preserve the existing gate set.
 
+  integration:
+    name: Redis and Docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and build
+        run: |
+          npm install --global bun@1.3.9
+          bun install --frozen-lockfile
+          bun run build
+      - name: Regression checks
+        env:
+          TEST_REDIS_URL: redis://127.0.0.1:6379
+        run: |
+          for check in scripts/check-*.ts; do bun "$check"; done
+          for check in scripts/check-*.mjs; do node "$check"; done
+      - name: Docker build and runtime smoke check
+        run: sh scripts/check-docker.sh
+
   build:
     name: Build
     if: always()
-    needs: ci
+    needs: [ci, integration]
     runs-on: ubuntu-latest
     steps:
       # Keep the existing Build check name available for branch protection.
       - name: Require successful validation
         env:
           CI_RESULT: ${{ needs.ci.result }}
-        run: test "$CI_RESULT" = success
+          INTEGRATION_RESULT: ${{ needs.integration.result }}
+        run: test "$CI_RESULT" = success && test "$INTEGRATION_RESULT" = success
 
   release:
     name: Create Release

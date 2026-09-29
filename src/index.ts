@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { serve } from '@hono/node-server';
 import { LogEngine, LogMode } from '@wgtechlabs/log-engine';
 import { Hono } from 'hono';
-import { initRedis, isStatsEnabled } from './config/redis.js';
+import { getRedis, initRedis, isStatsEnabled } from './config/redis.js';
 import bannerRoute from './routes/banner.js';
 import pexelsRoute from './routes/pexels.js';
 import statsRoute from './routes/stats.js';
@@ -21,27 +21,27 @@ LogEngine.configure({
 const app = new Hono();
 
 // Health check endpoint for Railway
-app.get('/health', (c) => {
-  const health: {
-    status: string;
-    timestamp: string;
-    stats: {
-      enabled: boolean;
-      endpoint?: string;
-    };
-  } = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    stats: {
-      enabled: isStatsEnabled(),
+app.get('/health', async (c) => {
+  c.header('Cache-Control', 'no-store');
+  const redis = getRedis();
+  const available =
+    redis?.status === 'ready' &&
+    (await redis.ping().then(
+      () => true,
+      () => false,
+    ));
+  return c.json(
+    {
+      status: available ? 'ok' : 'degraded',
+      timestamp: new Date().toISOString(),
+      database: { available },
+      stats: {
+        enabled: isStatsEnabled(),
+        ...(isStatsEnabled() ? { endpoint: '/stats' } : {}),
+      },
     },
-  };
-
-  if (isStatsEnabled()) {
-    health.stats.endpoint = '/stats';
-  }
-
-  return c.json(health);
+    available ? 200 : 503,
+  );
 });
 
 app.route('/', uiRoute);
@@ -52,7 +52,14 @@ app.route('/', statsRoute);
 const port = parseInt(process.env.PORT || '3000', 10);
 
 // Initialize Redis before starting server
-await initRedis();
+try {
+  await initRedis();
+} catch (error) {
+  LogEngine.error(
+    error instanceof Error ? error.message : 'Redis startup failed.',
+  );
+  process.exit(1);
+}
 
 serve({ fetch: app.fetch, port }, (info) => {
   LogEngine.info('='.repeat(50));
