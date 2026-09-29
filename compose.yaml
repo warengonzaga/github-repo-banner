@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:${PORT:-3000}:3000"
+    environment:
+      PORT: "3000"
+      REDIS_URL: redis://redis:6379
+      EXPORT_RETENTION_DAYS: "${EXPORT_RETENTION_DAYS:-}"
+      PUBLIC_ORIGIN: "${PUBLIC_ORIGIN:-}"
+      OFFICIAL_HOSTED_INSTANCE: "${OFFICIAL_HOSTED_INSTANCE:-false}"
+      ENABLE_STATS: "${ENABLE_STATS:-false}"
+      PEXELS_API_KEY: "${PEXELS_API_KEY:-}"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis-data:/data
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  redis-data:

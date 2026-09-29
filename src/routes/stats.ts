@@ -1,5 +1,9 @@
 import { Hono } from 'hono';
-import { getRedis, isStatsEnabled } from '../config/redis.js';
+import {
+  getRedis,
+  isOfficialInstance,
+  isStatsEnabled,
+} from '../config/redis.js';
 import { isUsageRecordingAvailable, usageKeys } from '../utils/usage-stats.js';
 
 const statsRoute = new Hono();
@@ -63,6 +67,20 @@ statsRoute.get('/stats', async (c) => {
     const requestsWithRepositoryReferer = Number(
       counts.repositoryRequests || 0,
     );
+    const exports = {
+      total: Number(counts.exports || 0),
+      showcased: Number(counts.showcased || 0),
+      firstRecordedAt: counts.exportsStartedAt || null,
+    };
+    const pageViews = {
+      generator: Number(counts['page:generator'] || 0),
+      documentation: Number(counts['page:documentation'] || 0),
+      usage: Number(counts['page:usage'] || 0),
+    };
+    const totalPageViews = Object.values(pageViews).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
     if (
       !Number.isSafeInteger(recordedBannerRequests) ||
       recordedBannerRequests < 0 ||
@@ -70,7 +88,13 @@ statsRoute.get('/stats', async (c) => {
       requestsWithRepositoryReferer < 0 ||
       typeof estimatedUniqueRepositories !== 'number' ||
       !Number.isSafeInteger(estimatedUniqueRepositories) ||
-      estimatedUniqueRepositories < 0
+      estimatedUniqueRepositories < 0 ||
+      ![
+        ...Object.values(pageViews),
+        totalPageViews,
+        exports.total,
+        exports.showcased,
+      ].every((count) => Number.isSafeInteger(count) && count >= 0)
     ) {
       throw new Error('Invalid stats snapshot');
     }
@@ -83,6 +107,8 @@ statsRoute.get('/stats', async (c) => {
         timezone: 'UTC',
         firstRecordedAt: counts.startedAt || null,
       },
+      exports,
+      officialInstance: isOfficialInstance(),
       recordedBannerRequests,
       requestsWithRepositoryReferer,
       estimatedUniqueRepositories,
@@ -90,14 +116,20 @@ statsRoute.get('/stats', async (c) => {
         recordedBannerRequests > 0
           ? requestsWithRepositoryReferer / recordedBannerRequests
           : null,
+      pageViews: {
+        ...pageViews,
+        total: totalPageViews,
+        firstRecordedAt: counts.pagesStartedAt || null,
+      },
       coverage: 'partial',
-      note: 'Recorded origin GET /banner responses only, not users, installations, or total usage. Includes previews, bots, and retries. Caches, opt-outs, disabled periods, and failed writes are not counted. Referers may be missing or spoofed; repository existence and visibility are not verified. Unique repositories use HyperLogLog (about 0.81% standard error).',
+      note: 'Export counts are built-in export requests, not proof of clipboard or download completion. Recorded origin GET /banner responses and successful GET /, /docs, /usage page responses only, not unique visitors, users, installations, or total usage. Includes previews, refreshes, bots, and retries. Assets, stats polling, HEAD requests, caches, opt-outs, disabled periods, and failed writes are not counted. Referers may be missing or spoofed; repository existence and visibility are not verified. Unique repositories use HyperLogLog (about 0.81% standard error).',
       privacy: {
         retention: 'Daily aggregates expire seven days after their last write.',
         stored:
-          'Request counts and a cardinality sketch of hashed repository identifiers; no repository list, banner content, IP addresses, or user identifiers.',
-        optOut:
-          'Add stats=false to the banner URL, or send DNT: 1 or Sec-GPC: 1.',
+          'Accepted showcases store public design settings separately. On official hosting, all exported designs are saved separately for the configured retention period; only accepted showcases are public. Daily banner and per-page counts and a cardinality sketch of hashed repository identifiers; no repository list, banner content, IP addresses, cookies, or user identifiers.',
+        optOut: isOfficialInstance()
+          ? 'Official hosting always counts aggregate usage; showcasing is optional. All exported designs are saved; the showcase choice controls public display only.'
+          : 'Add stats=false to the banner or page URL, or send DNT: 1 or Sec-GPC: 1. The query opt-out applies to that request.',
       },
     });
   } catch {

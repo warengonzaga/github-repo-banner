@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GitHub Repo Banner Generator</title>
+  <link rel="stylesheet" href="/pages.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -61,8 +62,14 @@
       margin-bottom: 0;
       gap: 0;
       overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
       background: transparent;
       padding: 0.5rem 1rem 0 1rem;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+      display: none;
     }
 
     .nav-tab {
@@ -85,7 +92,6 @@
       align-items: center;
       gap: 0.5rem;
       position: relative;
-      margin-bottom: -1px;
     }
 
     .nav-tab:focus-visible {
@@ -1240,6 +1246,8 @@
   </style>
 </head>
 <body>
+  <!-- site-navigation -->
+  <!-- privacy-notice -->
   <div class="layout">
     <main class="main-content">
       <div class="readme-container">
@@ -1592,6 +1600,8 @@
 
         <div class="content-section">
           <h2>Output</h2>
+          <p class="privacy-help"><!-- export-privacy --></p>
+          <p id="export-feedback" class="privacy-help" role="status" aria-live="polite"></p>
           <div class="output-container">
             <textarea id="markdown" readonly></textarea>
             <div class="button-row">
@@ -1626,10 +1636,11 @@
           </div>
 
           <div class="form-group" style="margin-top: 1.5rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; min-height: 44px; margin-bottom: 1rem;">
-              <input type="checkbox" id="stats-opt-out" />
+            <label class="optional-tracking" style="display: flex; align-items: center; gap: 0.5rem; min-height: 44px; margin-bottom: 1rem;">
+              <input type="checkbox" id="stats-opt-out" aria-describedby="stats-opt-out-help" />
               Exclude this banner from usage statistics
             </label>
+            <p class="privacy-help optional-tracking" id="stats-opt-out-help">Applies to future previews, copied banner links and downloads. It does not remove a page view already counted. <a href="/docs#overview-privacy-retention-and-opt-out">See page-view opt-outs and privacy details</a>.</p>
             <label class="checkbox-container">
               <input type="checkbox" id="support" checked />
               <div class="checkbox-label">
@@ -1696,18 +1707,15 @@
       <div class="sidebar-section">
         <h2>🔒 Privacy Notice</h2>
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590; margin-bottom: 0.75rem;">
-          Optional statistics count banner requests reaching this server and estimate repositories from GitHub Referers. Daily aggregates expire after seven days. Banner content, raw repository names, IPs, and user identifiers are not stored by this measurement.
+          <!-- sidebar-privacy -->
         </p>
-        <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590;">
-          These are partial observations, not a count of users or installations. Caches, missing or spoofed Referers, opt-outs, and outages limit coverage.
-          <a href="https://github.com/warengonzaga/github-repo-banner#-privacy--transparency" target="_blank" rel="noopener" style="color: #58a6ff;">Learn more</a>
-        </p>
+        <p style="font-size: 0.8125rem; line-height: 1.5; color: #9da7b3;">Daily aggregates expire seven days after their last write. Counts are partial observations, not unique people. <a href="/docs#privacy">Privacy</a> · <a href="/docs#terms">Terms</a></p>
       </div>
 
       <div class="sidebar-section">
         <h2>Usage observations</h2>
         <p id="usage-status" role="status" style="font-size: 0.875rem; line-height: 1.5; font-variant-numeric: tabular-nums;">Loading statistics status…</p>
-        <p style="font-size: 0.875rem; margin-top: 0.75rem;"><a href="/stats" style="color: #58a6ff;">View metrics and coverage limits</a></p>
+        <p style="font-size: 0.875rem; margin-top: 0.75rem;"><a href="/usage" style="color: #58a6ff;">View usage and coverage limits</a></p>
       </div>
 
       <div class="sidebar-section">
@@ -1750,6 +1758,7 @@
 
   <script type="module">
     import { isValidImageUrl } from '/image-url.js';
+    import { beginExport } from '/export.js';
     async function loadUsageStats() {
       const status = document.getElementById('usage-status');
       try {
@@ -1796,6 +1805,7 @@
         event.preventDefault();
         documentTabs[nextIndex].focus();
         selectDocumentTab(documentTabs[nextIndex]);
+        documentTabs[nextIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' });
       });
     });
 
@@ -2103,7 +2113,7 @@
     }
 
     function buildMarkdown(url) {
-      let markdown = '![GitHub Repo Banner](' + window.location.origin + url + ')';
+      let markdown = '![GitHub Repo Banner](' + new URL(url, window.location.origin).href + ')';
       if (supportCheckbox.checked) {
         markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
       }
@@ -2590,7 +2600,7 @@
         });
         if (request !== pexelsRequest) return;
         if (res.status === 503) {
-          pexelsStatus.textContent = 'Image search is not enabled on this site. Paste a direct HTTPS image URL above, or search on Pexels using the link below.';
+          pexelsStatus.textContent = 'Image search is unavailable on this site right now. Try again later, paste a direct HTTPS image URL above, or search on Pexels using the link below.';
           return;
         }
         if (!res.ok) throw new Error('Search unavailable');
@@ -2719,147 +2729,18 @@
       update();
     });
 
-    copyBtn.addEventListener('click', () => {
-      const url = buildUrl();
-      
-      
-      navigator.clipboard.writeText(buildMarkdown(url)).then(() => {
-        copyBtn.textContent = 'Copied!';
-        copyBtn.classList.add('copied');
-        setTimeout(() => {
-          copyBtn.textContent = 'Copy Markdown';
-          copyBtn.classList.remove('copied');
-        }, 2000);
+    for (const [button, action] of [[copyBtn, 'markdown'], [copyUrlBtn, 'url'], [downloadBtn, 'svg'], [downloadPngBtn, 'png']]) {
+      button.addEventListener('click', () => {
+        const url = new URL(buildUrl(), window.location.origin);
+        if (action === 'url') {
+          // Copied image URLs intentionally omit attribution.
+          url.searchParams.delete('support');
+          url.searchParams.delete('watermarkpos');
+        }
+        const filename = 'banner-' + (headerInput.value.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-+|-+$/g, '') || 'download');
+        beginExport({ action, url: url.href, text: action === 'markdown' ? buildMarkdown(url.href) : url.href, filename }, button);
       });
-    });
-
-    copyUrlBtn.addEventListener('click', () => {
-      const url = new URL(buildUrl(), window.location.origin);
-      // Preserve the existing choice to omit attribution from copied image URLs.
-      url.searchParams.delete('support');
-      url.searchParams.delete('watermarkpos');
-      const imageUrl = url.toString();
-
-      
-      navigator.clipboard.writeText(imageUrl).then(() => {
-        copyUrlBtn.textContent = 'Copied!';
-        copyUrlBtn.classList.add('copied');
-        setTimeout(() => {
-          copyUrlBtn.textContent = 'Copy Image URL';
-          copyUrlBtn.classList.remove('copied');
-        }, 2000);
-      });
-    });
-
-    downloadBtn.addEventListener('click', async () => {
-      try {
-        const url = buildUrl();
-
-        const response = await fetch(url);
-        const svgBlob = await response.blob();
-        const downloadUrl = URL.createObjectURL(svgBlob);
-        
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = `banner-${headerInput.value.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.svg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(downloadUrl);
-        
-        downloadBtn.textContent = 'Downloaded!';
-        downloadBtn.classList.add('copied');
-        setTimeout(() => {
-          downloadBtn.textContent = 'Download SVG';
-          downloadBtn.classList.remove('copied');
-        }, 2000);
-      } catch (error) {
-        console.error('Download failed:', error);
-      }
-    });
-
-    downloadPngBtn.addEventListener('click', async () => {
-      try {
-        const url = buildUrl();
-
-        const response = await fetch(url);
-        const svgText = await response.text();
-        
-        // Encode SVG as data URL
-        const svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
-        
-        // Create an image element to load the SVG
-        const img = new Image();
-        img.onload = () => {
-          // Create canvas with same dimensions as banner (1280x304)
-          const canvas = document.createElement('canvas');
-          canvas.width = 1280;
-          canvas.height = 304;
-          const ctx = canvas.getContext('2d');
-          
-          if (!ctx) {
-            console.error('Failed to get 2D context from canvas');
-            downloadPngBtn.textContent = 'Download failed';
-            setTimeout(() => {
-              downloadPngBtn.textContent = 'Download PNG';
-            }, 2000);
-            return;
-          }
-          
-          // Draw the image onto canvas
-          ctx.drawImage(img, 0, 0);
-          
-          // Convert canvas to blob and download
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              console.error('Failed to convert canvas to PNG blob');
-              downloadPngBtn.textContent = 'Download failed';
-              setTimeout(() => {
-                downloadPngBtn.textContent = 'Download PNG';
-              }, 2000);
-              return;
-            }
-            
-            const downloadUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            
-            // Generate safe filename from header, with fallback
-            const headerText = headerInput.value.trim() || 'banner';
-            const safeFilename = headerText.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-            a.download = `banner-${safeFilename || 'download'}.png`;
-            
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(downloadUrl);
-            
-            downloadPngBtn.textContent = 'Downloaded!';
-            downloadPngBtn.classList.add('copied');
-            setTimeout(() => {
-              downloadPngBtn.textContent = 'Download PNG';
-              downloadPngBtn.classList.remove('copied');
-            }, 2000);
-          }, 'image/png');
-        };
-        
-        img.onerror = (e) => {
-          console.error('Failed to load SVG image for conversion. URL:', url, 'Error:', e);
-          downloadPngBtn.textContent = 'Download failed';
-          setTimeout(() => {
-            downloadPngBtn.textContent = 'Download PNG';
-          }, 2000);
-        };
-        
-        img.src = svgDataUrl;
-      } catch (error) {
-        console.error('PNG download failed:', error);
-        downloadPngBtn.textContent = 'Download failed';
-        setTimeout(() => {
-          downloadPngBtn.textContent = 'Download PNG';
-        }, 2000);
-      }
-    });
+    }
 
     updateBackgroundEffectControls();
 

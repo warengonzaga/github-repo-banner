@@ -34,6 +34,12 @@ assert.equal(sanitizeHeader('![github] Café 🚀'), '![github] Café 🚀');
 assert.equal(sanitizeHeader('a'.repeat(51)), 'a'.repeat(50));
 assert.equal(sanitizeHeader('b'.repeat(61), 60), 'b'.repeat(60));
 assert.equal(sanitizeHeader('🚀'.repeat(26)).length, 50);
+for (const limit of [50, 60, 500]) {
+  assert.equal(sanitizeHeader('a'.repeat(limit - 1) + '😀', limit), 'a'.repeat(limit - 1), 'Drop a split emoji at each UTF-16 boundary');
+  assert.equal(sanitizeHeader('a'.repeat(limit - 2) + '😀x', limit), 'a'.repeat(limit - 2) + '😀', 'Preserve complete emoji within the same unit limit');
+}
+assert.equal(sanitizeHeader('\ud83dHello\ude00 😀'), 'Hello 😀', 'Malformed raw strings must not retain lone surrogates');
+assert.equal(sanitizeHeader('![github]' + 'a'.repeat(49) + '😀'), '![github]' + 'a'.repeat(49), 'Icons still do not consume the text limit');
 assert.equal((sanitizeHeader('![github]'.repeat(6)).match(/!\[github\]/g) || []).length, 5);
 url.searchParams.set('bgimg', 'https://localhost/image.png');
 url.searchParams.set('bg', 'not-a-color');

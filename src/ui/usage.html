@@ -1,0 +1,69 @@
+<div class="page-heading">
+  <h1>Usage on this instance</h1>
+  <p class="page-intro">Daily page views and banner requests on <strong id="usage-host">this server</strong>. Public observations, with their limits in view.</p>
+</div>
+
+<section class="community-showcase" id="community-showcase" aria-labelledby="showcase-heading" hidden>
+  <h2 id="showcase-heading">Made by the community</h2>
+  <p>Banner designs shared with permission. Usage is counted whether or not someone showcases their design; every exported design is saved, and this gallery displays only accepted showcases. <a href="/">Create your banner</a>.</p>
+  <p id="showcase-status" role="status" aria-live="polite">Loading community designs…</p>
+  <ul class="showcase-grid" id="showcase-grid"></ul>
+  <button class="page-button" type="button" id="showcase-more" hidden>Load more designs</button>
+  <details class="showcase-removal"><summary>Remove a design you shared</summary>
+    <form id="showcase-remove"><label for="showcase-code">Your removal link or code</label><input id="showcase-code" type="password" autocomplete="off" required spellcheck="false"><button class="page-button" type="submit">Remove from showcase</button><p id="showcase-removal-status" role="status" aria-live="polite"></p></form>
+  </details>
+</section>
+<noscript><p class="page-intro">If community showcasing is enabled on this instance, enable JavaScript to view designs and manage your submissions.</p></noscript>
+<script type="module" src="/showcase.js"></script>
+
+<div class="usage-layout">
+  <div>
+    <section class="usage-report" aria-labelledby="report-heading" aria-busy="true" id="usage-report">
+      <div class="report-heading">
+        <div><h2 id="report-heading">Today’s observations</h2><p class="muted">Current UTC day · <time id="usage-day">—</time></p></div>
+        <button type="button" class="page-button" id="usage-refresh" disabled>Loading…</button>
+      </div>
+      <div class="usage-state" id="usage-state" role="status" aria-live="polite">
+        <h3 id="usage-state-title">Loading usage</h3>
+        <p id="usage-state-description">Fetching the latest observations from this instance.</p>
+      </div>
+      <div id="usage-results" hidden>
+        <section class="page-views" aria-labelledby="page-views-heading">
+          <h3 id="page-views-heading">Recorded page views <span id="usage-page-total">—</span></h3>
+          <dl class="page-view-counts">
+            <div><dt>Generator</dt><dd id="usage-page-generator">—</dd></div>
+            <div><dt>Documentation</dt><dd id="usage-page-documentation">—</dd></div>
+            <div><dt>Usage</dt><dd id="usage-page-usage">—</dd></div>
+          </dl>
+          <p>Page responses, not unique visitors. Refreshes and bots can count; assets and API refreshes do not.</p>
+          <p id="usage-pages-window"></p>
+        </section>
+        <dl class="usage-metrics">
+          <div><dt>Recorded export requests<span>Built-in copy and download requests, whether showcased or not. Not proof of completion.</span></dt><dd id="usage-exports">—</dd></div>
+          <div><dt>Recorded banner requests<span>Successful banner responses recorded by this server.</span></dt><dd id="usage-requests">—</dd></div>
+          <div><dt>Estimated unique repositories<span>Distinct GitHub repository identifiers seen in Referers.</span></dt><dd id="usage-repositories">—</dd></div>
+          <div><dt>Requests with a repository Referer<span>Recorded requests carrying a usable GitHub repository reference.</span></dt><dd id="usage-referred">—</dd></div>
+          <div><dt>Repository Referer coverage<span>The share of recorded requests with that reference.</span></dt><dd id="usage-coverage">—</dd></div>
+        </dl>
+        <div class="report-footnote"><p id="usage-window"></p><p id="usage-updated"></p></div>
+      </div>
+      <noscript><p class="usage-state">Enable JavaScript to load this report, or <a href="/stats">read the raw statistics</a>.</p></noscript>
+    </section>
+    <p class="data-source">Source: <a href="/stats">public statistics API (JSON)</a>. <a href="/docs#overview--privacy--transparency">Read the measurement and privacy documentation</a>.</p>
+  </div>
+
+  <aside class="usage-context" aria-labelledby="coverage-heading">
+    <h2 id="coverage-heading">What these numbers tell you</h2>
+    <p>These are partial observations of this instance. They are <strong>not a count of people, installations or projects that depend on the service</strong>.</p>
+    <h3>Requests include more than people</h3>
+    <p>Previews, bots and retries can count. Browser, CDN and GitHub image-cache hits never reach this server. Self-hosted opt-outs, disabled periods and failed writes can reduce coverage.</p>
+    <h3>Repositories are an estimate</h3>
+    <p>Referers may be absent or spoofed. Repository existence and visibility are not verified. Distinct identifiers use HyperLogLog, with about 0.81% standard error.</p>
+    <h3>Counting and showcasing</h3>
+    <p>Official hosting counts aggregate usage. The export prompt only asks about public showcasing: every exported design is saved for the configured retention period. Accepting also adds a public preview until you withdraw the showcase or an operator removes it. Withdrawing a showcase does not delete the saved export before its retention period ends.</p>
+    <p>Self-hosted instances keep optional tracking and do not enable showcasing by default. Their banner checkbox, <code>stats=false</code>, Do Not Track and Global Privacy Control can exclude requests. These opt-outs do not disable official aggregate counting.</p>
+    <p>Statistics contain daily counts and a sketch of hashed repository identifiers, without IPs, cookies or visitor IDs. Daily keys expire seven days after their last write. Hosting providers may keep separate access logs.</p>
+    <p>GitHub Repo Banner is open source. Generated banner URLs are public, but only voluntarily submitted designs appear in the showcase.</p>
+    <p><a href="/docs#privacy">Privacy policy</a> · <a href="/docs#terms">Terms of service</a></p>
+  </aside>
+</div>
