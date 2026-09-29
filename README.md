@@ -24,7 +24,25 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - ⚡ **Lightning Fast** - Built with Hono framework for optimal performance
 - 🔒 **Secure** - Input sanitization and validation
 - 🖼️ **Background Images** - Use any HTTPS image URL as banner background via `bgimg` parameter
-- 📸 **Pexels Integration** - Search and select background images from Pexels directly in the UI
+- 📸 **Background Styling**
+
+Use the Background styling controls to adjust the background without changing text, icons, or watermarks. Color filters work on solid colors, gradients, and images. Blur is enabled for HTTPS image URLs and applied only when the server successfully loads the image. Transparent backgrounds remain transparent. **Reset styling** restores neutral values without clearing the selected image or text; the main Reset button resets everything.
+
+| Parameter | Range | Default | Effect |
+|---|---|---|---|
+| `bgblur` | 0–30 pixels | 0 | Image blur |
+| `bgbrightness` | 0–200 percent | 100 | Dim or brighten |
+| `bgcontrast` | 0–200 percent | 100 | Reduce or increase contrast |
+| `bgsaturation` | 0–200 percent | 100 | Reduce or increase color intensity |
+| `bggrayscale` | 0–100 percent | 0 | Blend toward grayscale |
+
+Non-finite, non-numeric, and out-of-range values fall back to the parameter's default. Effects are applied in the order blur, brightness, contrast, then saturation/grayscale. Neutral parameters are omitted from generated URLs and preserve existing output. Styling is encoded in the banner URL and embedded as native SVG filters for the preview, SVG downloads, and PNG exports.
+
+```text
+https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&bgblur=10&bgbrightness=60&bggrayscale=100&color=ffffff
+```
+
+**Pexels Integration** - Search and select background images from Pexels directly in the UI
 - 🚀 **Edge-Ready** - Deploy to modern platforms like Railway
 
 ## 🚀 Quick Start

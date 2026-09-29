@@ -1,0 +1,24 @@
+// Run with node scripts/check-background-effects-ui.mjs.
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createContext, runInContext } from 'node:vm';
+const html=readFileSync(new URL('../src/ui/index.html',import.meta.url),'utf8');
+const fields=[...html.matchAll(/<input type="range" id="(bg\w+)" name="[^"]+" min="0" max="\d+" step="1" value="(\d+)" data-unit="([^"]+)"/g)].map(([,id,value,unit])=>({id,name:id,value,defaultValue:value,dataset:{unit},addEventListener(){},setAttribute(){}}));
+assert.equal(fields.length,5);
+const outputs=Object.fromEntries(fields.map(f=>[f.id+'-value',{}]));
+const buttons={ 'reset-background-style':{addEventListener(){}} };
+let copied,copyImage,copyMarkdown;
+const input={value:''};
+const c=createContext({URL,URLSearchParams,document:{querySelectorAll:()=>fields,getElementById:id=>fields.find(f=>f.id===id)||outputs[id]||buttons[id]},window:{location:{origin:'https://example.com'}},headerInput:{value:'Styled'},subheaderInput:input,bgImgInput:{value:'https://example.com/photo.png'},headerFontInput:input,subheaderFontInput:input,supportCheckbox:{checked:true},watermarkPosition:'bottom-right',getBgHex:()=> '112233',getBgHex2:()=> '445566',getColorHex:()=> 'ffffff',getSubheaderColorHex:()=> '',update(){},copyUrlBtn:{addEventListener:(e,fn)=>{copyImage=fn;}},copyBtn:{addEventListener:(e,fn)=>{copyMarkdown=fn;}},navigator:{clipboard:{writeText:value=>{copied=value;return {then(){}};}}},fetch:()=>Promise.resolve(),setTimeout(){}});
+const start=html.indexOf('    const backgroundEffectInputs');
+runInContext(html.slice(start,html.indexOf('    function autoResizeTextarea()',start)),c);
+runInContext(html.slice(html.indexOf("    copyBtn.addEventListener"),html.indexOf("    downloadBtn.addEventListener")),c);
+const getUrl=()=>new URL(runInContext('buildUrl()',c),'https://example.com');
+assert.ok(!getUrl().searchParams.has('bgblur'));
+fields[0].value='12';fields[1].value='0';fields[4].value='100';
+copyImage();let url=new URL(copied);
+assert.equal(url.searchParams.get('bgblur'),'12');assert.equal(url.searchParams.get('bgbrightness'),'0');assert.equal(url.searchParams.get('bggrayscale'),'100');assert.equal(url.searchParams.get('bg'),'112233-445566');
+copyMarkdown();assert.ok(copied.includes('bgblur=12')&&copied.includes('bgbrightness=0'),'copy must use fresh values without waiting for preview debounce');
+c.bgImgInput.value='';runInContext('updateBackgroundEffectControls()',c);assert.equal(fields[0].disabled,true);assert.ok(!getUrl().searchParams.has('bgblur'));assert.equal(getUrl().searchParams.get('bgbrightness'),'0');
+runInContext('resetBackgroundEffects()',c);assert.ok(fields.every(f=>f.value===f.defaultValue));assert.ok(!getUrl().searchParams.has('bgbrightness'));
+console.log('PASS: neutral URLs, shared copy serialization, fresh Markdown, blur disabling and reset');

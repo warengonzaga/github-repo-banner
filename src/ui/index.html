@@ -148,6 +148,23 @@
       border-bottom: 1px solid #21262d;
     }
 
+    .background-styling {
+      grid-column: 1 / -1;
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+    }
+    .background-styling legend { padding: 0 0.375rem; font-weight: 600; }
+    .effect-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .effect-control label { display: flex; justify-content: space-between; gap: 0.5rem; }
+    .effect-control output { font-variant-numeric: tabular-nums; color: #c9d1d9; }
+    .effect-control input[type="range"] { width: 100%; min-height: 44px; padding: 0; border: 0; background: transparent; accent-color: #58a6ff; cursor: pointer; }
+    .effect-control input:disabled { opacity: 0.45; cursor: not-allowed; }
+    .background-styling p { color: #9da7b3; font-size: 0.8125rem; line-height: 1.5; }
+    .background-styling button { min-height: 44px; }
+    @media (max-width: 480px) { .effect-controls { grid-template-columns: 1fr; } }
+
     .settings-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -1402,6 +1419,34 @@
           </div>
         </div>
 
+        <fieldset class="background-styling">
+          <legend>Background styling</legend>
+          <p id="background-style-help">Color filters affect only the background. Add an HTTPS image URL to enable blur. Text and watermarks stay sharp.</p>
+          <div class="effect-controls">
+              <div class="effect-control">
+                <label for="bgblur">Blur <output id="bgblur-value" for="bgblur">0px</output></label>
+                <input type="range" id="bgblur" name="bgblur" min="0" max="30" step="1" value="0" data-unit="px" aria-describedby="background-style-help" disabled />
+              </div>
+              <div class="effect-control">
+                <label for="bgbrightness">Brightness <output id="bgbrightness-value" for="bgbrightness">100%</output></label>
+                <input type="range" id="bgbrightness" name="bgbrightness" min="0" max="200" step="1" value="100" data-unit="%" aria-describedby="background-style-help" />
+              </div>
+              <div class="effect-control">
+                <label for="bgcontrast">Contrast <output id="bgcontrast-value" for="bgcontrast">100%</output></label>
+                <input type="range" id="bgcontrast" name="bgcontrast" min="0" max="200" step="1" value="100" data-unit="%" aria-describedby="background-style-help" />
+              </div>
+              <div class="effect-control">
+                <label for="bgsaturation">Saturation <output id="bgsaturation-value" for="bgsaturation">100%</output></label>
+                <input type="range" id="bgsaturation" name="bgsaturation" min="0" max="200" step="1" value="100" data-unit="%" aria-describedby="background-style-help" />
+              </div>
+              <div class="effect-control">
+                <label for="bggrayscale">Grayscale <output id="bggrayscale-value" for="bggrayscale">0%</output></label>
+                <input type="range" id="bggrayscale" name="bggrayscale" min="0" max="100" step="1" value="0" data-unit="%" aria-describedby="background-style-help" />
+              </div>
+          </div>
+          <button type="button" class="secondary" id="reset-background-style">Reset styling</button>
+        </fieldset>
+
         <div class="form-group">
           <label>Color Presets (click to apply)</label>
           <div class="bg-options">
@@ -1834,6 +1879,36 @@
       subheaderFontGroup.style.display = hasSubheader ? 'block' : 'none';
     }
 
+    const backgroundEffectInputs = Array.from(document.querySelectorAll('.effect-controls input'));
+
+    function updateBackgroundEffectControls() {
+      let hasImage = false;
+      try { hasImage = new URL(bgImgInput.value.trim()).protocol === 'https:'; } catch {}
+      document.getElementById('bgblur').disabled = !hasImage;
+      backgroundEffectInputs.forEach(input => {
+        document.getElementById(input.id + '-value').textContent = input.value + input.dataset.unit;
+        input.setAttribute('aria-valuetext', input.value + (input.dataset.unit === 'px' ? ' pixels' : ' percent'));
+      });
+    }
+
+    function appendBackgroundEffects(params) {
+      backgroundEffectInputs.forEach(input => {
+        if (input.name === 'bgblur' && !params.has('bgimg')) return;
+        if (input.value !== input.defaultValue) params.set(input.name, input.value);
+      });
+    }
+
+    function resetBackgroundEffects() {
+      backgroundEffectInputs.forEach(input => { input.value = input.defaultValue; });
+      updateBackgroundEffectControls();
+    }
+
+    backgroundEffectInputs.forEach(input => input.addEventListener('input', update));
+    document.getElementById('reset-background-style').addEventListener('click', () => {
+      resetBackgroundEffects();
+      update();
+    });
+
     function buildUrl() {
       const params = new URLSearchParams();
       const header = headerInput.value || '![github] Hello World 👋';
@@ -1891,7 +1966,16 @@
       } else {
         params.set('watermarkpos', watermarkPosition);
       }
+      appendBackgroundEffects(params);
       return '/banner?' + params.toString();
+    }
+
+    function buildMarkdown(url) {
+      let markdown = '![GitHub Repo Banner](' + window.location.origin + url + ')';
+      if (supportCheckbox.checked) {
+        markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
+      }
+      return markdown;
     }
 
     function autoResizeTextarea() {
@@ -1902,20 +1986,13 @@
     }
 
     function update() {
+      updateBackgroundEffectControls();
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         const url = buildUrl();
         // Cache-bust for preview, clean URL for markdown
         previewImg.src = url + '&_t=' + Date.now();
-        const fullUrl = window.location.origin + url;
-        let markdown = '![GitHub Repo Banner](' + fullUrl + ')';
-        
-        // Add attribution as a new line when support is enabled
-        if (supportCheckbox.checked) {
-          markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
-        }
-        
-        markdownInput.value = markdown;
+        markdownInput.value = buildMarkdown(url);
         autoResizeTextarea();
       }, 300);
     }
@@ -2415,6 +2492,7 @@
     });
 
     resetBtn.addEventListener('click', () => {
+      resetBackgroundEffects();
       // Reset all form fields to defaults
       headerInput.value = '![github] Hello World 👋';
       subheaderInput.value = 'Great projects deserve great repository banners';
@@ -2472,7 +2550,7 @@
         body: JSON.stringify({ action: 'Copy Markdown', url })
       }).catch(() => {}); // Silent fail
       
-      navigator.clipboard.writeText(markdownInput.value).then(() => {
+      navigator.clipboard.writeText(buildMarkdown(url)).then(() => {
         copyBtn.textContent = 'Copied!';
         copyBtn.classList.add('copied');
         setTimeout(() => {
@@ -2483,54 +2561,17 @@
     });
 
     copyUrlBtn.addEventListener('click', () => {
-      // Build URL without support parameter
-      const params = new URLSearchParams();
-      const header = headerInput.value || '![github] Hello World 👋';
-      params.set('header', header);
-      const subheader = subheaderInput.value.trim();
-      if (subheader) {
-        params.set('subheader', subheader);
-      }
-      
-      // Background image URL takes priority
-      const bgImgUrl = bgImgInput.value.trim();
-      if (bgImgUrl) {
-        try {
-          const parsed = new URL(bgImgUrl);
-          if (parsed.protocol === 'https:') {
-            params.set('bgimg', bgImgUrl);
-          }
-        } catch {}
-      }
+      const url = new URL(buildUrl(), window.location.origin);
+      // Preserve the existing choice to omit attribution from copied image URLs.
+      url.searchParams.delete('support');
+      url.searchParams.delete('watermarkpos');
+      const imageUrl = url.toString();
 
-      // Use preset bg if active (gradient or transparent), otherwise custom hex
-      if (currentPreset) {
-        params.set('bg', currentPreset.bg);
-      } else {
-        // Custom background color
-        const bgHex = getBgHex();
-        if (bgHex) {
-          params.set('bg', bgHex);
-        }
-      }
-      
-      const hex = getColorHex();
-      if (hex) {
-        params.set('color', hex);
-      }
-      const subHex = getSubheaderColorHex();
-      if (subHex && subheader) {
-        params.set('subheadercolor', subHex);
-      }
-      // Note: We intentionally do NOT include the support parameter here
-      
-      const imageUrl = window.location.origin + '/banner?' + params.toString();
-      
       // Log action to server
       fetch('/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'Copy Image URL', url: '/banner?' + params.toString() })
+        body: JSON.stringify({ action: 'Copy Image URL', url: url.pathname + url.search })
       }).catch(() => {}); // Silent fail
       
       navigator.clipboard.writeText(imageUrl).then(() => {
@@ -2667,6 +2708,8 @@
       }
     });
 
+    updateBackgroundEffectControls();
+
     // Initial render (no debounce)
     (function() {
       // Set default Midnight preset as active
@@ -2693,12 +2736,7 @@
       
       const url = buildUrl();
       previewImg.src = url + '&_t=' + Date.now();
-      const fullUrl = window.location.origin + url;
-      let markdown = '![GitHub Repo Banner](' + fullUrl + ')';
-      if (supportCheckbox.checked) {
-        markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
-      }
-      markdownInput.value = markdown;
+      markdownInput.value = buildMarkdown(url);
       autoResizeTextarea();
     })();
 

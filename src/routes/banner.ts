@@ -1,5 +1,6 @@
 import { LogEngine } from '@wgtechlabs/log-engine';
 import { Hono } from 'hono';
+import { parseBackgroundEffects } from '../banner/background-effects.js';
 import { buildBannerSVG } from '../banner/svg-template.js';
 import type { BackgroundPreset } from '../banner/types.js';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
@@ -156,6 +157,7 @@ bannerRoute.get('/banner', async (c) => {
     header,
     subheader,
     background,
+    backgroundEffects: parseBackgroundEffects(c.req.query()),
     textColor,
     subheaderColor,
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
