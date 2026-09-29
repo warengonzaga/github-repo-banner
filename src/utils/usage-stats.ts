@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { LogEngine } from '@wgtechlabs/log-engine';
-import type Redis from 'ioredis';
+import type { Redis } from 'ioredis';
+import { isOfficialInstance } from '../config/redis.js';
 
 const RETENTION_SECONDS = 7 * 24 * 60 * 60;
 const NON_REPOSITORY_PATHS = new Set([
@@ -46,7 +47,9 @@ export function usageOptedOut(
   dnt: string | undefined,
   gpc: string | undefined,
 ): boolean {
-  return stats === 'false' || dnt === '1' || gpc === '1';
+  return (
+    !isOfficialInstance() && (stats === 'false' || dnt === '1' || gpc === '1')
+  );
 }
 
 export function usageKeys(date = new Date()) {
@@ -66,19 +69,51 @@ export function isUsageRecordingAvailable(): boolean {
   return failedRecordingDay !== usageKeys().day;
 }
 
-export async function recordBannerRequest(
+export function recordBannerRequest(
   redis: Redis,
   referer: string,
-): Promise<void> {
+): Promise<boolean> {
+  return recordRequest(redis, 'requests', referer);
+}
+
+export function recordPageView(
+  redis: Redis,
+  page: 'generator' | 'documentation' | 'usage',
+): Promise<boolean> {
+  return recordRequest(redis, `page:${page}`);
+}
+
+export async function recordExportRequest(
+  redis: Redis,
+  showcased: boolean,
+): Promise<boolean> {
+  return recordRequest(redis, 'exports', '', showcased);
+}
+
+async function recordRequest(
+  redis: Redis,
+  counter: string,
+  referer = '',
+  showcased = false,
+): Promise<boolean> {
   const now = new Date();
   const keys = usageKeys(now);
   try {
     const repository = repositoryFromReferer(referer);
     const transaction = redis
       .multi()
-      .hincrby(keys.counters, 'requests', 1)
-      .hsetnx(keys.counters, 'startedAt', now.toISOString())
+      .hincrby(keys.counters, counter, 1)
+      .hsetnx(
+        keys.counters,
+        counter === 'requests'
+          ? 'startedAt'
+          : counter === 'exports'
+            ? 'exportsStartedAt'
+            : 'pagesStartedAt',
+        now.toISOString(),
+      )
       .expire(keys.counters, RETENTION_SECONDS);
+    if (showcased) transaction.hincrby(keys.counters, 'showcased', 1);
     if (repository) {
       // Hash before sending to Redis so command logs do not contain repository names.
       const digest = createHash('sha256').update(repository).digest('hex');
@@ -90,6 +125,7 @@ export async function recordBannerRequest(
     const result = await transaction.exec();
     if (!result || result.some(([error]) => error))
       throw new Error('Usage recording failed');
+    return true;
   } catch {
     const firstFailure = !failedRecordingDay || keys.day > failedRecordingDay;
     if (firstFailure) failedRecordingDay = keys.day;
@@ -98,5 +134,6 @@ export async function recordBannerRequest(
         'Usage recording failed; stats are degraded for this UTC day.',
       );
     }
+    return false;
   }
 }

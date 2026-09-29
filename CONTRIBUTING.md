@@ -27,14 +27,16 @@ Once set up, use `contribute` (or the short alias `cn`) to handle branching, syn
 
 If you prefer the manual approach:
 
-> **Prerequisites:** [Node.js](https://nodejs.org/) `^22`, [pnpm](https://pnpm.io/), and [Git](https://git-scm.com/) are required.
+> **Prerequisites:** [Node.js](https://nodejs.org/) `^22`, [Bun](https://bun.sh/) `1.3.9`, [Git](https://git-scm.com/), and a running Redis service are required. See [self-hosting](docs/self-hosting.md) for Docker Compose and Redis setup.
 
 1. **Fork** the repository
 2. **Clone** your fork and install dependencies:
    ```bash
    git clone https://github.com/<your-username>/github-repo-banner.git
    cd github-repo-banner
-   pnpm install
+   bun install --frozen-lockfile
+   cp .env.example .env
+   # Set REDIS_URL in .env to your development Redis URL.
    ```
 3. **Create a feature branch:**
    ```bash
@@ -101,9 +103,10 @@ With optional scope:
 ## 🛠️ Development
 
 ```bash
-pnpm dev      # Start development server with hot-reload
-pnpm build    # Production build
-pnpm start    # Start production server
+bun dev          # Start development server with hot-reload
+bun run build    # Production build
+bun run start    # Start production server
+bun run check    # Static checks
 ```
 
 ## 🐛 Reporting Issues

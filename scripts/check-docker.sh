@@ -19,7 +19,7 @@ assert.notEqual(process.getuid(), 0);
 assert.equal(existsSync('node_modules/tsup'), false);
 assert.equal(existsSync('.env'), false);
 assert.ok(JSON.parse(readFileSync('package.json', 'utf8')).version);
-for (const file of ['index.html', 'image-url.js', 'LICENSE', 'CODE_OF_CONDUCT.md']) {
+for (const file of ['index.html', 'image-url.js', 'LICENSE', 'CODE_OF_CONDUCT.md', 'usage.html', 'usage.js', 'pages.css', 'docs/README.md', 'docs/docs/api.md', 'docs/docs/self-hosting.md']) {
   assert.ok(existsSync(`dist/ui/${file}`), `${file} must be bundled`);
 }
 const base = 'http://127.0.0.1:3000';
@@ -35,6 +35,14 @@ const html = await home.text();
 assert.match(html, /MIT License/);
 assert.match(html, /Our Pledge/);
 assert.equal((await get('/image-url.js')).status, 200);
+for (const path of ['/docs', '/usage', '/pages.css', '/usage.js']) {
+  assert.equal((await get(path)).status, 200, `${path} must work in the production image`);
+}
+const docs = await (await get('/docs')).text();
+assert.ok(docs.includes('id="api"') && docs.includes('id="self-hosting"'));
+assert.ok(docs.includes('REDIS_URL'));
+const usage = await (await get('/usage')).text();
+assert.ok(usage.includes('src="/usage.js"') && usage.includes('href="/stats"'));
 const banner = await get('/banner?header=Docker');
 assert.equal(banner.status, 200);
 assert.match(await banner.text(), /<svg/);

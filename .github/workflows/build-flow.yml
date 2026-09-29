@@ -28,8 +28,8 @@ jobs:
       ci-install-command: bun install --frozen-lockfile
       ci-lint-command: bun run check
       ci-build-command: bun run build
-      # Declaration generation typechecks; integration checks run below.
-      ci-typecheck-command: ':'
+      # Check every source module, including browser modules.
+      ci-typecheck-command: 'bunx tsc --noEmit'
       ci-test-command: ':'
       ci-coverage-command: ':'
       enable-gitleaks: false # Preserve the existing gate set.

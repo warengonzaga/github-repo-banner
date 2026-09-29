@@ -30,7 +30,7 @@ const redis = {
     return tx;
   },
 };
-mock.module('../src/config/redis.js', () => ({ getRedis: () => redis, isStatsEnabled: () => true }));
+mock.module('../src/config/redis.js', () => ({ getRedis: () => redis, isStatsEnabled: () => true, isOfficialInstance: () => false }));
 const { default: stats } = await import('../src/routes/stats.js');
 const { default: banner } = await import('../src/routes/banner.js');
 let response = await stats.request('/stats');

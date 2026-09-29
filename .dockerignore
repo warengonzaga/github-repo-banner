@@ -6,6 +6,11 @@
 !tsup.config.ts
 !LICENSE
 !CODE_OF_CONDUCT.md
+!README.md
+!CONTRIBUTING.md
+!docs/
+!docs/api.md
+!docs/self-hosting.md
 !src/
 !src/**
 **/.env*
