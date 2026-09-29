@@ -58,10 +58,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Build Flow v0.2.1 app.yml only finalizes releases after publishing a
-      # package/container; this repository has neither. Retain the primitive
-      # behind the CI gate until release-only orchestration is supported or
-      # artifact publishing is explicitly adopted. Do not silently disable releases.
+      # Railway deploys from GitHub; releases do not require registry publishing.
       - name: Create Release
         uses: wgtechlabs/release-build-flow-action@6df9cb42c24c296d902150d051a0b6be4422cccc # v1.8.0
         with:
