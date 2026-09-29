@@ -8,6 +8,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.4.0] - 2026-09-29
+
+### Added
+
+- add standalone README banner skill
+- add background blur and color filter controls
+- render repository code of conduct
+- display repository license in an accessible tab
+- add custom background image support with Pexels integration (#35)
+
+### Changed
+
+- streamline readme and separate reference guides
+- align readme with banner features and deployment
+- finalize CI and gated release workflow
+- restore permanent CI branch filter
+- remove temporary branch installation guidance
+- restore Pexels feature list marker
+- load additional Pexels image search results
+- expose stats recording failures and read atomic snapshots
+- give mobile document tabs room to breathe
+- preserve readable document tab hover colors
+- align image validation and avoid repeated announcements
+- run checks for the stacked policy PR
+- support companion URL controls in regression check
+- fail the build gate when validation fails
+- adopt Build Flow with a gated release fallback
+- remove stale preset badges
+- include enabled watermark in preview URLs
+- disable colors for image backgrounds
+- explain unavailable Pexels image search
+- restore supported typescript version
+- Bump ioredis from 5.11.1 to 6.0.0 (#44)
+- Bump actions/setup-node from 4 to 7 (#49)
+- Bump actions/checkout from 4 to 7 (#51)
+- Bump wgtechlabs/release-build-flow-action from 1.7.0 to 1.8.0 (#50)
+- Bump @types/node from 25.9.6 to 26.5.1 (#48)
+- Bump typescript from 6.0.3 to 7.0.2 (#41)
+- fix biome formatting in sanitize.ts
+- clarify Pexels key behavior
+- Bump typescript from 5.9.3 to 6.0.3 (#30)
+- Bump @hono/node-server from 1.19.14 to 2.0.4 (#34)
+- Bump @types/node from 22.19.19 to 25.9.1 (#33)
+
+### Fixed
+
+- harden background image handling
+- add timeout to Pexels requests
+- clarify Pexels configuration behavior
+
+### Security
+
+- bound image requests and address promotion review
+- pin image fetches to validated DNS addresses
+
 ## [1.3.1] - 2026-09-28
 
 ### Changed
