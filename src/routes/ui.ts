@@ -2,16 +2,18 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
+import { marked } from 'marked';
+import { escapeXml } from '../utils/sanitize.js';
 
 const uiRoute = new Hono();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Works in both dev (src/routes/) and production (dist/)
-function findHtmlPath(): string {
+function findHtmlPath(filename = 'index.html'): string {
   const candidates = [
-    resolve(__dirname, '..', 'ui', 'index.html'), // dev: src/routes/../ui/
-    resolve(__dirname, 'ui', 'index.html'), // prod: dist/ui/
+    resolve(__dirname, '..', 'ui', filename), // dev: src/routes/../ui/
+    resolve(__dirname, 'ui', filename), // prod: dist/ui/
   ];
   for (const p of candidates) {
     if (existsSync(p)) return p;
@@ -22,9 +24,30 @@ function findHtmlPath(): string {
 const isDev = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
 let cachedHtml: string | null = null;
 
+uiRoute.get('/image-url.js', (c) => {
+  c.header('Content-Type', 'text/javascript; charset=utf-8');
+  return c.body(readFileSync(findHtmlPath('image-url.js'), 'utf-8'));
+});
+
 uiRoute.get('/', (c) => {
   if (!cachedHtml || isDev) {
-    cachedHtml = readFileSync(findHtmlPath(), 'utf-8');
+    const htmlPath = findHtmlPath();
+    // Only repository-owned documents are rendered, never request-supplied Markdown.
+    const readDocument = (filename: string) => {
+      const path = [
+        resolve(dirname(htmlPath), filename),
+        resolve(dirname(htmlPath), '..', '..', filename),
+      ].find(existsSync);
+      if (!path) throw new Error(`Repository ${filename} is missing`);
+      return readFileSync(path, 'utf-8');
+    };
+    cachedHtml = readFileSync(htmlPath, 'utf-8')
+      .replace('<!-- repository-document:license -->', () =>
+        escapeXml(readDocument('LICENSE')),
+      )
+      .replace('<!-- repository-document:conduct -->', () =>
+        marked.parse(readDocument('CODE_OF_CONDUCT.md'), { async: false }),
+      );
   }
   return c.html(cachedHtml);
 });
