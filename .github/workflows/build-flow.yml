@@ -32,11 +32,15 @@ jobs:
 
   build:
     name: Build
+    if: always()
     needs: ci
     runs-on: ubuntu-latest
     steps:
       # Keep the existing Build check name available for branch protection.
-      - run: echo 'Build Flow validation completed'
+      - name: Require successful validation
+        env:
+          CI_RESULT: ${{ needs.ci.result }}
+        run: test "$CI_RESULT" = success
 
   release:
     name: Create Release
