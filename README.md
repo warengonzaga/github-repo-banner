@@ -391,6 +391,13 @@ MIT License - see [LICENSE](LICENSE) file.
 
 **Waren Gonzaga** • [GitHub](https://github.com/warengonzaga) • [Website](https://warengonzaga.com)
 
+### Resource limits
+
+Background image downloads share a process-local 32 MiB accounted-string cache with a 60-second TTL and at most four concurrent fetches. Requests for the same URL share in-flight work; saturation or failed downloads use the existing fallback. Each download remains limited to 10 MiB. These limits bound retained image data, not total process memory.
+
+Pexels responses use a process-local 2 MiB cache for five minutes, four concurrent fetches, and a rolling budget of 100 upstream requests per hour. Queries are normalized before caching. Cached results do not consume that budget; excess uncached requests receive HTTP 429. Replicas sharing a Pexels key need a shared limiter to enforce an account-wide budget; process restart resets the local budget.
+
+
 ---
 
 💻💖☕ by [Waren Gonzaga](https://warengonzaga.com/) | [YHWH](https://www.youtube.com/watch?v=VOZbswniA-g) 🙏

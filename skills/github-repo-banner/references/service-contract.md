@@ -13,6 +13,10 @@ Canonical implementation: `src/routes/banner.ts`, `src/utils/sanitize.ts`, `src/
 | `subheadercolor` | Optional separate subtitle hex; otherwise inherits text color. |
 | `bgimg` | Public HTTPS image URL, at most 2048 JavaScript string units, no credentials/private hosts. Valid images take priority over `bg`. |
 | `headerfont`, `subheaderfont` | Google Font family names, e.g. `Roboto`. Sanitized to ASCII letters, digits, whitespace and `+`, then limited to 50 units. Use raw spaces with the URL builder. |
+| `stats` | `false` opts out of optional usage statistics; otherwise recording depends on deployment settings. |
+| `bgblur` | Image-only blur, 0–30px; default 0. |
+| `bgbrightness`, `bgcontrast`, `bgsaturation` | Background adjustments, 0–200%; default 100. |
+| `bggrayscale` | Background grayscale, 0–100%; default 0. |
 | `support` | Only the literal `true` enables the visible watermark; default off. |
 | `watermarkpos` | `top-left`, `top-right`, `bottom-left`, `bottom-right` (default). |
 
@@ -22,7 +26,7 @@ Simple Icons syntax is `![slug]`, optionally followed by `(light)`, `(dark)`, or
 
 Image fetches are limited to 10 MiB and have a 10-second timeout. Supported response MIME types are JPEG, PNG, GIF, WebP and AVIF; SVG image URLs are not supported. Redirects, unavailable assets, private addresses, and incorrect content types may fail. An invalid image URL falls back to the `bg` selection; a valid URL whose fetch fails falls back to the default gradient. Check embedded image data and the visual result. Fonts can also fall back when fetching fails. Invalid colors fall back to defaults, and an invalid watermark position becomes bottom-right.
 
-Do not assume pending features such as background filters are deployed. Pexels search and PNG download are UI capabilities, not additional `/banner` query formats.
+Background effects leave foreground text/icons/watermarks unchanged. Invalid or out-of-range effect values use defaults. Blur applies only after an image loads; color filters also support solids and gradients. Neutral values preserve existing output. Verify deployment support before promising a rendered effect. Pexels search and PNG download are UI capabilities, not additional `/banner` query formats.
 
 ## Representative checks
 

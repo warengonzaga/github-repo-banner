@@ -6,7 +6,7 @@ const html = readFileSync(new URL('../src/ui/index.html', import.meta.url), 'utf
 const source = html.slice(html.indexOf("    const pexelsMoreBtn ="), html.indexOf("    pexelsSearchBtn.addEventListener"));
 function setup() {
   const element = () => ({ style: {}, textContent: '', disabled: false, children: [],
-    set innerHTML(value) { this.children = []; }, appendChild(child) { this.children.push(child); }, addEventListener() {},
+    setAttribute(name,value) { this[name]=value; }, set innerHTML(value) { this.children = []; }, appendChild(child) { this.children.push(child); }, addEventListener() {},
   });
   const more = element();
   const c = createContext({

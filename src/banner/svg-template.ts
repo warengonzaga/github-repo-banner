@@ -1,5 +1,6 @@
 import { request as httpsRequest } from 'node:https';
 import type { LookupFunction } from 'node:net';
+import { BoundedCache } from '../utils/bounded-cache.js';
 import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
 import { escapeXml, resolvePublicImageAddress } from '../utils/sanitize.js';
 import { buildBackgroundFilter } from './background-effects.js';
@@ -40,7 +41,13 @@ const ALLOWED_IMAGE_TYPES = [
   'image/avif',
 ];
 
-async function fetchImageAsBase64(url: string): Promise<string | null> {
+const imageCache = new BoundedCache(32 * 1024 * 1024, 60_000, 4);
+
+function fetchImageAsBase64(url: string): Promise<string | null> {
+  return imageCache.get(url, () => downloadImageAsBase64(url));
+}
+
+async function downloadImageAsBase64(url: string): Promise<string | null> {
   try {
     const parsedUrl = new URL(url);
     if (
