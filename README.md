@@ -303,6 +303,14 @@ The UI includes presets for quick access:
 
 **Runtime**: Node.js • **Framework**: [Hono](https://hono.dev/) • **Language**: TypeScript • **Build**: tsup • **Package Manager**: Bun
 
+### CI and release workflow
+
+`.github/workflows/build-flow.yml` calls Build Flow's CI reusable workflow pinned to the v0.2.1 commit. It keeps Node 22, Bun 1.3.9, frozen dependency installation, `bun run check`, and `bun run build` (including declaration generation). There is no separate test, coverage, or typecheck script in the existing pipeline; the reusable workflow's defaults are explicitly overridden to preserve that behavior. The existing `Build` check name remains as a CI-dependent gate.
+
+Only a push to `main` can release, after that gate succeeds. The existing v1.8.0 release primitive retains `GH_PAT` for changelog/version updates, tags, GitHub Releases, and downstream release-event compatibility. Separate CI/release workflows are removed to avoid duplicate release jobs.
+
+**Migration limitation:** Build Flow v0.2.1's `app.yml` requires a published package or container before release finalization and does not expose a PAT override for that finalization. This repository publishes neither artifact today. Full orchestration remains pending release-only/PAT support upstream or an explicit decision to adopt artifact publishing. The gated release primitive is intentional until then; this configuration does not claim to complete that part of issue #52.
+
 ### Commands
 
 ```bash

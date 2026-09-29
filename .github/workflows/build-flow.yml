@@ -1,0 +1,64 @@
+name: Build Flow
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: CI
+    uses: wgtechlabs/build-flow-action/.github/workflows/ci.yml@b46ac3e40de838b87e1da6b3e69382982d080916 # v0.2.1
+    with:
+      # Use the Node profile so Bun can be pinned instead of installed as latest.
+      ci-profile: node
+      ci-runtime-version: '22'
+      ci-setup-command: |
+        npm install --global bun@1.3.9
+        echo "$(npm prefix --global)/bin" >> "$GITHUB_PATH"
+      ci-install-command: bun install --frozen-lockfile
+      ci-lint-command: bun run check
+      ci-build-command: bun run build
+      # The previous CI has no separate typecheck, test, or coverage command.
+      # tsup's declaration build remains the existing TypeScript check.
+      ci-typecheck-command: ':'
+      ci-test-command: ':'
+      ci-coverage-command: ':'
+      enable-gitleaks: false # Preserve the existing gate set.
+
+  build:
+    name: Build
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      # Keep the existing Build check name available for branch protection.
+      - run: echo 'Build Flow validation completed'
+
+  release:
+    name: Create Release
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: github-repo-banner-release
+      cancel-in-progress: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Build Flow v0.2.1 app.yml only finalizes releases after publishing a
+      # package/container; this repository has neither. Retain the primitive
+      # behind the CI gate until release-only orchestration is supported or
+      # artifact publishing is explicitly adopted. Do not silently disable releases.
+      - name: Create Release
+        uses: wgtechlabs/release-build-flow-action@6df9cb42c24c296d902150d051a0b6be4422cccc # v1.8.0
+        with:
+          github-token: ${{ secrets.GH_PAT }}
