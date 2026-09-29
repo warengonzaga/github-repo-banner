@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
+import { escapeXml } from '../utils/sanitize.js';
 
 const uiRoute = new Hono();
 
@@ -24,7 +25,16 @@ let cachedHtml: string | null = null;
 
 uiRoute.get('/', (c) => {
   if (!cachedHtml || isDev) {
-    cachedHtml = readFileSync(findHtmlPath(), 'utf-8');
+    const htmlPath = findHtmlPath();
+    const licensePath = [
+      resolve(dirname(htmlPath), 'LICENSE'),
+      resolve(dirname(htmlPath), '..', '..', 'LICENSE'),
+    ].find(existsSync);
+    if (!licensePath) throw new Error('Repository LICENSE is missing');
+    cachedHtml = readFileSync(htmlPath, 'utf-8').replace(
+      '<!-- repository-document:license -->',
+      () => escapeXml(readFileSync(licensePath, 'utf-8')),
+    );
   }
   return c.html(cachedHtml);
 });

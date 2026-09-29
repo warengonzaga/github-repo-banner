@@ -11,6 +11,7 @@ export default defineConfig({
   onSuccess: async () => {
     mkdirSync('dist/ui', { recursive: true });
     copyFileSync('src/ui/index.html', 'dist/ui/index.html');
+    copyFileSync('LICENSE', 'dist/ui/LICENSE');
     console.log('Copied ui/index.html to dist/ui/');
   },
 });

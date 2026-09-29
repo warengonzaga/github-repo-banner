@@ -60,6 +60,7 @@
       border-bottom: 1px solid #21262d;
       margin-bottom: 0;
       gap: 0;
+      overflow-x: auto;
       background: transparent;
       padding: 0.5rem 1rem 0 1rem;
     }
@@ -75,12 +76,31 @@
       border-bottom: 2px solid transparent;
       background: transparent;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: color 0.15s, border-color 0.15s;
+      font-family: inherit;
+      min-height: 44px;
       display: flex;
       align-items: center;
       gap: 0.5rem;
       position: relative;
       margin-bottom: -1px;
+    }
+
+    .nav-tab:focus-visible {
+      outline: 2px solid #58a6ff;
+      outline-offset: -2px;
+    }
+
+    .document-panel {
+      padding: 1.5rem 2rem;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .document-text {
+      max-width: 75ch;
+      white-space: pre-wrap;
+      font: inherit;
     }
 
     .nav-tab svg {
@@ -1177,28 +1197,28 @@
   <div class="layout">
     <main class="main-content">
       <div class="readme-container">
-        <div class="nav-tabs">
-        <div class="nav-tab active">
+        <div class="nav-tabs" role="tablist" aria-label="Repository documents">
+        <button type="button" class="nav-tab active" id="readme-tab" role="tab" aria-selected="true" aria-controls="readme-panel">
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path>
           </svg>
           README
-        </div>
+        </button>
         <div class="nav-tab">
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
           </svg>
           Code of conduct
         </div>
-        <div class="nav-tab">
+        <button type="button" class="nav-tab" id="license-tab" role="tab" aria-selected="false" aria-controls="license-panel" tabindex="-1">
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.234a.75.75 0 0 1 0 1.5h-.427l2.111 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.006.005-.01.01-.045.04c-.21.176-.441.327-.686.45C14.556 10.78 13.88 11 13 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L12.178 4.5h-.162c-.305 0-.604-.079-.868-.231l-1.29-.736a.245.245 0 0 0-.124-.033H8.75V13h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5V3.5h-.984a.245.245 0 0 0-.124.033l-1.289.737c-.265.15-.564.23-.869.23h-.162l2.112 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.016.015-.045.04c-.21.176-.441.327-.686.45C4.556 10.78 3.88 11 3 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L2.178 4.5H1.75a.75.75 0 0 1 0-1.5h2.234a.249.249 0 0 0 .125-.033l1.288-.737c.265-.15.564-.23.869-.23h.984V.75a.75.75 0 0 1 1.5 0Zm2.945 8.477c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L13 6.327Zm-10 0c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L3 6.327Z"></path>
           </svg>
           MIT license
-        </div>
+        </button>
       </div>
 
-      <div class="content-container">
+      <div class="content-container" id="readme-panel" role="tabpanel" aria-labelledby="readme-tab" tabindex="0">
         <div class="article-title-container">
           <h1 class="article-title">GitHub Repo Banner</h1>
         </div>
@@ -1555,6 +1575,10 @@
         </div>
 
         </div>
+        <section id="license-panel" class="document-panel" role="tabpanel" aria-labelledby="license-tab" tabindex="0" hidden>
+          <h1>MIT license</h1>
+          <pre class="document-text"><!-- repository-document:license --></pre>
+        </section>
       </div>
     </main>
 
@@ -1633,6 +1657,33 @@
   </div>
 
   <script>
+    const documentTabs = Array.from(document.querySelectorAll('[role="tab"]'));
+
+    function selectDocumentTab(selectedTab) {
+      documentTabs.forEach(tab => {
+        const selected = tab === selectedTab;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        tab.classList.toggle('active', selected);
+        document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+      });
+    }
+
+    documentTabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => selectDocumentTab(tab));
+      tab.addEventListener('keydown', event => {
+        let nextIndex;
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % documentTabs.length;
+        else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + documentTabs.length) % documentTabs.length;
+        else if (event.key === 'Home') nextIndex = 0;
+        else if (event.key === 'End') nextIndex = documentTabs.length - 1;
+        else return;
+        event.preventDefault();
+        documentTabs[nextIndex].focus();
+        selectDocumentTab(documentTabs[nextIndex]);
+      });
+    });
+
     const headerInput = document.getElementById('header');
     const subheaderInput = document.getElementById('subheader');
     const previewImg = document.getElementById('preview');
