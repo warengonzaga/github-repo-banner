@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
-import { usageKeys } from '../utils/usage-stats.js';
+import { isUsageRecordingAvailable, usageKeys } from '../utils/usage-stats.js';
 
 const statsRoute = new Hono();
 
@@ -27,16 +27,53 @@ statsRoute.get('/stats', async (c) => {
     );
   }
 
+  if (!isUsageRecordingAvailable()) {
+    return c.json(
+      {
+        schemaVersion: 2,
+        enabled: true,
+        available: false,
+        error: 'Stats recording failed for this UTC day on this instance',
+      },
+      503,
+    );
+  }
+
   try {
     const keys = usageKeys();
-    const [counts, estimatedUniqueRepositories] = await Promise.all([
-      redis.hgetall(keys.counters),
-      redis.pfcount(keys.repositories),
-    ]);
+    const snapshot = await redis
+      .multi()
+      .hgetall(keys.counters)
+      .pfcount(keys.repositories)
+      .exec();
+    if (
+      !snapshot ||
+      snapshot.length !== 2 ||
+      snapshot.some(([error]) => error)
+    ) {
+      throw new Error('Stats snapshot failed');
+    }
+    if (!isUsageRecordingAvailable()) throw new Error('Stats recording failed');
+    const counts = snapshot[0][1] as Record<string, string>;
+    const estimatedUniqueRepositories = snapshot[1][1];
+    if (!counts || typeof counts !== 'object' || Array.isArray(counts)) {
+      throw new Error('Invalid stats counters');
+    }
     const recordedBannerRequests = Number(counts.requests || 0);
     const requestsWithRepositoryReferer = Number(
       counts.repositoryRequests || 0,
     );
+    if (
+      !Number.isSafeInteger(recordedBannerRequests) ||
+      recordedBannerRequests < 0 ||
+      !Number.isSafeInteger(requestsWithRepositoryReferer) ||
+      requestsWithRepositoryReferer < 0 ||
+      typeof estimatedUniqueRepositories !== 'number' ||
+      !Number.isSafeInteger(estimatedUniqueRepositories) ||
+      estimatedUniqueRepositories < 0
+    ) {
+      throw new Error('Invalid stats snapshot');
+    }
     return c.json({
       schemaVersion: 2,
       enabled: true,

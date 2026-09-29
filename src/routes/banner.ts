@@ -145,9 +145,7 @@ bannerRoute.get('/banner', async (c) => {
     )
   ) {
     // Successful renders only; measurement failure must not break banner delivery.
-    void recordBannerRequest(redis, c.req.header('referer') || '').catch(
-      () => {},
-    );
+    void recordBannerRequest(redis, c.req.header('referer') || '');
   }
 
   const isDev = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';

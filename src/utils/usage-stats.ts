@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { LogEngine } from '@wgtechlabs/log-engine';
 import type Redis from 'ioredis';
 
 const RETENTION_SECONDS = 7 * 24 * 60 * 60;
@@ -57,27 +58,45 @@ export function usageKeys(date = new Date()) {
   };
 }
 
+// A successful retry cannot recover observations lost earlier in this UTC day.
+// ponytail: process-local health; use shared telemetry for fleet-wide health.
+let failedRecordingDay: string | null = null;
+
+export function isUsageRecordingAvailable(): boolean {
+  return failedRecordingDay !== usageKeys().day;
+}
+
 export async function recordBannerRequest(
   redis: Redis,
   referer: string,
 ): Promise<void> {
   const now = new Date();
   const keys = usageKeys(now);
-  const repository = repositoryFromReferer(referer);
-  const transaction = redis
-    .multi()
-    .hincrby(keys.counters, 'requests', 1)
-    .hsetnx(keys.counters, 'startedAt', now.toISOString())
-    .expire(keys.counters, RETENTION_SECONDS);
-  if (repository) {
-    // Hash before sending to Redis so command logs do not contain repository names.
-    const digest = createHash('sha256').update(repository).digest('hex');
-    transaction
-      .hincrby(keys.counters, 'repositoryRequests', 1)
-      .pfadd(keys.repositories, digest)
-      .expire(keys.repositories, RETENTION_SECONDS);
+  try {
+    const repository = repositoryFromReferer(referer);
+    const transaction = redis
+      .multi()
+      .hincrby(keys.counters, 'requests', 1)
+      .hsetnx(keys.counters, 'startedAt', now.toISOString())
+      .expire(keys.counters, RETENTION_SECONDS);
+    if (repository) {
+      // Hash before sending to Redis so command logs do not contain repository names.
+      const digest = createHash('sha256').update(repository).digest('hex');
+      transaction
+        .hincrby(keys.counters, 'repositoryRequests', 1)
+        .pfadd(keys.repositories, digest)
+        .expire(keys.repositories, RETENTION_SECONDS);
+    }
+    const result = await transaction.exec();
+    if (!result || result.some(([error]) => error))
+      throw new Error('Usage recording failed');
+  } catch {
+    const firstFailure = !failedRecordingDay || keys.day > failedRecordingDay;
+    if (firstFailure) failedRecordingDay = keys.day;
+    if (firstFailure) {
+      LogEngine.error(
+        'Usage recording failed; stats are degraded for this UTC day.',
+      );
+    }
   }
-  const result = await transaction.exec();
-  if (!result || result.some(([error]) => error))
-    throw new Error('Usage recording failed');
 }
