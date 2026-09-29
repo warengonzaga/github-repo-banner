@@ -1886,9 +1886,8 @@
         params.set('subheaderfont', subheaderFont);
       }
       
-      if (!supportCheckbox.checked) {
-        params.set('support', 'false');
-      } else {
+      params.set('support', String(supportCheckbox.checked));
+      if (supportCheckbox.checked) {
         params.set('watermarkpos', watermarkPosition);
       }
       return '/banner?' + params.toString();
