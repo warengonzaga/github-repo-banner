@@ -308,7 +308,7 @@ codex plugin marketplace add warengonzaga/github-repo-banner
 codex plugin add github-repo-banner@github-repo-banner
 ```
 
-Start a fresh session after installation. Until the package is merged into the default branch, reviewers can add the marketplace with `--ref feature/70-banner-skill` instead. For a local checkout, use `codex plugin marketplace add /absolute/path/to/github-repo-banner`.
+Start a fresh session after installation. For a local checkout, use `codex plugin marketplace add /absolute/path/to/github-repo-banner`.
 
 Example requests:
 
