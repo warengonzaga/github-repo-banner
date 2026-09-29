@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 const html = readFileSync(new URL('../src/ui/index.html', import.meta.url), 'utf8');
 const source = html.slice(html.indexOf('    function selectDocumentTab('), html.indexOf('    documentTabs.forEach((tab, index)'));
-const panels = { readme: {}, license: {} };
+const panels = { readme: {}, conduct: {}, license: {} };
 const tabs = Object.keys(panels).map(id => ({
   getAttribute: () => id, setAttribute(key, value) { this[key] = value; },
   classList: { toggle() {} },
