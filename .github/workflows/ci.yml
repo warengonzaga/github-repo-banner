@@ -2,7 +2,8 @@ name: CI
 
 on:
   pull_request:
-    branches: [dev, main]
+    # Include the license branch while the Code of Conduct PR is stacked on it.
+    branches: [dev, main, feature/55-license-tab]
   push:
     branches: [dev, main]
 
