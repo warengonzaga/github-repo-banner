@@ -10,6 +10,7 @@ const context = {
   headerFontInput: input, subheaderFontInput: input, supportCheckbox: { checked: true },
   getBgHex: () => '000000', getBgHex2: () => '', getColorHex: () => 'ffffff',
   getSubheaderColorHex: () => '', watermarkPosition: 'bottom-right',
+  getBackgroundImageUrl: () => '', statsOptOut: { checked: false },
 };
 for (const position of ['bottom-right', 'bottom-left', 'top-right', 'top-left']) {
   context.watermarkPosition = position;
