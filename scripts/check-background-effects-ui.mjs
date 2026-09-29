@@ -1,5 +1,6 @@
 // Run with node scripts/check-background-effects-ui.mjs.
 import assert from 'node:assert/strict';
+import { isValidImageUrl } from '../src/ui/image-url.js';
 import { readFileSync } from 'node:fs';
 import { createContext, runInContext } from 'node:vm';
 const html=readFileSync(new URL('../src/ui/index.html',import.meta.url),'utf8');
@@ -9,7 +10,7 @@ const outputs=Object.fromEntries(fields.map(f=>[f.id+'-value',{}]));
 const buttons={ 'reset-background-style':{addEventListener(){}} };
 let copied,copyImage,copyMarkdown;
 const input={value:''};
-const c=createContext({URL,URLSearchParams,document:{querySelectorAll:()=>fields,getElementById:id=>fields.find(f=>f.id===id)||outputs[id]||buttons[id]},window:{location:{origin:'https://example.com'}},headerInput:{value:'Styled'},subheaderInput:input,bgImgInput:{value:'https://example.com/photo.png'},headerFontInput:input,subheaderFontInput:input,supportCheckbox:{checked:true},watermarkPosition:'bottom-right',getBgHex:()=> '112233',getBgHex2:()=> '445566',getColorHex:()=> 'ffffff',getSubheaderColorHex:()=> '',update(){},copyUrlBtn:{addEventListener:(e,fn)=>{copyImage=fn;}},copyBtn:{addEventListener:(e,fn)=>{copyMarkdown=fn;}},navigator:{clipboard:{writeText:value=>{copied=value;return {then(){}};}}},fetch:()=>Promise.resolve(),setTimeout(){}});
+const c=createContext({isValidImageUrl,URL,URLSearchParams,document:{querySelectorAll:()=>fields,getElementById:id=>fields.find(f=>f.id===id)||outputs[id]||buttons[id]},window:{location:{origin:'https://example.com'}},headerInput:{value:'Styled'},subheaderInput:input,bgImgInput:{value:'https://example.com/photo.png'},headerFontInput:input,subheaderFontInput:input,supportCheckbox:{checked:true},watermarkPosition:'bottom-right',getBgHex:()=> '112233',getBgHex2:()=> '445566',getColorHex:()=> 'ffffff',getSubheaderColorHex:()=> '',update(){},copyUrlBtn:{addEventListener:(e,fn)=>{copyImage=fn;}},copyBtn:{addEventListener:(e,fn)=>{copyMarkdown=fn;}},navigator:{clipboard:{writeText:value=>{copied=value;return {then(){}};}}},fetch:()=>Promise.resolve(),setTimeout(){}});
 const start=html.indexOf('    const backgroundEffectInputs');
 runInContext(html.slice(start,html.indexOf('    function autoResizeTextarea()',start)),c);
 runInContext(html.slice(html.indexOf("    copyBtn.addEventListener"),html.indexOf("    downloadBtn.addEventListener")),c);
