@@ -1621,6 +1621,10 @@
           </div>
 
           <div class="form-group" style="margin-top: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; min-height: 44px; margin-bottom: 1rem;">
+              <input type="checkbox" id="stats-opt-out" />
+              Exclude this banner from usage statistics
+            </label>
             <label class="checkbox-container">
               <input type="checkbox" id="support" checked />
               <div class="checkbox-label">
@@ -1687,12 +1691,18 @@
       <div class="sidebar-section">
         <h2>🔒 Privacy Notice</h2>
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590; margin-bottom: 0.75rem;">
-          This service logs button clicks and banner URLs to improve features (console only). When <code>ENABLE_STATS</code> is enabled, repository names are stored in Redis for usage statistics. <strong>No IPs, personal info, or user identities are tracked.</strong>
+          Optional statistics count banner requests reaching this server and estimate repositories from GitHub Referers. Daily aggregates expire after seven days. Banner content, raw repository names, IPs, and user identifiers are not stored by this measurement.
         </p>
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590;">
-          All content is meant for public display on GitHub. 
+          These are partial observations, not a count of users or installations. Caches, missing or spoofed Referers, opt-outs, and outages limit coverage.
           <a href="https://github.com/warengonzaga/github-repo-banner#-privacy--transparency" target="_blank" rel="noopener" style="color: #58a6ff;">Learn more</a>
         </p>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>Usage observations</h2>
+        <p id="usage-status" role="status" style="font-size: 0.875rem; line-height: 1.5; font-variant-numeric: tabular-nums;">Loading statistics status…</p>
+        <p style="font-size: 0.875rem; margin-top: 0.75rem;"><a href="/stats" style="color: #58a6ff;">View metrics and coverage limits</a></p>
       </div>
 
       <div class="sidebar-section">
@@ -1735,6 +1745,28 @@
 
   <script type="module">
     import { isValidImageUrl } from '/image-url.js';
+    async function loadUsageStats() {
+      const status = document.getElementById('usage-status');
+      try {
+        const response = await fetch('/stats', { signal: AbortSignal.timeout(10_000) });
+        if (!response.ok) throw new Error('Stats unavailable');
+        const stats = await response.json();
+        if (!stats.enabled) {
+          status.textContent = 'Usage statistics are disabled on this instance.';
+          return;
+        }
+        if (stats.schemaVersion !== 2 || !stats.available) throw new Error('Stats unavailable');
+        const coverage = stats.repositoryRefererCoverage === null
+          ? 'No recorded requests yet.'
+          : (stats.repositoryRefererCoverage * 100).toFixed(1) + '% of recorded requests had a usable repository Referer.';
+        status.textContent = 'Today (UTC): ' + stats.recordedBannerRequests.toLocaleString() +
+          ' recorded banner requests; approximately ' + stats.estimatedUniqueRepositories.toLocaleString() +
+          ' observed repositories. ' + coverage + ' Partial coverage; not total project usage.';
+      } catch {
+        status.textContent = 'Statistics are unavailable. No reliable count is available right now.';
+      }
+    }
+    loadUsageStats();
     const documentTabs = Array.from(document.querySelectorAll('[role="tab"]'));
 
     function selectDocumentTab(selectedTab) {
@@ -1783,6 +1815,8 @@
     const subheaderFontInput = document.getElementById('subheader-font-input');
     const subheaderFontGroup = document.getElementById('subheader-font-group');
     const bgImgInput = document.getElementById('bgimg-input');
+    const statsOptOut = document.getElementById('stats-opt-out');
+    statsOptOut.addEventListener('change', update);
     const supportCheckbox = document.getElementById('support');
     const sponsorLink = document.getElementById('sponsor-link');
     const sponsorMessage = document.getElementById('sponsor-message');
@@ -2012,6 +2046,7 @@
 
     function buildUrl() {
       const params = new URLSearchParams();
+      if (statsOptOut.checked) params.set('stats', 'false');
       const header = headerInput.value || '![github] Hello World 👋';
       params.set('header', header);
       const subheader = subheaderInput.value.trim();
@@ -2680,12 +2715,6 @@
     copyBtn.addEventListener('click', () => {
       const url = buildUrl();
       
-      // Log action to server
-      fetch('/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'Copy Markdown', url })
-      }).catch(() => {}); // Silent fail
       
       navigator.clipboard.writeText(buildMarkdown(url)).then(() => {
         copyBtn.textContent = 'Copied!';
@@ -2704,12 +2733,6 @@
       url.searchParams.delete('watermarkpos');
       const imageUrl = url.toString();
 
-      // Log action to server
-      fetch('/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'Copy Image URL', url: url.pathname + url.search })
-      }).catch(() => {}); // Silent fail
       
       navigator.clipboard.writeText(imageUrl).then(() => {
         copyUrlBtn.textContent = 'Copied!';
@@ -2724,14 +2747,7 @@
     downloadBtn.addEventListener('click', async () => {
       try {
         const url = buildUrl();
-        
-        // Log action to server
-        fetch('/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'Download SVG', url })
-        }).catch(() => {}); // Silent fail
-        
+
         const response = await fetch(url);
         const svgBlob = await response.blob();
         const downloadUrl = URL.createObjectURL(svgBlob);
@@ -2758,14 +2774,7 @@
     downloadPngBtn.addEventListener('click', async () => {
       try {
         const url = buildUrl();
-        
-        // Log action to server
-        fetch('/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'Download PNG', url })
-        }).catch(() => {}); // Silent fail
-        
+
         const response = await fetch(url);
         const svgText = await response.text();
         
