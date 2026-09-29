@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
+import { marked } from 'marked';
+import { escapeXml } from '../utils/sanitize.js';
 
 const uiRoute = new Hono();
 
@@ -24,7 +26,23 @@ let cachedHtml: string | null = null;
 
 uiRoute.get('/', (c) => {
   if (!cachedHtml || isDev) {
-    cachedHtml = readFileSync(findHtmlPath(), 'utf-8');
+    const htmlPath = findHtmlPath();
+    // Only repository-owned documents are rendered, never request-supplied Markdown.
+    const readDocument = (filename: string) => {
+      const path = [
+        resolve(dirname(htmlPath), filename),
+        resolve(dirname(htmlPath), '..', '..', filename),
+      ].find(existsSync);
+      if (!path) throw new Error(`Repository ${filename} is missing`);
+      return readFileSync(path, 'utf-8');
+    };
+    cachedHtml = readFileSync(htmlPath, 'utf-8')
+      .replace('<!-- repository-document:license -->', () =>
+        escapeXml(readDocument('LICENSE')),
+      )
+      .replace('<!-- repository-document:conduct -->', () =>
+        marked.parse(readDocument('CODE_OF_CONDUCT.md'), { async: false }),
+      );
   }
   return c.html(cachedHtml);
 });
