@@ -6,6 +6,8 @@ const chapters = [
   { path: 'README.md', id: 'overview', title: 'Project overview' },
   { path: 'docs/api.md', id: 'api', title: 'API reference' },
   { path: 'docs/self-hosting.md', id: 'self-hosting', title: 'Self-hosting' },
+  { path: 'docs/terms.md', id: 'terms', title: 'Terms of service' },
+  { path: 'docs/privacy.md', id: 'privacy', title: 'Privacy policy' },
   { path: 'CONTRIBUTING.md', id: 'contributing', title: 'Contributing' },
   {
     path: 'CODE_OF_CONDUCT.md',

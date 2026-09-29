@@ -6,6 +6,9 @@ services:
     environment:
       PORT: "3000"
       REDIS_URL: redis://redis:6379
+      EXPORT_RETENTION_DAYS: "${EXPORT_RETENTION_DAYS:-}"
+      PUBLIC_ORIGIN: "${PUBLIC_ORIGIN:-}"
+      OFFICIAL_HOSTED_INSTANCE: "${OFFICIAL_HOSTED_INSTANCE:-false}"
       ENABLE_STATS: "${ENABLE_STATS:-false}"
       PEXELS_API_KEY: "${PEXELS_API_KEY:-}"
     depends_on:

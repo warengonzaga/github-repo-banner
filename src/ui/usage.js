@@ -69,6 +69,7 @@ async function loadUsage() {
     element('pages-window').textContent = data.pageViews.firstRecordedAt
       ? `First recorded page view: ${utcTime.format(new Date(data.pageViews.firstRecordedAt))} UTC.`
       : 'No page views recorded for this UTC day.';
+    element('exports').textContent = Number.isSafeInteger(data.exports?.total) && data.exports.total >= 0 ? number.format(data.exports.total) : 'Not available';
     element('requests').textContent = number.format(data.recordedBannerRequests);
     element('repositories').textContent = number.format(data.estimatedUniqueRepositories);
     element('referred').textContent = number.format(data.requestsWithRepositoryReferer);

@@ -15,6 +15,8 @@ export default defineConfig({
       'image-url.js',
       'usage.html',
       'usage.js',
+      'export.js',
+      'showcase.js',
       'pages.css',
     ]) {
       copyFileSync(`src/ui/${file}`, `dist/ui/${file}`);
@@ -27,6 +29,8 @@ export default defineConfig({
       'LICENSE',
       'docs/api.md',
       'docs/self-hosting.md',
+      'docs/terms.md',
+      'docs/privacy.md',
     ]) {
       copyFileSync(file, `dist/ui/docs/${file}`);
     }

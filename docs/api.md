@@ -24,7 +24,7 @@ Generate a custom SVG banner.
 | `bgsaturation` | number | No | `100` | Background saturation, 0–200 percent |
 | `bggrayscale` | number | No | `0` | Background grayscale, 0–100 percent |
 | `support` | boolean | No | `false` | Show support watermark |
-| `stats` | boolean | No | `true` | Set `false` to exclude this banner request from optional usage statistics |
+| `stats` | boolean | No | `true` | On self-hosted instances with optional tracking, `false` excludes this request. Official-hosted aggregate counting ignores this opt-out. |
 | `watermarkpos` | string | No | `bottom-right` | Watermark position: `top-left`, `top-right`, `bottom-left`, `bottom-right` |
 
 Header and subheader display text are limited to 50 and 60 JavaScript string units respectively, with at most five icons per field and a 500-unit raw-input cap. Font names are sanitized and limited to 50 units. Encode query values, especially embedded image URLs containing their own `&` or `#`; `URLSearchParams` handles this when building URLs in code.
@@ -55,11 +55,62 @@ Interactive banner generator UI with live preview.
 
 ## `GET /docs`
 
-Single-page project documentation, rendered from the bundled README, API reference, self-hosting guide, contribution guide, code of conduct and license. Chapter links and a responsive table of contents work without JavaScript.
+Single-page project documentation, rendered from the bundled README, API reference, self-hosting guide, contribution guide, Terms, Privacy notice, code of conduct and license. Chapter links and a responsive table of contents work without JavaScript.
 
 ## `GET /usage`
 
-Public usage page that fetches this instance's `/stats` JSON on load and when **Refresh statistics** is selected. Shows current UTC-day page views by page, recorded banner requests, estimated distinct repository identifiers, Referer counts and coverage. Disabled, empty and unavailable states remain distinct. It does not count individual users, verified projects or lifetime adoption. `/stats` remains the raw JSON endpoint for integrations.
+Public usage page that fetches this instance's `/stats` JSON on load and when **Refresh statistics** is selected. Shows current UTC-day page views by page, recorded banner requests, estimated distinct repository identifiers, Referer counts and coverage. Disabled, empty and unavailable states remain distinct. It does not count individual users, verified projects or lifetime adoption. On the official service, it also shows export counts and the community showcase with more previews available through pagination. Only designs explicitly submitted for showcasing appear. `/stats` remains the raw JSON endpoint for integrations.
+
+## `POST /exports`
+
+On the official service, saves every design submitted through a built-in export control and records its usage, regardless of the `showcase` choice. The choice controls only whether a public showcase copy is created. Ordinary self-hosted instances accept count-only requests, respecting `ENABLE_STATS` and query/header opt-outs; they do not collect exported designs.
+
+Mutations require a matching `Origin` header and `Content-Type: application/json`; request bodies are limited to 12 KiB. The `Origin` must match `PUBLIC_ORIGIN`. If unset, official-hosted mode uses `https://ghrb.waren.build`; ordinary self-hosted mode uses the request origin. An HTTPS-terminating proxy, custom official-mode domain or local test needs its exact external origin configured. See [public origin configuration](self-hosting.md#public-origin-and-reverse-proxies).
+
+Every official export request, including `showcase: false`, requires:
+
+- `action`: `markdown`, `url`, `svg`, or `png`.
+- `showcase`: an explicit boolean for public display.
+- `id`: a client-generated lowercase UUID v4.
+- `removalToken`: a cryptographically random 64-character lowercase hexadecimal code for withdrawing a showcase copy.
+- `policyVersion`: `2026-09-29`.
+- `query`: an object mapping banner parameter names to string values.
+
+Settings use the same sanitization and defaults as `/banner`; no SVG markup or uploaded image binary is accepted. Submit the final exported settings, including watermark omission for the image-URL action. The generator presents the public-sharing choice and constructs this request. Keep the removal token secret and save it before submitting.
+
+A new saved export returns HTTP 201; while a saved or public record exists, an identical retry with the same ID, action, settings, choice and token returns 200 without extending retention, counting again or republishing a withdrawn showcase. A successful response contains `saved: true`, `showcased` (the actual publication result), `id` and `expiresAt` (Unix milliseconds for the saved export's expiry). A public entry also includes `previewUrl`. If the gallery is full, the export still saves and counts, with `showcased: false` and `showcaseReason: "full"`; the download can proceed with that status. An identical retry after withdrawal returns `showcaseReason: "removed"` rather than republishing it.
+
+A withdrawn submission ID cannot be reused after its saved export expires: a stale retry returns `409`. Start a new export for a new submission. Content-free withdrawal markers prevent accidental republication.
+
+Invalid input returns 400, a disallowed origin or content type returns 403, a changed request reusing an existing ID returns 409, and an oversized body returns 413. Storage or publication that cannot be confirmed returns 503. Retry the same request after an uncertain outcome; do not assume it was never saved or published. Saving an export does not prove a later clipboard write or browser download completed. Saved exports have no public retrieval endpoint.
+
+An ordinary self-hosted count-only request sends no design fields:
+
+```json
+{ "action": "png", "showcase": false }
+```
+
+It returns `{ "showcased": false, "counted": true }` when recording succeeds, or `counted: false` when disabled, opted out or unavailable. This counting is best effort and does not block self-hosted exports during a statistics outage. Public showcasing is unavailable in ordinary self-hosted mode.
+
+## `GET /showcase`
+
+Returns up to 12 newest public showcase entries and a `nextCursor` (`null` when no more remain). Pass a returned cursor as `?before=...` to get older entries. The cursor combines the creation timestamp and entry ID; preserve it as returned and URL-encode it. Each entry contains `id`, `createdAt`, and a same-origin `previewUrl`. The feed excludes non-shared exports. `createdAt` is a Unix timestamp in milliseconds. An instance with showcasing disabled returns `{ "enabled": false, "entries": [], "nextCursor": null }`.
+
+The gallery holds at most 1,000 entries; when full, new official exports still save and count but do not create a showcase copy. Existing entries remain until creator withdrawal or operator removal. Gallery lists, previews and removals do not increment banner or page counters; opening `/usage` still counts as a page response.
+
+## `GET /showcase/:id.svg`
+
+Renders a saved public design using the existing banner renderer. It is a preview from normalized settings, not a permanent pixel snapshot: remote backgrounds and other assets can change or become unavailable. The endpoint does not expose the entry's removal token.
+
+## `DELETE /showcase/:id`
+
+Withdraw a showcase entry by sending JSON containing its private `removalToken`. The same configured-origin and JSON content-type checks as `/exports` apply:
+
+```json
+{ "removalToken": "<the 64-character removal code saved at submission>" }
+```
+
+A successful removal returns `{ "removed": true }` and deletes the public showcase copy and its gallery listing. It does not delete the separate saved export before its configured expiry. Repeating a removal for an already absent entry also succeeds. An invalid code format returns 400; a code that does not match an existing entry returns 403; unavailable storage returns 503. Copies already downloaded or cached elsewhere cannot be recalled. See the [Privacy notice](privacy.md#showcase-removal) if the code is unavailable or the entry needs to be reported.
 
 ## `GET /api/pexels/search`
 
@@ -141,13 +192,18 @@ Example enabled response (the API also includes detailed `note` and `privacy` fi
     "total": 100,
     "firstRecordedAt": "2026-09-29T08:05:00.000Z"
   },
+  "exports": {
+    "total": 30,
+    "showcased": 8,
+    "firstRecordedAt": "2026-09-29T08:10:00.000Z"
+  },
   "coverage": "partial"
 }
 ```
 
-`pageViews` is an additive field in schema version 2. It counts successful origin GET page responses, not unique visitors; refreshing `/stats` does not increment it. Banner and page first-recorded times are separate so a mid-day rollout does not imply full-day coverage.
+`pageViews` and `exports` are additive fields in schema version 2. Page views count successful origin GET page responses, not unique visitors; refreshing `/stats` does not increment them. `exports.total` counts accepted export requests; `exports.showcased` counts those that newly publish a design. First-recorded times are separate, and `null` before the first observation of that kind, so a mid-day rollout does not imply full-day coverage. Official-hosted mode saves and counts all accepted exports, including those not showcased; identical retries of saved exports do not count again. Self-hosted count-only exports follow the optional tracking setting and opt-outs. Storage failures and incomplete requests can leave observations unrecorded.
 
-See [Privacy & Transparency](../README.md#-privacy--transparency) for definitions, exclusions, retention, opt-out, and legacy-data migration.
+Official-hosted mode always enables aggregate counting; `stats=false`, `DNT: 1`, and `Sec-GPC: 1` only exclude requests on self-hosted instances with optional tracking. A showcase decision never controls counting. See [Privacy & Transparency](../README.md#-privacy--transparency) for definitions, exclusions, retention, self-hosted opt-out, and legacy-data migration.
 
 ## Usage Examples
 

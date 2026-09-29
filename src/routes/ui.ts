@@ -3,7 +3,12 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
 import { marked } from 'marked';
-import { getRedis, isStatsEnabled } from '../config/redis.js';
+import {
+  getExportRetentionDays,
+  getRedis,
+  isOfficialInstance,
+  isStatsEnabled,
+} from '../config/redis.js';
 import { renderDocumentation } from '../ui/documentation.js';
 import { privacyNotice, renderNavigation, renderPage } from '../ui/pages.js';
 import { escapeXml } from '../utils/sanitize.js';
@@ -70,6 +75,8 @@ function readDocument(filename: string): string {
 for (const [path, type] of [
   ['pages.css', 'text/css; charset=utf-8'],
   ['usage.js', 'text/javascript; charset=utf-8'],
+  ['export.js', 'text/javascript; charset=utf-8'],
+  ['showcase.js', 'text/javascript; charset=utf-8'],
 ]) {
   uiRoute.get(`/${path}`, (c) => {
     c.header('Content-Type', type);
@@ -100,7 +107,21 @@ uiRoute.get('/', (c) => {
     const htmlPath = findHtmlPath();
     cachedHtml = readFileSync(htmlPath, 'utf-8')
       .replace('<!-- site-navigation -->', () => renderNavigation('generator'))
-      .replace('<!-- privacy-notice -->', () => privacyNotice)
+      .replace(
+        '<body>',
+        `<body data-official="${isOfficialInstance()}" data-retention="${getExportRetentionDays() || 0}">`,
+      )
+      .replace('<!-- privacy-notice -->', () => privacyNotice())
+      .replace('<!-- export-privacy -->', () =>
+        isOfficialInstance()
+          ? `Exports are counted and their designs are saved for ${getExportRetentionDays()} days. The prompt only asks about public showcasing. Choosing Export only keeps it off the Usage page. Shared showcase copies remain until removed.`
+          : 'Exporting does not store your design. Usage statistics are optional on self-hosted instances.',
+      )
+      .replace('<!-- sidebar-privacy -->', () =>
+        isOfficialInstance()
+          ? 'Official hosting records aggregate usage. Every exported design is saved. The Usage page displays a design only when you explicitly accept showcasing it.'
+          : 'When enabled, optional statistics count page views and banner requests. Exports do not save banner designs. No IPs, cookies or visitor identifiers are stored for these counts.',
+      )
       .replace('<!-- repository-document:license -->', () =>
         escapeXml(readDocument('LICENSE')),
       )
