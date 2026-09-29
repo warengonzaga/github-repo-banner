@@ -2,6 +2,10 @@ import { escapeXml } from '../utils/sanitize.js';
 
 type Page = 'generator' | 'docs' | 'usage';
 
+export const privacyNotice = `<aside class="privacy-notice" aria-label="Privacy notice">
+  <p>When enabled, optional statistics count page views, banner requests and estimated repositories to show public usage. No banner designs, IPs or visitor IDs are stored for statistics. <a href="/docs#overview-privacy-retention-and-opt-out">Privacy and opt-out choices</a>.</p>
+</aside>`;
+
 export function renderNavigation(current: Page): string {
   const links = [
     ['generator', '/', 'Generator'],
@@ -34,8 +38,9 @@ export function renderPage(page: 'docs' | 'usage', content: string): string {
 <body class="project-page">
   <a class="skip-link" href="#main">Skip to content</a>
   ${renderNavigation(page)}
+  ${privacyNotice}
   <main id="main" class="page-main" tabindex="-1">${content}</main>
-  <footer class="site-footer"><span>GitHub Repo Banner by <a href="https://github.com/warengonzaga">Waren Gonzaga</a></span><a href="https://github.com/warengonzaga/github-repo-banner">Source on GitHub</a><a href="/docs#license">MIT license</a></footer>
+  <footer class="site-footer"><span>GitHub Repo Banner by <a href="https://github.com/warengonzaga">Waren Gonzaga</a></span><a href="https://github.com/warengonzaga/github-repo-banner">Source on GitHub</a><a href="/docs#overview-privacy-retention-and-opt-out">Privacy</a><a href="/docs#license">MIT license</a></footer>
 </body>
 </html>`;
 }

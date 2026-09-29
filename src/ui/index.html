@@ -1247,6 +1247,7 @@
 </head>
 <body>
   <!-- site-navigation -->
+  <!-- privacy-notice -->
   <div class="layout">
     <main class="main-content">
       <div class="readme-container">
@@ -1599,6 +1600,7 @@
 
         <div class="content-section">
           <h2>Output</h2>
+          <p class="privacy-help">Copying or downloading does not save a design record or publish your banner to a community gallery.</p>
           <div class="output-container">
             <textarea id="markdown" readonly></textarea>
             <div class="button-row">
@@ -1634,9 +1636,10 @@
 
           <div class="form-group" style="margin-top: 1.5rem;">
             <label style="display: flex; align-items: center; gap: 0.5rem; min-height: 44px; margin-bottom: 1rem;">
-              <input type="checkbox" id="stats-opt-out" />
+              <input type="checkbox" id="stats-opt-out" aria-describedby="stats-opt-out-help" />
               Exclude this banner from usage statistics
             </label>
+            <p class="privacy-help" id="stats-opt-out-help">Applies to future previews, copied banner links and downloads. It does not remove a page view already counted. <a href="/docs#overview-privacy-retention-and-opt-out">See page-view opt-outs and privacy details</a>.</p>
             <label class="checkbox-container">
               <input type="checkbox" id="support" checked />
               <div class="checkbox-label">
@@ -1703,12 +1706,13 @@
       <div class="sidebar-section">
         <h2>🔒 Privacy Notice</h2>
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590; margin-bottom: 0.75rem;">
-          Optional statistics count banner requests reaching this server and estimate repositories from GitHub Referers. Daily aggregates expire after seven days. Banner content, raw repository names, IPs, and user identifiers are not stored by this measurement.
+          When enabled, statistics count page views and banner requests reaching this server and estimate repositories from GitHub Referers. Daily aggregates expire seven days after their last write. Banner content, raw repository names, IPs, cookies and visitor identifiers are not stored by this measurement.
         </p>
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590;">
           These are partial observations, not a count of users or installations. Caches, missing or spoofed Referers, opt-outs, and outages limit coverage.
           <a href="/docs#overview--privacy--transparency" style="color: #58a6ff;">Learn more</a>
         </p>
+        <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590; margin-top: 0.75rem;">Image-search caching and request limits remain active when statistics are off. Hosting providers may keep separate access logs.</p>
       </div>
 
       <div class="sidebar-section">

@@ -45,8 +45,11 @@
     <p>Previews, bots and retries can count. Browser, CDN and GitHub image-cache hits never reach this server. Opt-outs, disabled periods and failed writes are excluded.</p>
     <h3>Repositories are an estimate</h3>
     <p>Referers may be absent or spoofed. Repository existence and visibility are not verified. Distinct identifiers use HyperLogLog, with about 0.81% standard error.</p>
-    <h3>Privacy comes first</h3>
-    <p>This measurement stores daily aggregates and a sketch of hashed repository identifiers, not a project list, banner content, IPs or user identifiers. Daily keys expire seven days after their last write.</p>
-    <p><a href="/docs#overview-privacy-retention-and-opt-out">How to opt out</a></p>
+    <h3>What is stored</h3>
+    <p>Statistics are optional. When enabled, they store daily page and banner counts and a sketch of hashed repository identifiers. They do not store a project list, banner designs, IPs, cookies or visitor identifiers. Daily keys expire seven days after their last write.</p>
+    <h3>Your choices</h3>
+    <p>The generator’s <strong>Exclude this banner from usage statistics</strong> checkbox excludes future banner requests. For a page request, add <code>?stats=false</code> to its URL; this choice is not carried through navigation. Do Not Track and Global Privacy Control request headers are also respected. These choices cannot undo counts already recorded.</p>
+    <p>Image-search caching and request limits still operate when statistics are off. Hosting providers may keep separate access logs.</p>
+    <p><a href="/docs#overview-privacy-retention-and-opt-out">Full privacy and retention details</a></p>
   </aside>
 </div>

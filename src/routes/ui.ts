@@ -5,7 +5,7 @@ import { Hono } from 'hono';
 import { marked } from 'marked';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
 import { renderDocumentation } from '../ui/documentation.js';
-import { renderNavigation, renderPage } from '../ui/pages.js';
+import { privacyNotice, renderNavigation, renderPage } from '../ui/pages.js';
 import { escapeXml } from '../utils/sanitize.js';
 import { recordPageView, usageOptedOut } from '../utils/usage-stats.js';
 
@@ -100,6 +100,7 @@ uiRoute.get('/', (c) => {
     const htmlPath = findHtmlPath();
     cachedHtml = readFileSync(htmlPath, 'utf-8')
       .replace('<!-- site-navigation -->', () => renderNavigation('generator'))
+      .replace('<!-- privacy-notice -->', () => privacyNotice)
       .replace('<!-- repository-document:license -->', () =>
         escapeXml(readDocument('LICENSE')),
       )
