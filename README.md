@@ -42,7 +42,7 @@ Non-finite, non-numeric, and out-of-range values fall back to the parameter's de
 https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&bgblur=10&bgbrightness=60&bggrayscale=100&color=ffffff
 ```
 
-**Pexels Integration** - Search and select background images from Pexels directly in the UI
+- 📸 **Pexels Integration** - Search and select background images from Pexels directly in the UI
 - 🚀 **Edge-Ready** - Deploy to modern platforms like Railway
 
 ## 🚀 Quick Start
