@@ -1397,6 +1397,7 @@
             </div>
             <p id="pexels-status" role="status" style="font-size: 0.875rem; color: #c9d1d9; margin-top: 0.5rem;"></p>
             <div id="pexels-results" style="display: none; margin-top: 0.75rem; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;"></div>
+            <button type="button" id="pexels-more-btn" hidden style="margin-top: 0.75rem; min-height: 44px;">Load more images</button>
             <p style="font-size: 0.875rem; margin-top: 0.5rem;">
               You can also <a href="https://www.pexels.com/search/" target="_blank" rel="noopener" style="color: #58a6ff;">search on Pexels</a> and paste a direct image URL above.
             </p>
@@ -2347,40 +2348,69 @@
 
     const pexelsStatus = document.getElementById('pexels-status');
 
-    async function searchPexels() {
-      const query = pexelsQuery.value.trim();
-      if (pexelsSearchBtn.disabled) return;
-      if (!query) {
-        pexelsStatus.textContent = 'Enter a search term to find images.';
-        return;
-      }
+    const pexelsMoreBtn = document.getElementById('pexels-more-btn');
+    let pexelsSearchQuery = '';
+    let pexelsNextPage = null;
+    let pexelsRequest = 0;
+
+    function clearPexelsResults() {
+      pexelsRequest++;
+      pexelsNextPage = null;
+      pexelsSearchQuery = '';
       pexelsResults.innerHTML = '';
       pexelsResults.style.display = 'none';
       pexelsAttribution.style.display = 'none';
       pexelsClearBtn.style.display = 'none';
-      pexelsStatus.textContent = 'Searching Pexels…';
+      pexelsMoreBtn.hidden = true;
+      pexelsMoreBtn.disabled = false;
+      pexelsMoreBtn.textContent = 'Load more images';
+      pexelsSearchBtn.disabled = false;
+      pexelsSearchBtn.textContent = 'Search';
+      pexelsStatus.textContent = '';
+    }
+
+    async function searchPexels(loadMore = false) {
+      if (pexelsSearchBtn.disabled || (loadMore && !pexelsNextPage)) return;
+      const query = loadMore ? pexelsSearchQuery : pexelsQuery.value.trim();
+      if (!query) {
+        pexelsStatus.textContent = 'Enter a search term to find images.';
+        return;
+      }
+      if (!loadMore) {
+        clearPexelsResults();
+        pexelsSearchQuery = query;
+      }
+      const page = loadMore ? pexelsNextPage : 1;
+      const request = ++pexelsRequest;
+      pexelsStatus.textContent = loadMore ? 'Loading more images…' : 'Searching Pexels…';
       pexelsSearchBtn.textContent = 'Searching…';
       pexelsSearchBtn.disabled = true;
+      pexelsMoreBtn.disabled = true;
+      pexelsMoreBtn.textContent = 'Loading…';
+      pexelsClearBtn.style.display = 'inline-block';
       try {
-        const res = await fetch('/api/pexels/search?q=' + encodeURIComponent(query), {
+        const res = await fetch('/api/pexels/search?q=' + encodeURIComponent(query) + '&page=' + page, {
           signal: AbortSignal.timeout(15_000),
         });
+        if (request !== pexelsRequest) return;
         if (res.status === 503) {
           pexelsStatus.textContent = 'Image search is not enabled on this site. Paste a direct HTTPS image URL above, or search on Pexels using the link below.';
           return;
         }
         if (!res.ok) throw new Error('Search unavailable');
         const data = await res.json();
+        if (request !== pexelsRequest) return;
         if (!Array.isArray(data.photos)) throw new Error('Invalid search response');
+        pexelsNextPage = data.photos.length && data.hasMore === true ? page + 1 : null;
+        pexelsMoreBtn.hidden = !pexelsNextPage;
         if (data.photos.length === 0) {
-          pexelsStatus.textContent = 'No images found. Try another search term or paste a direct HTTPS image URL above.';
+          pexelsStatus.textContent = loadMore
+            ? 'No more images. Try another search for more choices.'
+            : 'No images found. Try another search term or paste a direct HTTPS image URL above.';
           return;
         }
-        pexelsStatus.textContent = 'Select an image to use it as your background.';
-        pexelsResults.innerHTML = '';
         pexelsResults.style.display = 'grid';
         pexelsAttribution.style.display = 'block';
-        pexelsClearBtn.style.display = 'inline-block';
         data.photos.forEach(photo => {
           const img = document.createElement('img');
           img.src = photo.thumb;
@@ -2395,27 +2425,31 @@
           });
           pexelsResults.appendChild(img);
         });
+        pexelsStatus.textContent = pexelsResults.children.length + ' images shown. ' +
+          (pexelsNextPage ? 'Select an image or load more.' : 'No more images for this search.');
       } catch {
-        pexelsResults.style.display = 'none';
-        pexelsAttribution.style.display = 'none';
-        pexelsClearBtn.style.display = 'none';
-        pexelsStatus.textContent = 'Image search is unavailable right now. Try Search again, or paste a direct HTTPS image URL above.';
+        if (request !== pexelsRequest) return;
+        pexelsStatus.textContent = loadMore
+          ? 'Could not load more images. Your results are saved; try Load more images again.'
+          : 'Image search is unavailable right now. Try Search again, or paste a direct HTTPS image URL above.';
       } finally {
-        pexelsSearchBtn.textContent = 'Search';
-        pexelsSearchBtn.disabled = false;
+        if (request === pexelsRequest) {
+          pexelsSearchBtn.textContent = 'Search';
+          pexelsSearchBtn.disabled = false;
+          pexelsMoreBtn.disabled = false;
+          pexelsMoreBtn.textContent = 'Load more images';
+        }
       }
     }
 
-    pexelsSearchBtn.addEventListener('click', searchPexels);
+    pexelsSearchBtn.addEventListener('click', () => searchPexels());
+    pexelsMoreBtn.addEventListener('click', () => searchPexels(true));
     pexelsQuery.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') searchPexels();
     });
     pexelsClearBtn.addEventListener('click', () => {
       bgImgInput.value = '';
-      pexelsResults.innerHTML = '';
-      pexelsResults.style.display = 'none';
-      pexelsAttribution.style.display = 'none';
-      pexelsClearBtn.style.display = 'none';
+      clearPexelsResults();
       pexelsQuery.value = '';
       pexelsStatus.textContent = '';
       update();
@@ -2451,10 +2485,7 @@
       bgImgInput.value = '';
       pexelsQuery.value = '';
       pexelsStatus.textContent = '';
-      pexelsResults.innerHTML = '';
-      pexelsResults.style.display = 'none';
-      pexelsAttribution.style.display = 'none';
-      pexelsClearBtn.style.display = 'none';
+      clearPexelsResults();
       colorInput.value = 'FFFFFF';
       subheaderColorInput.value = '';
       supportCheckbox.checked = true;
