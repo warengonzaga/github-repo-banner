@@ -1443,11 +1443,16 @@
           </p>
           <div id="pexels-section" style="margin-top: 0.75rem;">
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <input type="text" id="pexels-query" placeholder="Search Pexels for images..." style="flex: 1;" />
+              <input type="text" id="pexels-query" aria-label="Search Pexels images" aria-describedby="pexels-status" placeholder="Search Pexels for images..." style="flex: 1;" />
               <button type="button" id="pexels-search-btn" style="padding: 0.5rem 1rem; background: #238636; color: #fff; border: 1px solid rgba(240,246,252,0.1); border-radius: 6px; cursor: pointer; font-size: 0.875rem; white-space: nowrap;">Search</button>
               <button type="button" id="pexels-clear-btn" style="padding: 0.5rem 0.75rem; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; font-size: 0.875rem; display: none; white-space: nowrap;">Clear</button>
             </div>
+            <p id="pexels-status" role="status" style="font-size: 0.875rem; color: #c9d1d9; margin-top: 0.5rem;"></p>
             <div id="pexels-results" style="display: none; margin-top: 0.75rem; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;"></div>
+            <button type="button" id="pexels-more-btn" hidden style="margin-top: 0.75rem; min-height: 44px;">Load more images</button>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+              You can also <a href="https://www.pexels.com/search/" target="_blank" rel="noopener" style="color: #58a6ff;">search on Pexels</a> and paste a direct image URL above.
+            </p>
             <p id="pexels-attribution" style="font-size: 0.7rem; color: #7d8590; margin-top: 0.5rem; display: none;">
               Photos provided by <a href="https://www.pexels.com" target="_blank" rel="noopener" style="color: #58a6ff;">Pexels</a>
             </p>
@@ -2427,24 +2432,71 @@
     const pexelsResults = document.getElementById('pexels-results');
     const pexelsAttribution = document.getElementById('pexels-attribution');
 
-    async function searchPexels() {
-      const query = pexelsQuery.value.trim();
-      if (!query) return;
-      pexelsSearchBtn.textContent = '...';
+    const pexelsStatus = document.getElementById('pexels-status');
+
+    const pexelsMoreBtn = document.getElementById('pexels-more-btn');
+    let pexelsSearchQuery = '';
+    let pexelsNextPage = null;
+    let pexelsRequest = 0;
+
+    function clearPexelsResults() {
+      pexelsRequest++;
+      pexelsNextPage = null;
+      pexelsSearchQuery = '';
+      pexelsResults.innerHTML = '';
+      pexelsResults.style.display = 'none';
+      pexelsAttribution.style.display = 'none';
+      pexelsClearBtn.style.display = 'none';
+      pexelsMoreBtn.hidden = true;
+      pexelsMoreBtn.disabled = false;
+      pexelsMoreBtn.textContent = 'Load more images';
+      pexelsSearchBtn.disabled = false;
+      pexelsSearchBtn.textContent = 'Search';
+      pexelsStatus.textContent = '';
+    }
+
+    async function searchPexels(loadMore = false) {
+      if (pexelsSearchBtn.disabled || (loadMore && !pexelsNextPage)) return;
+      const query = loadMore ? pexelsSearchQuery : pexelsQuery.value.trim();
+      if (!query) {
+        pexelsStatus.textContent = 'Enter a search term to find images.';
+        return;
+      }
+      if (!loadMore) {
+        clearPexelsResults();
+        pexelsSearchQuery = query;
+      }
+      const page = loadMore ? pexelsNextPage : 1;
+      const request = ++pexelsRequest;
+      pexelsStatus.textContent = loadMore ? 'Loading more images…' : 'Searching Pexels…';
+      pexelsSearchBtn.textContent = 'Searching…';
       pexelsSearchBtn.disabled = true;
+      pexelsMoreBtn.disabled = true;
+      pexelsMoreBtn.textContent = 'Loading…';
+      pexelsClearBtn.style.display = 'inline-block';
       try {
-        const res = await fetch('/api/pexels/search?q=' + encodeURIComponent(query));
-        const data = await res.json();
-        if (data.error) {
-          pexelsResults.style.display = 'none';
-          pexelsAttribution.style.display = 'none';
-          pexelsClearBtn.style.display = 'none';
+        const res = await fetch('/api/pexels/search?q=' + encodeURIComponent(query) + '&page=' + page, {
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (request !== pexelsRequest) return;
+        if (res.status === 503) {
+          pexelsStatus.textContent = 'Image search is not enabled on this site. Paste a direct HTTPS image URL above, or search on Pexels using the link below.';
           return;
         }
-        pexelsResults.innerHTML = '';
+        if (!res.ok) throw new Error('Search unavailable');
+        const data = await res.json();
+        if (request !== pexelsRequest) return;
+        if (!Array.isArray(data.photos)) throw new Error('Invalid search response');
+        pexelsNextPage = data.photos.length && data.hasMore === true ? page + 1 : null;
+        pexelsMoreBtn.hidden = !pexelsNextPage;
+        if (data.photos.length === 0) {
+          pexelsStatus.textContent = loadMore
+            ? 'No more images. Try another search for more choices.'
+            : 'No images found. Try another search term or paste a direct HTTPS image URL above.';
+          return;
+        }
         pexelsResults.style.display = 'grid';
         pexelsAttribution.style.display = 'block';
-        pexelsClearBtn.style.display = 'inline-block';
         data.photos.forEach(photo => {
           const img = document.createElement('img');
           img.src = photo.thumb;
@@ -2459,25 +2511,33 @@
           });
           pexelsResults.appendChild(img);
         });
+        pexelsStatus.textContent = pexelsResults.children.length + ' images shown. ' +
+          (pexelsNextPage ? 'Select an image or load more.' : 'No more images for this search.');
       } catch {
-        pexelsResults.style.display = 'none';
+        if (request !== pexelsRequest) return;
+        pexelsStatus.textContent = loadMore
+          ? 'Could not load more images. Your results are saved; try Load more images again.'
+          : 'Image search is unavailable right now. Try Search again, or paste a direct HTTPS image URL above.';
       } finally {
-        pexelsSearchBtn.textContent = 'Search';
-        pexelsSearchBtn.disabled = false;
+        if (request === pexelsRequest) {
+          pexelsSearchBtn.textContent = 'Search';
+          pexelsSearchBtn.disabled = false;
+          pexelsMoreBtn.disabled = false;
+          pexelsMoreBtn.textContent = 'Load more images';
+        }
       }
     }
 
-    pexelsSearchBtn.addEventListener('click', searchPexels);
+    pexelsSearchBtn.addEventListener('click', () => searchPexels());
+    pexelsMoreBtn.addEventListener('click', () => searchPexels(true));
     pexelsQuery.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') searchPexels();
     });
     pexelsClearBtn.addEventListener('click', () => {
       bgImgInput.value = '';
-      pexelsResults.innerHTML = '';
-      pexelsResults.style.display = 'none';
-      pexelsAttribution.style.display = 'none';
-      pexelsClearBtn.style.display = 'none';
+      clearPexelsResults();
       pexelsQuery.value = '';
+      pexelsStatus.textContent = '';
       update();
     });
 
@@ -2510,10 +2570,8 @@
       bgInput2.value = '4A4A4A';
       bgImgInput.value = '';
       pexelsQuery.value = '';
-      pexelsResults.innerHTML = '';
-      pexelsResults.style.display = 'none';
-      pexelsAttribution.style.display = 'none';
-      pexelsClearBtn.style.display = 'none';
+      pexelsStatus.textContent = '';
+      clearPexelsResults();
       colorInput.value = 'FFFFFF';
       subheaderColorInput.value = '';
       supportCheckbox.checked = true;
