@@ -23,27 +23,14 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - 📥 **SVG & PNG Download** - Download banners as SVG or PNG directly from the UI
 - ⚡ **Lightning Fast** - Built with Hono framework for optimal performance
 - 🔒 **Secure** - Input sanitization and validation
-- 🖼️ **Background Images** - Use any HTTPS image URL as banner background via `bgimg` parameter
-- 📸 **Background Styling**
-
-Use the Background styling controls to adjust the background without changing text, icons, or watermarks. Color filters work on solid colors, gradients, and images. Blur is enabled for HTTPS image URLs and applied only when the server successfully loads the image. Transparent backgrounds remain transparent. **Reset styling** restores neutral values without clearing the selected image or text; the main Reset button resets everything.
-
-| Parameter | Range | Default | Effect |
-|---|---|---|---|
-| `bgblur` | 0–30 pixels | 0 | Image blur |
-| `bgbrightness` | 0–200 percent | 100 | Dim or brighten |
-| `bgcontrast` | 0–200 percent | 100 | Reduce or increase contrast |
-| `bgsaturation` | 0–200 percent | 100 | Reduce or increase color intensity |
-| `bggrayscale` | 0–100 percent | 0 | Blend toward grayscale |
-
-Non-finite, non-numeric, and out-of-range values fall back to the parameter's default. Effects are applied in the order blur, brightness, contrast, then saturation/grayscale. Neutral parameters are omitted from generated URLs and preserve existing output. Styling is encoded in the banner URL and embedded as native SVG filters for the preview, SVG downloads, and PNG exports.
-
-```text
-https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&bgblur=10&bgbrightness=60&bggrayscale=100&color=ffffff
-```
-
-- 📸 **Pexels Integration** - Search and select background images from Pexels directly in the UI
-- 🚀 **Edge-Ready** - Deploy to modern platforms like Railway
+- 🖼️ **Background Images** - Use public HTTPS raster images as banner backgrounds via `bgimg`
+- 📸 **Background Styling** - Blur images and adjust background brightness, contrast, saturation, and grayscale
+- 📸 **Pexels Integration** - Search, load more results, and select photos with a mouse or keyboard
+- 💖 **Optional Attribution** - Toggle the watermark and choose one of four corner positions
+- 📚 **Repository Documents** - Read the Code of conduct and MIT license in responsive, keyboard-accessible tabs
+- 🔒 **Optional Usage Statistics** - Daily aggregate observations with explicit coverage limits and per-banner opt-out
+- 🤖 **Agent Skill** - Generate banner URLs and README Markdown from compatible AI coding tools
+- 🚂 **Self-Hosting** - Run the Node.js service locally or deploy directly from GitHub on Railway
 
 ## 🚀 Quick Start
 
@@ -53,12 +40,19 @@ Visit [ghrb.waren.build](https://ghrb.waren.build) to create your banner using t
 
 ### Self-Hosting
 
+Use Node.js 22 and Bun 1.3.9 (the version pinned by this project).
+
 ```bash
 git clone https://github.com/warengonzaga/github-repo-banner.git
 cd github-repo-banner
-bun install
+bun install --frozen-lockfile
+cp .env.example .env
 bun dev
 ```
+
+Open `http://localhost:3000`. Set optional variables in `.env` before starting the server; production deployments should set them in the service's runtime environment. For a production build, run `bun build`, then `bun start` with `NODE_ENV=production`.
+
+The banner API and Pexels proxy require the running server. GitHub Pages alone cannot run these endpoints, and a GitHub Actions secret does not automatically become a Railway runtime variable.
 
 ## 📖 Usage Examples
 
@@ -75,18 +69,18 @@ https://ghrb.waren.build/banner?header=Vibe+Coding%F0%9F%9A%80&bg=ec4899-3b82f6&
 **Solid Color with Subheader**
 
 ```text
-https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=E7F9FF-90C4E8&color=0060A0
+https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=E7F9FF&color=0060A0
 ```
 
-![Solid Color Example](https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=E7F9FF-90C4E8&color=0060A0)
+![Solid Color Example](https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=E7F9FF&color=0060A0)
 
 **With Emojis & Custom Fonts**
 
 ```text
-https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&support=true
+https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&headerfont=Roboto&subheaderfont=Inter&support=true
 ```
 
-![Emoji Example](https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&support=true)
+![Emoji Example](https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&headerfont=Roboto&subheaderfont=Inter&support=true)
 
 **With Brand Icons (Simple Icons)**
 
@@ -112,11 +106,35 @@ https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000
 https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&color=ffffff
 ```
 
-> Use `bgimg` with any HTTPS image URL. The image is fetched server-side, embedded as base64 in the SVG, and scaled to cover the banner area. If the image fails to load, the banner falls back to the default gradient background. Max image size: 10 MB.
+Use a direct public HTTPS URL serving JPEG, PNG, GIF, WebP, or AVIF, up to 10 MiB. URLs containing credentials, blocked private addresses, redirects, and SVG images are not supported. The server embeds the image as base64 and scales it to cover the banner. An invalid URL uses the `bg` selection; an accepted URL whose download fails uses the default gradient.
 
-**Pexels Integration**
+When the UI accepts an image URL, it disables background colors and presets while preserving their values. Clear the image URL to use those settings again.
 
-The UI includes a built-in Pexels image search. To enable it, set the `PEXELS_API_KEY` environment variable with your [Pexels API key](https://www.pexels.com/api/). Search results display nine landscape-oriented thumbnails at a time. Select an image to use it, or choose **Load more images** to append the next page until no more results are available. A new search starts fresh; loading failures keep existing choices available for retry.
+### Pexels Integration
+
+The UI includes a built-in Pexels image search. To enable it, set the `PEXELS_API_KEY` environment variable with your [Pexels API key](https://www.pexels.com/api/). Search results display nine landscape-oriented thumbnails at a time. Select an image to use it, or choose **Load more images** to append the next page until no more results are available. A new search starts fresh; loading failures keep existing choices available for retry. Use Tab to focus a thumbnail, then Enter or Space to select it.
+
+`PEXELS_API_KEY` stays on the server. Without it, the search controls remain visible and explain how to use a direct image URL instead. A key is needed only for Pexels search, not for direct image URLs, background filters, or the agent skill.
+
+### Background Styling
+
+Use the Background styling controls to adjust the background without changing text, icons, or watermarks. Color filters work on solid colors, gradients, and images. Blur is enabled for HTTPS image URLs and applied only when the server successfully loads the image. Transparent backgrounds remain transparent. **Reset styling** restores neutral values without clearing the selected image or text; the main Reset button resets everything.
+
+See the [banner parameter table](#parameters) for ranges and defaults.
+
+Non-finite, non-numeric, and out-of-range values fall back to the parameter's default. Effects are applied in the order blur, brightness, contrast, then saturation/grayscale. Neutral parameters are omitted from generated URLs and preserve existing output. Styling is encoded in the banner URL and embedded as native SVG filters for the preview, SVG downloads, and PNG exports.
+
+```text
+https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&bgblur=10&bgbrightness=60&bggrayscale=100&color=ffffff
+```
+
+### Watermark and Output
+
+The UI enables the support watermark by default; the API enables it only with `support=true`. Choose any corner while it is enabled. **Copy Markdown**, SVG download, and PNG download honor the selected watermark state. Generated Markdown adds the attribution comment only when support is enabled. **Copy Image URL** preserves fonts, colors, background effects, and the statistics opt-out, while intentionally omitting the watermark.
+
+### Repository Documents
+
+The **README** tab contains the generator. **Code of conduct** and **MIT license** display the repository's bundled documents. Tabs support keyboard navigation and adapt to narrow screens.
 
 ## 🌟 Who Uses This
 
@@ -164,7 +182,7 @@ If you want aggregate usage observations for your instance:
 1. **Deploy the service** using the button above
 2. **Add Redis service** in Railway dashboard:
    - Click "New" → "Database" → "Add Redis"
-   - Railway automatically sets `REDIS_URL`
+   - Set `REDIS_URL` on the banner service to the Redis service connection URL
 3. **Enable stats** in your service variables:
    - Go to your service settings
    - Add variable: `ENABLE_STATS=true`
@@ -174,7 +192,7 @@ If you want aggregate usage observations for your instance:
 - View at: `https://your-service.railway.app/stats`
 - Health check includes stats status: `https://your-service.railway.app/health`
 
-**Cost Note:** Redis on Railway has a free tier, then usage-based pricing. Stats tracking is lightweight and should stay within free limits for moderate traffic.
+Redis is optional and only used for statistics. Image caching and Pexels throttling use process-local memory.
 
 ## 🔌 API Reference
 
@@ -193,30 +211,60 @@ Generate a custom SVG banner.
 | `subheadercolor` | string | No | Same as `color` | Subheader text color |
 | `headerfont` | string | No | - | Google Fonts family name for header (e.g., "Roboto") |
 | `subheaderfont` | string | No | - | Google Fonts family name for subheader (e.g., "Playfair Display") |
-| `bgimg` | string | No | - | HTTPS image URL for background (overrides `bg` when set, max 10 MB) |
+| `bgimg` | string | No | - | Valid public HTTPS raster image URL (takes priority over `bg`, max 2048 URL units and 10 MiB download) |
+| `bgblur` | number | No | `0` | Blur a loaded image, 0–30 pixels |
+| `bgbrightness` | number | No | `100` | Background brightness, 0–200 percent |
+| `bgcontrast` | number | No | `100` | Background contrast, 0–200 percent |
+| `bgsaturation` | number | No | `100` | Background saturation, 0–200 percent |
+| `bggrayscale` | number | No | `0` | Background grayscale, 0–100 percent |
 | `support` | boolean | No | `false` | Show support watermark |
 | `stats` | boolean | No | `true` | Set `false` to exclude this banner request from optional usage statistics |
 | `watermarkpos` | string | No | `bottom-right` | Watermark position: `top-left`, `top-right`, `bottom-left`, `bottom-right` |
+
+Header and subheader display text are limited to 50 and 60 JavaScript string units respectively, with at most five icons per field and a 500-unit raw-input cap. Font names are sanitized and limited to 50 units. Encode query values, especially embedded image URLs containing their own `&` or `#`; `URLSearchParams` handles this when building URLs in code.
 
 #### Background Format
 
 | Format | Example | Description |
 |--------|---------|-------------|
-| Gradient | `HEX1-HEX2` | `1a1a1a-4a4a4a` (left to right) |
-| Solid | `HEX` | `ffffff` (single color) |
+| Gradient | `1a1a1a-4a4a4a` | Two hex colors separated by `-`, left to right |
+| Solid | `ffffff` | Single hex color |
 | Transparent | `00000000` | Fully transparent |
-| With Opacity | `RRGGBBAA` | `ffffff80` (50% opacity) |
-| Image URL | `bgimg=https://...` | HTTPS URL to any image (fetched and embedded as base64) |
+| With Opacity | `ffffff80` | `RRGGBBAA` (about 50% opacity) |
+| Image URL | `bgimg=https://...` | Public HTTPS raster image (fetched and embedded as base64) |
 
 #### Response
 
 - **Content-Type**: `image/svg+xml`
-- **Cache-Control**: `public, max-age=86400` (production)
+- **Cache-Control**: `public, max-age=86400, s-maxage=86400` (production)
 - **Size**: 1280×304px
 
 ### `GET /`
 
 Interactive banner generator UI with live preview.
+
+### `GET /api/pexels/search`
+
+Server-side Pexels search. Accepts `q` (default `nature`, normalized and limited to 100 units) and `page` (default 1). Returns up to nine landscape photos per page:
+
+```json
+{
+  "photos": [
+    {
+      "id": 123,
+      "alt": "Example landscape",
+      "photographer": "Example photographer",
+      "url": "https://images.example.com/landscape.jpg",
+      "thumb": "https://images.example.com/thumbnail.jpg"
+    }
+  ],
+  "total": 10,
+  "page": 1,
+  "hasMore": true
+}
+```
+
+The image URLs above are illustrative. Request the next page while `hasMore` is true; an empty page ends pagination. Missing server configuration returns HTTP 503, exhausted local capacity/budget returns 429 with `Retry-After: 60`, and upstream failures return 500. See [Resource limits](#resource-limits).
 
 ### `GET /health`
 
@@ -340,7 +388,7 @@ Recording failures emit a payload-free operational error. The affected process r
 
 ### CI and release workflow
 
-`.github/workflows/build-flow.yml` calls Build Flow's CI reusable workflow pinned to the v0.2.1 commit. It keeps Node 22, Bun 1.3.9, frozen dependency installation, `bun run check`, and `bun run build` (including declaration generation). There is no separate test, coverage, or typecheck script in the existing pipeline; the reusable workflow's defaults are explicitly overridden to preserve that behavior. The existing `Build` check name remains as a CI-dependent gate.
+`.github/workflows/build-flow.yml` calls Build Flow's CI reusable workflow pinned to the v0.2.1 commit. It keeps Node 22, Bun 1.3.9, frozen dependency installation, `bun run check`, and `bun run build` (including declaration generation). Regression scripts are available under `scripts/check-*`, but CI does not currently run them. There is no separate test, coverage, or typecheck command in the pipeline; the reusable workflow's defaults are explicitly overridden to preserve that behavior. The existing `Build` check name remains as a CI-dependent gate.
 
 Only a push to `main` can release, after the Build gate succeeds. The pinned Release Build Flow Action v1.8.0 uses `GH_PAT` for version and changelog updates, tags, GitHub Releases, and downstream release-event compatibility. The separate CI and release workflow files are replaced by this single workflow to avoid duplicate release jobs.
 
@@ -361,18 +409,31 @@ PORT=3000              # Server port
 NODE_ENV=development   # Environment mode
 
 # Stats Tracking (disabled by default - privacy-first)
-ENABLE_STATS=false     # Set to 'true' to enable repository tracking
+ENABLE_STATS=false     # Daily aggregate observations, not individual tracking
 REDIS_URL=             # Required only if ENABLE_STATS=true
+
+# Optional server-side image search
+PEXELS_API_KEY=         # Required only for Pexels search
 ```
 
-See `.env.example` for complete documentation.
+See [`.env.example`](.env.example) for runtime configuration. `GH_PAT` belongs in GitHub Actions secrets for the release workflow; it is separate from these application variables.
 
 ### Security
 
 - Input sanitization (XSS prevention)
 - Hex color validation
 - Header length limits
-- No external dependencies
+- Shared image URL validation and public-address checks before HTTPS downloads
+- Image content-type, size, timeout, cache, and concurrency limits
+- Pexels credentials stay server-side; cached searches and request budgets reduce upstream calls
+
+Fonts, icons, emoji assets, and remote images can depend on external services. Unavailable assets may fall back; deployments need outbound access for these features.
+
+### Resource limits
+
+Background image downloads share a process-local 32 MiB accounted-string cache with a 60-second TTL and at most four concurrent fetches. Requests for the same URL share in-flight work; saturation or failed downloads use the existing fallback. Each download remains limited to 10 MiB. These limits bound retained image data, not total process memory.
+
+Pexels responses use a process-local 2 MiB cache for five minutes, four concurrent fetches, and a rolling budget of 100 upstream requests per hour. Queries are normalized before caching. Cached results do not consume that budget; excess uncached requests receive HTTP 429. Replicas sharing a Pexels key need a shared limiter to enforce an account-wide budget; process restart resets the local budget.
 
 ## 🤝 Contributing
 
@@ -390,13 +451,6 @@ MIT License - see [LICENSE](LICENSE) file.
 ## 👨‍💻 Author
 
 **Waren Gonzaga** • [GitHub](https://github.com/warengonzaga) • [Website](https://warengonzaga.com)
-
-### Resource limits
-
-Background image downloads share a process-local 32 MiB accounted-string cache with a 60-second TTL and at most four concurrent fetches. Requests for the same URL share in-flight work; saturation or failed downloads use the existing fallback. Each download remains limited to 10 MiB. These limits bound retained image data, not total process memory.
-
-Pexels responses use a process-local 2 MiB cache for five minutes, four concurrent fetches, and a rolling budget of 100 upstream requests per hour. Queries are normalized before caching. Cached results do not consume that budget; excess uncached requests receive HTTP 429. Replicas sharing a Pexels key need a shared limiter to enforce an account-wide budget; process restart resets the local budget.
-
 
 ---
 
