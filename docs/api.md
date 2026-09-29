@@ -53,7 +53,16 @@ Non-finite, non-numeric, and out-of-range values use the parameter defaults. Eff
 
 Interactive banner generator UI with live preview.
 
+## `GET /docs`
+
+Single-page project documentation, rendered from the bundled README, API reference, self-hosting guide, contribution guide, code of conduct and license. Chapter links and a responsive table of contents work without JavaScript.
+
+## `GET /usage`
+
+Public usage page that fetches this instance's `/stats` JSON on load and when **Refresh statistics** is selected. Shows current UTC-day page views by page, recorded banner requests, estimated distinct repository identifiers, Referer counts and coverage. Disabled, empty and unavailable states remain distinct. It does not count individual users, verified projects or lifetime adoption. `/stats` remains the raw JSON endpoint for integrations.
+
 ## `GET /api/pexels/search`
+
 
 Server-side Pexels search. Accepts `q` (default `nature`, normalized and limited to 100 units) and `page` (default 1). Returns up to nine landscape photos per page:
 
@@ -125,9 +134,18 @@ Example enabled response (the API also includes detailed `note` and `privacy` fi
   "requestsWithRepositoryReferer": 20,
   "estimatedUniqueRepositories": 12,
   "repositoryRefererCoverage": 0.2,
+  "pageViews": {
+    "generator": 80,
+    "documentation": 15,
+    "usage": 5,
+    "total": 100,
+    "firstRecordedAt": "2026-09-29T08:05:00.000Z"
+  },
   "coverage": "partial"
 }
 ```
+
+`pageViews` is an additive field in schema version 2. It counts successful origin GET page responses, not unique visitors; refreshing `/stats` does not increment it. Banner and page first-recorded times are separate so a mid-day rollout does not imply full-day coverage.
 
 See [Privacy & Transparency](../README.md#-privacy--transparency) for definitions, exclusions, retention, opt-out, and legacy-data migration.
 

@@ -63,6 +63,15 @@ statsRoute.get('/stats', async (c) => {
     const requestsWithRepositoryReferer = Number(
       counts.repositoryRequests || 0,
     );
+    const pageViews = {
+      generator: Number(counts['page:generator'] || 0),
+      documentation: Number(counts['page:documentation'] || 0),
+      usage: Number(counts['page:usage'] || 0),
+    };
+    const totalPageViews = Object.values(pageViews).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
     if (
       !Number.isSafeInteger(recordedBannerRequests) ||
       recordedBannerRequests < 0 ||
@@ -70,7 +79,10 @@ statsRoute.get('/stats', async (c) => {
       requestsWithRepositoryReferer < 0 ||
       typeof estimatedUniqueRepositories !== 'number' ||
       !Number.isSafeInteger(estimatedUniqueRepositories) ||
-      estimatedUniqueRepositories < 0
+      estimatedUniqueRepositories < 0 ||
+      ![...Object.values(pageViews), totalPageViews].every(
+        (count) => Number.isSafeInteger(count) && count >= 0,
+      )
     ) {
       throw new Error('Invalid stats snapshot');
     }
@@ -90,14 +102,19 @@ statsRoute.get('/stats', async (c) => {
         recordedBannerRequests > 0
           ? requestsWithRepositoryReferer / recordedBannerRequests
           : null,
+      pageViews: {
+        ...pageViews,
+        total: totalPageViews,
+        firstRecordedAt: counts.pagesStartedAt || null,
+      },
       coverage: 'partial',
-      note: 'Recorded origin GET /banner responses only, not users, installations, or total usage. Includes previews, bots, and retries. Caches, opt-outs, disabled periods, and failed writes are not counted. Referers may be missing or spoofed; repository existence and visibility are not verified. Unique repositories use HyperLogLog (about 0.81% standard error).',
+      note: 'Recorded origin GET /banner responses and successful GET /, /docs, /usage page responses only, not unique visitors, users, installations, or total usage. Includes previews, refreshes, bots, and retries. Assets, stats polling, HEAD requests, caches, opt-outs, disabled periods, and failed writes are not counted. Referers may be missing or spoofed; repository existence and visibility are not verified. Unique repositories use HyperLogLog (about 0.81% standard error).',
       privacy: {
         retention: 'Daily aggregates expire seven days after their last write.',
         stored:
-          'Request counts and a cardinality sketch of hashed repository identifiers; no repository list, banner content, IP addresses, or user identifiers.',
+          'Daily banner and per-page counts and a cardinality sketch of hashed repository identifiers; no repository list, banner content, IP addresses, cookies, or user identifiers.',
         optOut:
-          'Add stats=false to the banner URL, or send DNT: 1 or Sec-GPC: 1.',
+          'Add stats=false to the banner or page URL, or send DNT: 1 or Sec-GPC: 1. The query opt-out applies to that request.',
       },
     });
   } catch {

@@ -6,7 +6,7 @@
 
 I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great repository banners.
 
-[Create a banner](https://ghrb.waren.build) · [API reference](docs/api.md) · [Self-hosting](docs/self-hosting.md) · [Agent skill](#-agent-skill)
+[Create a banner](https://ghrb.waren.build) · [Documentation](https://ghrb.waren.build/docs) · [Public usage](https://ghrb.waren.build/usage) · [API reference](docs/api.md) · [Self-hosting](docs/self-hosting.md) · [Agent skill](#-agent-skill)
 
 ## 🚁 Deploy Your Own
 
@@ -22,6 +22,7 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - 📥 **Output** — Live preview, README Markdown, image URLs, SVG, and PNG downloads.
 - 💖 **Optional attribution** — Toggle the watermark and choose any corner.
 - 📚 **Accessible controls** — Keyboard-selectable photos and responsive Code of conduct and MIT license tabs.
+- 📖 **Project pages** — Single-page documentation at `/docs` and a readable public usage report at `/usage`.
 - 🔒 **Optional statistics** — Daily aggregate observations, explicit coverage limits, and per-banner opt-out.
 - 🐳 **Self-hosting** — Docker Compose with required Redis for persistent search caching and quota control.
 - 🤖 **Agent skill** — Create banner URLs and README Markdown from compatible AI coding tools.
@@ -83,6 +84,8 @@ The UI enables the watermark by default; the API requires `support=true`. **Copy
 
 The **README** tab contains the generator. **Code of conduct** and **MIT license** display bundled repository documents. Tabs support keyboard navigation and adapt to narrow screens.
 
+The main navigation opens **Documentation**, a single page assembled from this README, the API and self-hosting guides, contribution instructions and policies. **Usage** displays the current instance's daily page views and banner observations from `/stats` with refresh, raw JSON access, and coverage notes. Disabled or unavailable tracking is shown explicitly, never as a misleading zero. These observations do not measure individual users or prove how many projects depend on the service.
+
 ## 🔌 API Reference
 
 See the [API reference](docs/api.md) for all banner parameters, examples, presets, and responses from `/banner`, `/api/pexels/search`, `/health`, and `/stats`.
@@ -125,22 +128,23 @@ Statistics are disabled unless `ENABLE_STATS=true`. Redis is required independen
 
 ### What the metrics mean
 
+- **Recorded page views**: successful origin `GET /`, `GET /docs`, and `GET /usage` responses, grouped by page. Refreshes, bots and prefetches can count; these are not unique visitors. Assets, API calls, stats refreshes, HEAD requests and failed page responses are excluded.
 - **Recorded banner requests**: successful origin `GET /banner` renders whose aggregate write succeeds. Includes UI previews, bots, downloads, and retries. Requests answered by browser/CDN/GitHub image caches never reach this counter. It is not a view, user, installation, or adoption count.
 - **Requests with a repository Referer**: recorded requests with a syntactically valid `https://github.com/owner/repo` Referer. Hostname and path are validated; queries/fragments are excluded and case is normalized. Headers can be missing or spoofed, and neither repository existence nor public visibility is verified.
 - **Estimated unique repositories**: the approximate number of distinct normalized repository identifiers in those Referers, using Redis HyperLogLog (about 0.81% standard error). This is an observation estimate, not a complete repository count.
 - **Repository Referer coverage**: the fraction of recorded requests with a usable repository Referer, or `null` when there are no requests. It does not estimate coverage of all real-world usage.
 
-All metrics cover the **current UTC day**. `firstRecordedAt` marks its first stored request, so enabling statistics midday does not imply full-day coverage. Disabled periods, opt-outs, Redis outages, and failed writes are omitted. Writes are asynchronous; recent responses may not appear immediately. Zero means no observations recorded for this window, not no users.
+All metrics cover the **current UTC day**. `window.firstRecordedAt` marks the first stored banner request and `pageViews.firstRecordedAt` the first page view, so enabling statistics midday does not imply full-day coverage. Disabled periods, opt-outs, Redis outages, and failed writes are omitted. Writes are asynchronous; recent responses may not appear immediately. Zero means no observations recorded for this window, not no users.
 
 ### Privacy, retention, and opt-out
 
-Only daily request counters and a HyperLogLog sketch of SHA-256-hashed repository identifiers are stored. Names are hashed before they reach Redis; raw repository names/lists, full Referers, banner text/URLs, IP addresses, cookies, sessions, and user identifiers are not stored by this measurement. Daily keys expire seven days after their last write. Hashes and aggregate estimates are not proof of anonymous individuals or verified public repositories.
+Only daily banner and per-page counters and a HyperLogLog sketch of SHA-256-hashed repository identifiers are stored. Names are hashed before they reach Redis; raw repository names/lists, full Referers, banner text/URLs, IP addresses, cookies, sessions, and user identifiers are not stored by this measurement. Daily keys expire seven days after their last write. Hashes and aggregate estimates are not proof of anonymous individuals or verified public repositories.
 
 Operational Pexels search results expire after five minutes; query and API-key cache identifiers are hashed. Quota entries contain request timestamps and random identifiers and expire within an hour of the last allowed request. Tracking opt-outs do not disable this operational storage.
 
 Button-click and banner-URL logging has been removed. The legacy `/log` endpoint accepts old clients without reading or logging their payload. Hosting providers and reverse proxies may maintain their own access logs; configure those separately.
 
-Use the UI's **Exclude this banner from usage statistics** checkbox, or append `stats=false` to any banner URL. This choice travels with copied Markdown and image URLs and downloads. The service also honors `DNT: 1` and `Sec-GPC: 1` request headers. The checkbox applies to the current page and generated URLs; it is not stored in a cookie. Self-hosted instances keep statistics disabled by default.
+Use the UI's **Exclude this banner from usage statistics** checkbox, or append `stats=false` to any banner URL. This choice travels with copied Markdown and image URLs and downloads. The service also honors `DNT: 1` and `Sec-GPC: 1` request headers. The checkbox applies to generated banner requests and URLs; it does not undo a page view already counted. To exclude a page request, add `?stats=false` to its URL (for example, `/docs?stats=false`); this query choice applies to that request and is not carried through navigation links. No choice is stored in a cookie. Self-hosted instances keep statistics disabled by default.
 
 ### Migration from the old statistics API
 

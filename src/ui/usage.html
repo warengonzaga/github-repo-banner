@@ -1,0 +1,52 @@
+<div class="page-heading">
+  <h1>Usage on this instance</h1>
+  <p class="page-intro">Daily page views and banner requests on <strong id="usage-host">this server</strong>. Public observations, with their limits in view.</p>
+</div>
+
+<div class="usage-layout">
+  <div>
+    <section class="usage-report" aria-labelledby="report-heading" aria-busy="true" id="usage-report">
+      <div class="report-heading">
+        <div><h2 id="report-heading">Today’s observations</h2><p class="muted">Current UTC day · <time id="usage-day">—</time></p></div>
+        <button type="button" class="page-button" id="usage-refresh" disabled>Loading…</button>
+      </div>
+      <div class="usage-state" id="usage-state" role="status" aria-live="polite">
+        <h3 id="usage-state-title">Loading usage</h3>
+        <p id="usage-state-description">Fetching the latest observations from this instance.</p>
+      </div>
+      <div id="usage-results" hidden>
+        <section class="page-views" aria-labelledby="page-views-heading">
+          <h3 id="page-views-heading">Recorded page views <span id="usage-page-total">—</span></h3>
+          <dl class="page-view-counts">
+            <div><dt>Generator</dt><dd id="usage-page-generator">—</dd></div>
+            <div><dt>Documentation</dt><dd id="usage-page-documentation">—</dd></div>
+            <div><dt>Usage</dt><dd id="usage-page-usage">—</dd></div>
+          </dl>
+          <p>Page responses, not unique visitors. Refreshes and bots can count; assets and API refreshes do not.</p>
+          <p id="usage-pages-window"></p>
+        </section>
+        <dl class="usage-metrics">
+          <div><dt>Recorded banner requests<span>Successful banner responses recorded by this server.</span></dt><dd id="usage-requests">—</dd></div>
+          <div><dt>Estimated unique repositories<span>Distinct GitHub repository identifiers seen in Referers.</span></dt><dd id="usage-repositories">—</dd></div>
+          <div><dt>Requests with a repository Referer<span>Recorded requests carrying a usable GitHub repository reference.</span></dt><dd id="usage-referred">—</dd></div>
+          <div><dt>Repository Referer coverage<span>The share of recorded requests with that reference.</span></dt><dd id="usage-coverage">—</dd></div>
+        </dl>
+        <div class="report-footnote"><p id="usage-window"></p><p id="usage-updated"></p></div>
+      </div>
+      <noscript><p class="usage-state">Enable JavaScript to load this report, or <a href="/stats">read the raw statistics</a>.</p></noscript>
+    </section>
+    <p class="data-source">Source: <a href="/stats">public statistics API (JSON)</a>. <a href="/docs#overview--privacy--transparency">Read the measurement and privacy documentation</a>.</p>
+  </div>
+
+  <aside class="usage-context" aria-labelledby="coverage-heading">
+    <h2 id="coverage-heading">What these numbers tell you</h2>
+    <p>These are partial observations of this instance. They are <strong>not a count of people, installations or projects that depend on the service</strong>.</p>
+    <h3>Requests include more than people</h3>
+    <p>Previews, bots and retries can count. Browser, CDN and GitHub image-cache hits never reach this server. Opt-outs, disabled periods and failed writes are excluded.</p>
+    <h3>Repositories are an estimate</h3>
+    <p>Referers may be absent or spoofed. Repository existence and visibility are not verified. Distinct identifiers use HyperLogLog, with about 0.81% standard error.</p>
+    <h3>Privacy comes first</h3>
+    <p>This measurement stores daily aggregates and a sketch of hashed repository identifiers, not a project list, banner content, IPs or user identifiers. Daily keys expire seven days after their last write.</p>
+    <p><a href="/docs#overview-privacy-retention-and-opt-out">How to opt out</a></p>
+  </aside>
+</div>

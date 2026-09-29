@@ -34,6 +34,8 @@ The banner API and Pexels proxy require the running server. GitHub Pages alone c
 
 ## Environment Variables
 
+Every instance serves its own documentation at `/docs` and public usage page at `/usage`. The usage page reads that same instance's `/stats` endpoint; it does not contact the official service for statistics. Set `ENABLE_STATS=true` to expose daily observations, or leave it off to show an explicit tracking-disabled state. The raw JSON API remains available at `/stats`.
+
 ```env
 PORT=3000                         # Server port (host port with Compose)
 NODE_ENV=development              # Docker image uses production

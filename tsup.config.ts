@@ -10,8 +10,26 @@ export default defineConfig({
   sourcemap: true,
   onSuccess: async () => {
     mkdirSync('dist/ui', { recursive: true });
-    copyFileSync('src/ui/index.html', 'dist/ui/index.html');
-    copyFileSync('src/ui/image-url.js', 'dist/ui/image-url.js');
+    for (const file of [
+      'index.html',
+      'image-url.js',
+      'usage.html',
+      'usage.js',
+      'pages.css',
+    ]) {
+      copyFileSync(`src/ui/${file}`, `dist/ui/${file}`);
+    }
+    mkdirSync('dist/ui/docs/docs', { recursive: true });
+    for (const file of [
+      'README.md',
+      'CONTRIBUTING.md',
+      'CODE_OF_CONDUCT.md',
+      'LICENSE',
+      'docs/api.md',
+      'docs/self-hosting.md',
+    ]) {
+      copyFileSync(file, `dist/ui/docs/${file}`);
+    }
     copyFileSync('LICENSE', 'dist/ui/LICENSE');
     copyFileSync('CODE_OF_CONDUCT.md', 'dist/ui/CODE_OF_CONDUCT.md');
     console.log('Copied ui/index.html to dist/ui/');

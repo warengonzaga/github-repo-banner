@@ -66,9 +66,24 @@ export function isUsageRecordingAvailable(): boolean {
   return failedRecordingDay !== usageKeys().day;
 }
 
-export async function recordBannerRequest(
+export function recordBannerRequest(
   redis: Redis,
   referer: string,
+): Promise<void> {
+  return recordRequest(redis, 'requests', referer);
+}
+
+export function recordPageView(
+  redis: Redis,
+  page: 'generator' | 'documentation' | 'usage',
+): Promise<void> {
+  return recordRequest(redis, `page:${page}`);
+}
+
+async function recordRequest(
+  redis: Redis,
+  counter: string,
+  referer = '',
 ): Promise<void> {
   const now = new Date();
   const keys = usageKeys(now);
@@ -76,8 +91,12 @@ export async function recordBannerRequest(
     const repository = repositoryFromReferer(referer);
     const transaction = redis
       .multi()
-      .hincrby(keys.counters, 'requests', 1)
-      .hsetnx(keys.counters, 'startedAt', now.toISOString())
+      .hincrby(keys.counters, counter, 1)
+      .hsetnx(
+        keys.counters,
+        counter === 'requests' ? 'startedAt' : 'pagesStartedAt',
+        now.toISOString(),
+      )
       .expire(keys.counters, RETENTION_SECONDS);
     if (repository) {
       // Hash before sending to Redis so command logs do not contain repository names.
