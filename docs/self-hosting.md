@@ -32,7 +32,7 @@ REDIS_URL=             # Required only if ENABLE_STATS=true
 PEXELS_API_KEY=         # Required only for Pexels search
 ```
 
-See [`.env.example`](../.env.example) for runtime configuration. `GH_PAT` belongs in GitHub Actions secrets for the release workflow; it is separate from these application variables.
+See [`.env.example`](../.env.example) for runtime configuration. The release workflow uses the automatically supplied `GITHUB_TOKEN`; no personal access token secret is required.
 
 ## Railway Deployment
 
@@ -70,7 +70,7 @@ Recording failures emit a payload-free operational error. The affected process r
 
 [`.github/workflows/build-flow.yml`](../.github/workflows/build-flow.yml) calls Build Flow's CI reusable workflow pinned to the v0.2.1 commit. It keeps Node 22, Bun 1.3.9, frozen dependency installation, `bun run check`, and `bun run build` (including declaration generation). Regression scripts are available under `scripts/check-*`, but CI does not currently run them. There is no separate test, coverage, or typecheck command in the pipeline; the reusable workflow's defaults are explicitly overridden to preserve that behavior. The existing `Build` check name remains as a CI-dependent gate.
 
-Only a push to `main` can release, after the Build gate succeeds. The pinned Release Build Flow Action v1.8.0 uses `GH_PAT` for version and changelog updates, tags, GitHub Releases, and downstream release-event compatibility. The separate CI and release workflow files are replaced by this single workflow to avoid duplicate release jobs.
+Only a push to `main` can release, after the Build gate succeeds. The pinned Release Build Flow Action v1.8.0 uses `GITHUB_TOKEN` with `contents: write` on the release job for version and changelog updates, tags, and GitHub Releases. Token-generated push, tag, and release events do not trigger additional workflow runs. The separate CI and release workflow files are replaced by this single workflow to avoid duplicate release jobs.
 
 Railway handles application builds and deployments directly from the GitHub repository. Package and container registry publishing are not part of this workflow; no Dockerfile or full `app.yml` orchestration is needed. This CI-plus-release configuration is the intended scope of issue #52.
 
