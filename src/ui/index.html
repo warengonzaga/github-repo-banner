@@ -665,27 +665,6 @@
       background: rgba(31, 111, 235, 0.1);
     }
 
-    .new-badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #238636;
-      color: #fff;
-      font-size: 0.625rem;
-      font-weight: 600;
-      padding: 0.125rem 0.375rem;
-      border-radius: 12px;
-      text-transform: uppercase;
-      z-index: 1;
-      pointer-events: none;
-      opacity: 1;
-      transition: opacity 0.3s ease-out;
-    }
-
-    .new-badge.fade-out {
-      opacity: 0;
-    }
-
     .settings-header {
       display: flex;
       align-items: center;
@@ -1481,21 +1460,18 @@
           </button>
         </div>
         <div class="bg-option">
-          <span class="new-badge">New</span>
           <button type="button" class="preset-btn" data-bg="431586-9231A8" data-color="FFFFFF" data-gradient="true">
             <span class="swatch" style="background: linear-gradient(90deg, #431586, #9231A8);"></span>
             Railway
           </button>
         </div>
         <div class="bg-option">
-          <span class="new-badge">New</span>
           <button type="button" class="preset-btn" data-bg="F38020-FBAB41" data-color="FFFFFF" data-gradient="true">
             <span class="swatch" style="background: linear-gradient(90deg, #F38020, #FBAB41);"></span>
             Cloudflare
           </button>
         </div>
         <div class="bg-option">
-          <span class="new-badge">New</span>
           <button type="button" class="preset-btn" data-bg="013B84-016EEA" data-color="FFFFFF" data-gradient="true">
             <span class="swatch" style="background: linear-gradient(90deg, #013B84, #016EEA);"></span>
             Waren
@@ -2344,15 +2320,6 @@
         const bgValue = btn.dataset.bg;
         const colorValue = btn.dataset.color;
         const isGradient = btn.dataset.gradient === 'true';
-        
-        // Fade out "New" badge if present
-        const bgOption = btn.closest('.bg-option');
-        if (bgOption) {
-          const badge = bgOption.querySelector('.new-badge');
-          if (badge && !badge.classList.contains('fade-out')) {
-            badge.classList.add('fade-out');
-          }
-        }
         
         // Update active state
         clearActivePresets();
