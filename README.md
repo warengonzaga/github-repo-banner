@@ -6,6 +6,8 @@
 
 I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great repository banners.
 
+[Create a banner](https://ghrb.waren.build) · [API reference](docs/api.md) · [Self-hosting](docs/self-hosting.md) · [Agent skill](#-agent-skill)
+
 ## 🚁 Deploy Your Own
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/github-repo-banner?referralCode=KN9JqT&utm_medium=integration&utm_source=template&utm_campaign=generic)
@@ -14,91 +16,76 @@ When you deploy your own copy, you're directly supporting this project! 💖
 
 ## ✨ Features
 
-- 🎨 **Hex-Based Customization** - Full control with hex codes for backgrounds, gradients, and text colors
-- 🌈 **Gradient Support** - Create custom gradients using `bg=HEX1-HEX2` format
-- 💧 **Opacity Control** - 8-digit hex codes with alpha channel (RRGGBBAA)
-- 🔤 **Google Fonts Integration** - Use any font from Google Fonts for custom typography
-- 😀 **Native Emoji** - Full emoji support with proper rendering
-- 🎯 **Simple Icons Support** - Use 3000+ brand icons with `![slug]` syntax (e.g., `![github]`, `![react]`)
-- 📥 **SVG & PNG Download** - Download banners as SVG or PNG directly from the UI
-- ⚡ **Lightning Fast** - Built with Hono framework for optimal performance
-- 🔒 **Secure** - Input sanitization and validation
-- 🖼️ **Background Images** - Use any HTTPS image URL as banner background via `bgimg` parameter
-- 📸 **Pexels Integration** - Search and select background images from Pexels directly in the UI
-- 🚀 **Edge-Ready** - Deploy to modern platforms like Railway
+- 🎨 **Backgrounds** — Solid colors, gradients, transparency, presets, and public HTTPS images.
+- 📸 **Image search and styling** — Pexels search with more results, image blur, and background color filters.
+- 🔤 **Typography** — Google Fonts, emoji, and Simple Icons using `![slug]`.
+- 📥 **Output** — Live preview, README Markdown, image URLs, SVG, and PNG downloads.
+- 💖 **Optional attribution** — Toggle the watermark and choose any corner.
+- 📚 **Accessible controls** — Keyboard-selectable photos and responsive Code of conduct and MIT license tabs.
+- 🔒 **Optional statistics** — Daily aggregate observations, explicit coverage limits, and per-banner opt-out.
+- 🤖 **Agent skill** — Create banner URLs and README Markdown from compatible AI coding tools.
 
 ## 🚀 Quick Start
 
 ### Use the Hosted Service
 
-Visit [ghrb.waren.build](https://ghrb.waren.build) to create your banner using the interactive UI.
+1. Open [ghrb.waren.build](https://ghrb.waren.build).
+2. Set your text, fonts, and background; check the live preview.
+3. Choose **Copy Markdown** for your README, or download SVG/PNG.
+
+You can also create a banner directly with a URL:
+
+```markdown
+![My Project](https://ghrb.waren.build/banner?header=My+Project&bg=1a1a1a-4a4a4a&color=ffffff)
+```
 
 ### Self-Hosting
+
+Use Node.js 22 and Bun 1.3.9:
 
 ```bash
 git clone https://github.com/warengonzaga/github-repo-banner.git
 cd github-repo-banner
-bun install
+bun install --frozen-lockfile
+cp .env.example .env
 bun dev
 ```
 
+Open `http://localhost:3000`. Pexels search needs `PEXELS_API_KEY`; statistics are disabled by default. See the [self-hosting guide](docs/self-hosting.md) for runtime variables, Railway, production builds, and release configuration. The API requires a running server; GitHub Pages alone cannot host it.
+
 ## 📖 Usage Examples
 
-### Basic Examples
+### Backgrounds and Styling
 
-**Gradient Background**
+Use `bg=HEX` for a solid color, `bg=HEX1-HEX2` for a gradient, or eight-digit `RRGGBBAA` hex for opacity. `bg=00000000` is fully transparent. Choose a preset in the UI or browse the [preset table and examples](docs/api.md#color-presets).
 
-```text
-https://ghrb.waren.build/banner?header=Vibe+Coding%F0%9F%9A%80&bg=ec4899-3b82f6&color=ffffff
-```
+Use `bgimg` for a direct public HTTPS image. The UI preserves your colors and presets while disabling them until you clear the image URL. Supported images are JPEG, PNG, GIF, WebP, and AVIF, up to 10 MiB; see [image requirements and fallback behavior](docs/api.md#custom-background-image).
 
-![Gradient Example](https://ghrb.waren.build/banner?header=Vibe+Coding%F0%9F%9A%80&bg=ec4899-3b82f6&color=ffffff)
-
-**Solid Color with Subheader**
+**Background styling** adjusts brightness, contrast, saturation, and grayscale without changing text, icons, or watermarks. Blur applies only to successfully loaded images. **Reset styling** restores neutral values while keeping your content; the main **Reset** restores all defaults. The effects travel with copied URLs and SVG/PNG downloads.
 
 ```text
-https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=E7F9FF-90C4E8&color=0060A0
+https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&bgblur=10&bgbrightness=60&bggrayscale=100&color=ffffff
 ```
 
-![Solid Color Example](https://ghrb.waren.build/banner?header=OSSPH&subheader=Leading+Open+Source+Software+Community+in+the+Philippines&bg=E7F9FF-90C4E8&color=0060A0)
+See the [API parameter table](docs/api.md#parameters) for ranges and defaults. Invalid effect values use defaults; neutral values preserve the original output.
 
-**With Emojis & Custom Fonts**
+### Pexels Integration
 
-```text
-https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&support=true
-```
+Search returns nine landscape thumbnails at a time. **Load more images** appends the next page until results end. A new search starts fresh; failed requests preserve existing choices for retry. Select photos with a mouse or Tab followed by Enter/Space.
 
-![Emoji Example](https://ghrb.waren.build/banner?header=%F0%9F%A6%9EOpenClaw&subheader=Your+own+personal+AI+assistant.&bg=fee2e2&color=bb2c2c&support=true)
+For self-hosting, set `PEXELS_API_KEY` in the server environment. The key stays server-side. Without it, the search controls explain how to use a direct image URL instead. Direct images, filters, and the agent skill do not need a Pexels key. See [configuration](docs/self-hosting.md#environment-variables) and [search limits](docs/self-hosting.md#resource-limits).
 
-**With Brand Icons (Simple Icons)**
+### Watermark and Output
 
-```text
-https://ghrb.waren.build/banner?header=![github]+Hello+World&bg=1a1a1a-4a4a4a&color=ffffff
-https://ghrb.waren.build/banner?header=![react]+![typescript]+Modern+Stack&bg=14b8a6-06b6d4&color=ffffff
-```
+The UI enables the watermark by default; the API requires `support=true`. **Copy Markdown** and SVG/PNG downloads honor your choice, including the attribution comment in generated Markdown only when support is enabled. **Copy Image URL** keeps styling and the statistics opt-out while intentionally omitting the watermark.
 
-![Icon Example](https://ghrb.waren.build/banner?header=![github]+Hello+World&bg=1a1a1a-4a4a4a&color=ffffff)
+### Repository Documents
 
-> Use `![slug]` syntax to embed any icon from [Simple Icons](https://simpleicons.org). Over 3000+ brand icons available! Icons automatically adapt to your text color.
+The **README** tab contains the generator. **Code of conduct** and **MIT license** display bundled repository documents. Tabs support keyboard navigation and adapt to narrow screens.
 
-**Transparent/Opacity**
-  
-```text
-https://ghrb.waren.build/banner?header=Transparent&bg=00000000&color=ffffff
-https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000
-```
+## 🔌 API Reference
 
-**Custom Background Image**
-
-```text
-https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&color=ffffff
-```
-
-> Use `bgimg` with any HTTPS image URL. The image is fetched server-side, embedded as base64 in the SVG, and scaled to cover the banner area. If the image fails to load, the banner falls back to the default gradient background. Max image size: 10 MB.
-
-**Pexels Integration**
-
-The UI includes a built-in Pexels image search. To enable it, set the `PEXELS_API_KEY` environment variable with your [Pexels API key](https://www.pexels.com/api/). Search results display landscape-oriented thumbnails that can be selected with a single click.
+See the [API reference](docs/api.md) for all banner parameters, examples, presets, and responses from `/banner`, `/api/pexels/search`, `/health`, and `/stats`.
 
 ## 🌟 Who Uses This
 
@@ -107,229 +94,66 @@ Projects and organizations using GitHub Repo Banner:
 - [gogcli](https://github.com/steipete/gogcli) by [steipete](https://github.com/steipete) - Google in your terminal
 - [BetterGov PH](https://github.com/bettergovph/bettergov) - Making government services better for Filipinos
 
+## 🤖 Agent Skill
+
+The standalone `github-repo-banner` skill creates banner URLs and README Markdown using this service, with project branding and explicit preview checks. It needs no other Clean plugin or API key.
+
+With a Codex version supporting plugins, install from the repository's marketplace:
+
+```sh
+codex plugin marketplace add warengonzaga/github-repo-banner
+codex plugin add github-repo-banner@github-repo-banner
+```
+
+Start a fresh session after installation. For a local checkout, use `codex plugin marketplace add /absolute/path/to/github-repo-banner`.
+
+Example requests:
+
+```text
+$github-repo-banner create a banner for this project's README using its existing colors, preview it, and give me the Markdown without editing files
+$github-repo-banner use a transparent background and a GitHub icon, then replace the existing README banner
+$github-repo-banner create a banner using my self-hosted base URL https://banners.example.com
+```
+
+Other Agent Skills-compatible hosts can load [`skills/github-repo-banner`](skills/github-repo-banner) directly. Copy the whole folder, including `references/`, into the host's documented skill directory; no plugin manifest is required for this mode. In Codex, a project-local direct installation can use `.agents/skills/github-repo-banner/`. Do not install both forms in the same project/session if that would expose duplicate skills.
+
+The skill distinguishes generated URLs from verified renders and edits a README only when requested. `/banner` returns SVG; PNG export remains a separate interactive UI feature. Maintain the skill reference alongside the route, sanitizer, renderer, and generator's Markdown behavior. Run `bun scripts/check-banner-skill.ts` to check the documented URL example against the route, encoding, limits, fallback, and package linkage. This does not replace a fresh-session or visual check.
+
 ## 🔒 Privacy & Transparency
 
-**Privacy by default.** This service does **NOT** track anything by default. If you're using the hosted version at `ghrb.waren.build`, stats tracking status is available at `/health`.
+Statistics are disabled unless `ENABLE_STATS=true` and Redis is configured and available. `/health` reports whether statistics were initialized; `/stats` reports current storage availability and the measurement definitions. The UI shows current-day observations with their limitations.
 
-### What We Track (When Enabled)
-- ✅ **Repository names only** - GitHub repository URLs from browser Referer headers
-- ✅ **Public data only** - Already publicly visible on GitHub
+### What the metrics mean
 
-### What We Log (Always)
-- 📊 **User actions** - Button clicks (Copy Markdown, Download SVG, etc.) and the banner URL generated
-- 🎨 **Banner content** - Text and styling parameters (publicly displayed content only)
-- 💡 **Purpose** - Understand feature usage and popular banner styles to improve the service
+- **Recorded banner requests**: successful origin `GET /banner` renders whose aggregate write succeeds. Includes UI previews, bots, downloads, and retries. Requests answered by browser/CDN/GitHub image caches never reach this counter. It is not a view, user, installation, or adoption count.
+- **Requests with a repository Referer**: recorded requests with a syntactically valid `https://github.com/owner/repo` Referer. Hostname and path are validated; queries/fragments are excluded and case is normalized. Headers can be missing or spoofed, and neither repository existence nor public visibility is verified.
+- **Estimated unique repositories**: the approximate number of distinct normalized repository identifiers in those Referers, using Redis HyperLogLog (about 0.81% standard error). This is an observation estimate, not a complete repository count.
+- **Repository Referer coverage**: the fraction of recorded requests with a usable repository Referer, or `null` when there are no requests. It does not estimate coverage of all real-world usage.
 
-**Note:** All logs are ephemeral (console only, not stored in database). The content you generate is meant to be publicly displayed on GitHub, so logging helps improve the service without violating privacy.
+All metrics cover the **current UTC day**. `firstRecordedAt` marks its first stored request, so enabling statistics midday does not imply full-day coverage. Disabled periods, opt-outs, Redis outages, and failed writes are omitted. Writes are asynchronous; recent responses may not appear immediately. Zero means no observations recorded for this window, not no users.
 
-### What We DON'T Track
-- ❌ No IP addresses
-- ❌ No personal information  
-- ❌ No user identities
-- ❌ No analytics or behavioral data
-- ❌ No cookies or tracking pixels
-- ❌ No session data or persistent storage
+### Privacy, retention, and opt-out
 
-### Why Track (When Enabled)
-Understanding which repositories use this service helps:
-- Gauge community value and impact
-- Make informed maintenance decisions
-- Justify resources for this free service
+Only daily request counters and a HyperLogLog sketch of SHA-256-hashed repository identifiers are stored. Names are hashed before they reach Redis; raw repository names/lists, full Referers, banner text/URLs, IP addresses, cookies, sessions, and user identifiers are not stored by this measurement. Daily keys expire seven days after their last write. Hashes and aggregate estimates are not proof of anonymous individuals or verified public repositories.
 
-### Your Data Rights
-- **Full transparency**: View tracked data at `/stats` (when enabled)
-- **Opt-out**: Self-host with stats disabled (default)
-- **Open source**: Review tracking code in this repository
+Button-click and banner-URL logging has been removed. The legacy `/log` endpoint accepts old clients without reading or logging their payload. Hosting providers and reverse proxies may maintain their own access logs; configure those separately.
 
-### Self-Hosting Privacy
-**Self-hosted instances have stats disabled by default.** To enable (optional):
-1. Set `ENABLE_STATS=true` in your `.env`
-2. Add Redis service to your Railway project
-3. See [Railway Deployment](#-railway-deployment) below
+Use the UI's **Exclude this banner from usage statistics** checkbox, or append `stats=false` to any banner URL. This choice travels with copied Markdown and image URLs and downloads. The service also honors `DNT: 1` and `Sec-GPC: 1` request headers. The checkbox applies to the current page and generated URLs; it is not stored in a cookie. Self-hosted instances keep statistics disabled by default.
 
-## 🚂 Railway Deployment
+### Migration from the old statistics API
 
-### Basic Deployment (Stats Disabled - Default)
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/github-repo-banner?referralCode=KN9JqT)
-
-No additional configuration needed. The service runs without stats tracking.
-
-### With Stats Tracking (Optional)
-
-If you want to track which repositories use your instance:
-
-1. **Deploy the service** using the button above
-2. **Add Redis service** in Railway dashboard:
-   - Click "New" → "Database" → "Add Redis"
-   - Railway automatically sets `REDIS_URL`
-3. **Enable stats** in your service variables:
-   - Go to your service settings
-   - Add variable: `ENABLE_STATS=true`
-4. **Redeploy** your service
-
-**Accessing Stats:**
-- View at: `https://your-service.railway.app/stats`
-- Health check includes stats status: `https://your-service.railway.app/health`
-
-**Cost Note:** Redis on Railway has a free tier, then usage-based pricing. Stats tracking is lightweight and should stay within free limits for moderate traffic.
-
-## 🔌 API Reference
-
-### `GET /banner`
-
-Generate a custom SVG banner.
-
-#### Parameters
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `header` | string | No | "Hello World" | Main text (supports emojis and icons) |
-| `subheader` | string | No | - | Optional subtitle text |
-| `bg` | string | No | `1a1a1a-4a4a4a` | Background color in hex format |
-| `color` | string | No | `ffffff` | Header text color (hex without #) |
-| `subheadercolor` | string | No | Same as `color` | Subheader text color |
-| `headerfont` | string | No | - | Google Fonts family name for header (e.g., "Roboto") |
-| `subheaderfont` | string | No | - | Google Fonts family name for subheader (e.g., "Playfair Display") |
-| `bgimg` | string | No | - | HTTPS image URL for background (overrides `bg` when set, max 10 MB) |
-| `support` | boolean | No | `false` | Show support watermark |
-| `watermarkpos` | string | No | `bottom-right` | Watermark position: `top-left`, `top-right`, `bottom-left`, `bottom-right` |
-
-#### Background Format
-
-| Format | Example | Description |
-|--------|---------|-------------|
-| Gradient | `HEX1-HEX2` | `1a1a1a-4a4a4a` (left to right) |
-| Solid | `HEX` | `ffffff` (single color) |
-| Transparent | `00000000` | Fully transparent |
-| With Opacity | `RRGGBBAA` | `ffffff80` (50% opacity) |
-| Image URL | `bgimg=https://...` | HTTPS URL to any image (fetched and embedded as base64) |
-
-#### Response
-
-- **Content-Type**: `image/svg+xml`
-- **Cache-Control**: `public, max-age=86400` (production)
-- **Size**: 1280×304px
-
-### `GET /`
-
-Interactive banner generator UI with live preview.
-
-### `GET /health`
-
-Health check endpoint for monitoring and stats status.
-
-**Response (stats disabled):**
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-02-01T00:00:00.000Z",
-  "stats": {
-    "enabled": false
-  }
-}
-```
-
-**Response (stats enabled):**
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-02-01T00:00:00.000Z",
-  "stats": {
-    "enabled": true,
-    "endpoint": "/stats"
-  }
-}
-```
-
-### `GET /stats`
-
-View repository tracking statistics (when enabled).
-
-**Response (stats disabled):**
-```json
-{
-  "enabled": false,
-  "message": "Stats tracking is disabled"
-}
-```
-
-**Response (stats enabled):**
-```json
-{
-  "enabled": true,
-  "totalRepositories": 42,
-  "repositories": ["owner/repo1", "owner/repo2"],
-  "note": "Only tracking public GitHub repositories using this service"
-}
-```
-
-## 🎨 Color Presets
-
-The UI includes presets for quick access:
-
-### Gradients
-
-| Name | Background | Text Color | Preview |
-|------|------------|------------|---------|
-| Midnight | `1a1a1a-4a4a4a` | `ffffff` | ![Midnight](https://ghrb.waren.build/banner?header=Midnight&bg=1a1a1a-4a4a4a&color=ffffff) |
-| Vibe | `ec4899-3b82f6` | `ffffff` | ![Vibe](https://ghrb.waren.build/banner?header=Vibe&bg=ec4899-3b82f6&color=ffffff) |
-| Ocean | `14b8a6-06b6d4` | `ffffff` | ![Ocean](https://ghrb.waren.build/banner?header=Ocean&bg=14b8a6-06b6d4&color=ffffff) |
-| Railway 🆕 | `431586-9231A8` | `ffffff` | ![Railway](https://ghrb.waren.build/banner?header=Railway&bg=431586-9231A8&color=ffffff) |
-| Cloudflare 🆕 | `F38020-FBAB41` | `ffffff` | ![Cloudflare](https://ghrb.waren.build/banner?header=Cloudflare&bg=F38020-FBAB41&color=ffffff) |
-| Waren 🆕 | `013B84-016EEA` | `ffffff` | ![Waren](https://ghrb.waren.build/banner?header=Waren&bg=013B84-016EEA&color=ffffff) |
-| OSSPH | `E7F9FF-90C4E8` | `0060A0` | ![OSSPH](https://ghrb.waren.build/banner?header=OSSPH&bg=E7F9FF-90C4E8&color=0060A0) |
-
-### Solid Colors
-
-| Name | Background | Text Color | Preview |
-|------|------------|------------|---------|
-| Sky | `87ceeb` | `1e3a8a` | ![Sky](https://ghrb.waren.build/banner?header=Sky&bg=87ceeb&color=1e3a8a) |
-| Molty | `fee2e2` | `bb2c2c` | ![Molty](https://ghrb.waren.build/banner?header=Molty&bg=fee2e2&color=bb2c2c) |
-| Claude | `fde8e3` | `de7356` | ![Claude](https://ghrb.waren.build/banner?header=Claude&bg=fde8e3&color=de7356) |
-| GPT | `10a37f` | `ffffff` | ![GPT](https://ghrb.waren.build/banner?header=GPT&bg=10a37f&color=ffffff) |
-| Minimal | `f3f4f6` | `1f2937` | ![Minimal](https://ghrb.waren.build/banner?header=Minimal&bg=f3f4f6&color=1f2937) |
-
-### Special
-
-| Name | Background | Text Color | Preview |
-|------|------------|------------|---------|
-| Transparent | `00000000` | `ffffff` | ![Transparent](https://ghrb.waren.build/banner?header=Transparent&bg=00000000&color=ffffff) |
-
-> **Tip:** Create any custom gradient or color using hex codes directly in the URL.
+`/stats` now returns `schemaVersion: 2`. The old lifetime `totalRepositories` and `repositories` fields are replaced by the daily metrics described in the [API reference](docs/api.md); clients must update accordingly. Existing `repos:tracked` data is not imported into the new counters, read, or served. Operators should remove that legacy Redis key after any necessary backup; upgrading does not automatically delete existing data or historical infrastructure logs.
 
 ## 🛠️ Development
 
-### Tech Stack
-
-**Runtime**: Node.js • **Framework**: [Hono](https://hono.dev/) • **Language**: TypeScript • **Build**: tsup • **Package Manager**: Bun
-
-### Commands
+Node.js · TypeScript · Hono · tsup · Bun
 
 ```bash
-bun dev      # Development with hot-reload
-bun build    # Production build
-bun start    # Start production server
+bun run check  # Static checks
+bun build      # Production build and declaration generation
 ```
 
-### Environment Variables
-
-```env
-PORT=3000              # Server port
-NODE_ENV=development   # Environment mode
-
-# Stats Tracking (disabled by default - privacy-first)
-ENABLE_STATS=false     # Set to 'true' to enable repository tracking
-REDIS_URL=             # Required only if ENABLE_STATS=true
-```
-
-See `.env.example` for complete documentation.
-
-### Security
-
-- Input sanitization (XSS prevention)
-- Hex color validation
-- Header length limits
-- No external dependencies
+Regression checks are in `scripts/check-*` (run `.ts` files with Bun and `.mjs` files with Node). CI runs static checks and the build; regression scripts are currently run separately. See [CI and releases](docs/self-hosting.md#ci-and-release-workflow), [security](docs/self-hosting.md#security), and [resource limits](docs/self-hosting.md#resource-limits).
 
 ## 🤝 Contributing
 

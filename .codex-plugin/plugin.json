@@ -1,0 +1,26 @@
+{
+  "name": "github-repo-banner",
+  "version": "0.1.0",
+  "description": "Create README banners with the existing GitHub Repo Banner service.",
+  "author": {
+    "name": "Waren Gonzaga",
+    "url": "https://github.com/warengonzaga"
+  },
+  "homepage": "https://ghrb.waren.build",
+  "repository": "https://github.com/warengonzaga/github-repo-banner",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "GitHub Repo Banner",
+    "shortDescription": "Create and preview banners for project READMEs",
+    "longDescription": "Use project branding to construct banner URLs and copy-ready README Markdown, with explicit render verification.",
+    "developerName": "Waren Gonzaga",
+    "category": "Productivity",
+    "capabilities": [
+      "Instructions"
+    ],
+    "defaultPrompt": [
+      "Create a banner for this project and give me the Markdown."
+    ]
+  }
+}

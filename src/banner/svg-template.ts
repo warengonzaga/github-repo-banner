@@ -1,7 +1,9 @@
 import { request as httpsRequest } from 'node:https';
 import type { LookupFunction } from 'node:net';
+import { BoundedCache } from '../utils/bounded-cache.js';
 import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
 import { escapeXml, resolvePublicImageAddress } from '../utils/sanitize.js';
+import { buildBackgroundFilter } from './background-effects.js';
 import {
   detectBackgroundTheme,
   parseHeaderWithIcons,
@@ -39,7 +41,13 @@ const ALLOWED_IMAGE_TYPES = [
   'image/avif',
 ];
 
-async function fetchImageAsBase64(url: string): Promise<string | null> {
+const imageCache = new BoundedCache(32 * 1024 * 1024, 60_000, 4);
+
+function fetchImageAsBase64(url: string): Promise<string | null> {
+  return imageCache.get(url, () => downloadImageAsBase64(url));
+}
+
+async function downloadImageAsBase64(url: string): Promise<string | null> {
   try {
     const parsedUrl = new URL(url);
     if (
@@ -399,10 +407,12 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
 
   let defs = buildGradientDef(background);
   let bgRect: string;
+  let hasImage = false;
 
   if (background.type === 'image' && background.imageUrl) {
     const dataUri = await fetchImageAsBase64(background.imageUrl);
     if (dataUri) {
+      hasImage = true;
       bgRect = `<image href="${dataUri}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice" />`;
     } else {
       const fallback: BackgroundPreset = {
@@ -420,6 +430,15 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     }
   } else {
     bgRect = buildBackground(background);
+  }
+
+  const backgroundFilter =
+    background.type === 'transparent'
+      ? ''
+      : buildBackgroundFilter(options.backgroundEffects, hasImage);
+  if (backgroundFilter) {
+    defs += backgroundFilter;
+    bgRect = `<g filter="url(#background-effects)">${bgRect}</g>`;
   }
 
   const watermark = showWatermark ? buildWatermark(watermarkPosition) : '';
