@@ -98,7 +98,7 @@ https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.co
 
 **Pexels Integration**
 
-The UI includes a built-in Pexels image search. To enable it, set the `PEXELS_API_KEY` environment variable with your [Pexels API key](https://www.pexels.com/api/). Search results display landscape-oriented thumbnails that can be selected with a single click.
+The UI includes a built-in Pexels image search. To enable it, set the `PEXELS_API_KEY` environment variable with your [Pexels API key](https://www.pexels.com/api/). Search results display nine landscape-oriented thumbnails at a time. Select an image to use it, or choose **Load more images** to append the next page until no more results are available. A new search starts fresh; loading failures keep existing choices available for retry.
 
 ## 🌟 Who Uses This
 

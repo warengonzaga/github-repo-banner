@@ -36,6 +36,7 @@ pexelsRoute.get('/api/pexels/search', async (c) => {
         photographer: string;
         src: { landscape: string; medium: string };
       }>;
+      next_page?: string;
       total_results: number;
       page: number;
     };
@@ -52,6 +53,7 @@ pexelsRoute.get('/api/pexels/search', async (c) => {
       photos,
       total: data.total_results,
       page: data.page,
+      hasMore: photos.length > 0 && Boolean(data.next_page),
     });
   } catch {
     return c.json({ error: 'Failed to fetch from Pexels' }, 500);
