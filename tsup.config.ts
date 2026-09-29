@@ -12,6 +12,7 @@ export default defineConfig({
     mkdirSync('dist/ui', { recursive: true });
     copyFileSync('src/ui/index.html', 'dist/ui/index.html');
     copyFileSync('LICENSE', 'dist/ui/LICENSE');
+    copyFileSync('CODE_OF_CONDUCT.md', 'dist/ui/CODE_OF_CONDUCT.md');
     console.log('Copied ui/index.html to dist/ui/');
   },
 });
