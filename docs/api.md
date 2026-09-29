@@ -71,7 +71,7 @@ Every official export request, including `showcase: false`, requires:
 
 - `action`: `markdown`, `url`, `svg`, or `png`.
 - `showcase`: an explicit boolean for public display.
-- `id`: a client-generated lowercase UUID v4.
+- `id`: `<Unix milliseconds>-<lowercase UUID v4>`, generated when the first submission starts. Keep this exact ID for retries.
 - `removalToken`: a cryptographically random 64-character lowercase hexadecimal code for withdrawing a showcase copy.
 - `policyVersion`: `2026-09-29`.
 - `query`: an object mapping banner parameter names to string values.
@@ -80,9 +80,11 @@ Settings use the same sanitization and defaults as `/banner`; no SVG markup or u
 
 A new saved export returns HTTP 201; while a saved or public record exists, an identical retry with the same ID, action, settings, choice and token returns 200 without extending retention, counting again or republishing a withdrawn showcase. A successful response contains `saved: true`, `showcased` (the actual publication result), `id` and `expiresAt` (Unix milliseconds for the saved export's expiry). A public entry also includes `previewUrl`. If the gallery is full, the export still saves and counts, with `showcased: false` and `showcaseReason: "full"`; the download can proceed with that status. An identical retry after withdrawal returns `showcaseReason: "removed"` rather than republishing it.
 
-A withdrawn submission ID cannot be reused after its saved export expires: a stale retry returns `409`. Start a new export for a new submission. Content-free withdrawal markers prevent accidental republication.
+A new ID is accepted only within 15 minutes of its embedded timestamp, with up to five minutes of future clock drift allowed. Existing saved or public records still support identical retries after this window. Once both records are absent, an expired ID returns `409` and cannot republish or count again. Start a new export for a new submission; synchronize an incorrect device clock. No permanent withdrawal markers are stored.
 
-Invalid input returns 400, a disallowed origin or content type returns 403, a changed request reusing an existing ID returns 409, and an oversized body returns 413. Storage or publication that cannot be confirmed returns 503. Retry the same request after an uncertain outcome; do not assume it was never saved or published. Saving an export does not prove a later clipboard write or browser download completed. Saved exports have no public retrieval endpoint.
+Admission is atomic across instances sharing Redis: at most 60 new exports per rolling minute and 5,000 retained exports, with each encoded record limited to 8 KiB. Rate or retention-capacity exhaustion returns `429` before saving or counting; rate responses include `Retry-After: 60`. Identical retries of existing records bypass these limits. Expired reservations are reclaimed; accepted records are not silently evicted.
+
+Invalid input returns 400, a disallowed origin or content type returns 403, a changed request reusing an existing ID returns 409, and an oversized body or normalized saved record returns 413. Storage or publication that cannot be confirmed returns 503. Retry the same request after an uncertain outcome; do not assume it was never saved or published. Saving an export does not prove a later clipboard write or browser download completed. Saved exports have no public retrieval endpoint.
 
 An ordinary self-hosted count-only request sends no design fields:
 
@@ -94,7 +96,7 @@ It returns `{ "showcased": false, "counted": true }` when recording succeeds, or
 
 ## `GET /showcase`
 
-Returns up to 12 newest public showcase entries and a `nextCursor` (`null` when no more remain). Pass a returned cursor as `?before=...` to get older entries. The cursor combines the creation timestamp and entry ID; preserve it as returned and URL-encode it. Each entry contains `id`, `createdAt`, and a same-origin `previewUrl`. The feed excludes non-shared exports. `createdAt` is a Unix timestamp in milliseconds. An instance with showcasing disabled returns `{ "enabled": false, "entries": [], "nextCursor": null }`.
+Returns up to 12 newest public showcase entries and a `nextCursor` (`null` when no more remain). Pass a returned cursor as `?before=...` to get older entries. The cursor combines the creation timestamp and entry ID; preserve it as returned and URL-encode it. Each entry contains `id`, `createdAt`, a plain-text `label` derived from its visible header and subheader for accessible previews, and a same-origin `previewUrl`. The feed excludes non-shared exports. `createdAt` is a Unix timestamp in milliseconds. An instance with showcasing disabled returns `{ "enabled": false, "entries": [], "nextCursor": null }`.
 
 The gallery holds at most 1,000 entries; when full, new official exports still save and count but do not create a showcase copy. Existing entries remain until creator withdrawal or operator removal. Gallery lists, previews and removals do not increment banner or page counters; opening `/usage` still counts as a page response.
 
@@ -110,7 +112,7 @@ Withdraw a showcase entry by sending JSON containing its private `removalToken`.
 { "removalToken": "<the 64-character removal code saved at submission>" }
 ```
 
-A successful removal returns `{ "removed": true }` and deletes the public showcase copy and its gallery listing. It does not delete the separate saved export before its configured expiry. Repeating a removal for an already absent entry also succeeds. An invalid code format returns 400; a code that does not match an existing entry returns 403; unavailable storage returns 503. Copies already downloaded or cached elsewhere cannot be recalled. See the [Privacy notice](privacy.md#showcase-removal) if the code is unavailable or the entry needs to be reported.
+A successful removal returns `{ "removed": true }` and deletes the public showcase copy and its gallery listing. It does not delete the separate saved export before its configured expiry. Repeating a removal for an absent entry succeeds when a saved export still establishes its submission, or when its ID has expired and cannot be submitted again. An absent fresh ID returns `409` because the initial export may still be in flight; retry removal until confirmed. An invalid code format returns 400; a code that does not match an existing entry returns 403; unavailable storage returns 503. Copies already downloaded or cached elsewhere cannot be recalled. See the [Privacy notice](privacy.md#showcase-removal) if the code is unavailable or the entry needs to be reported.
 
 ## `GET /api/pexels/search`
 

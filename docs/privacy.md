@@ -16,7 +16,7 @@ Daily metric keys expire **seven days after their last write**. Counting and exp
 
 ## Saved exported designs
 
-Every official built-in copy or download request saves the normalized design settings needed to render that export, its action and showcase choice, a random entry ID, timestamps, the policy version, and a hash of its removal code. Settings can include banner text, styling and a background image URL. The service retains these as records of exported designs; they have no public retrieval endpoint. The showcase confirmation controls only whether a separate copy appears publicly, not whether the export is saved or counted.
+Every official built-in copy or download request saves the normalized design settings needed to render that export, its action and showcase choice, an entry ID combining a submission timestamp and random UUID, timestamps, the policy version, and a hash of its removal code. Settings can include banner text, styling and a background image URL. The service retains these as records of exported designs; they have no public retrieval endpoint. The showcase confirmation controls only whether a separate copy appears publicly, not whether the export is saved or counted.
 
 Saved exports expire after the operator-configured **`EXPORT_RETENTION_DAYS`** period. Official mode requires an explicit value from **1 to 365 days**, with no default; the deployed service must disclose its chosen period. Identical retries do not extend that expiry. Withdrawing a public showcase does not remove the saved export before its retention period ends.
 
@@ -24,7 +24,7 @@ The normal renderer also processes design settings to generate banners. Banner U
 
 ## Public showcase copies
 
-Explicitly choosing to showcase permits a separate copy of the saved design to be rendered publicly on the Usage page. Declining keeps the saved export out of this gallery. The public feed returns the entry ID, creation time and preview URL; it does not return settings or removal codes. The preview exposes the design's visible content, and external assets may change or become unavailable.
+Explicitly choosing to showcase permits a separate copy of the saved design to be rendered publicly on the Usage page. Declining keeps the saved export out of this gallery. The public feed returns the entry ID, creation time, a text description from the visible header and subheader, and preview URL; it does not return settings or removal codes. The preview exposes the design's visible content, and external assets may change or become unavailable.
 
 Public copies are kept until the creator withdraws them or the operator removes them, independently of the saved export's expiry. Permanent hosting is not promised. When the gallery is full, the export still saves and counts, but the response and interface explain that it was not publicly showcased.
 
@@ -36,7 +36,7 @@ Use the removal link or the Usage page's removal control to withdraw the public 
 
 If you no longer have the code, or need to report someone else's entry, contact the maintainer through [project issues](https://github.com/warengonzaga/github-repo-banner/issues) using the entry ID. Do not post sensitive details or removal codes in a public issue. The operator may need to establish which entry you mean and your relationship to it before acting.
 
-To prevent a withdrawn submission from reappearing through a stale retry, the service keeps a content-free record of its entry ID after removal. This withdrawal marker contains no design or removal code and remains until the operator removes it.
+The service rejects expired submission IDs once their saved and public records are gone, without permanent withdrawal markers. Capacity and rate controls keep bounded indexes of export IDs and expiry or admission timestamps, without design content or visitor identifiers. The admission index expires after one minute of inactivity; expired retention-index entries are removed on the next accepted export. An unconfirmed in-flight submission must be checked again before removal can be confirmed.
 
 ## Operational storage and third parties
 

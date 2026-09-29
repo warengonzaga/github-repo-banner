@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { Hono } from 'hono';
 import { closeRedis, getRedis, initRedis, isStatsEnabled, getExportRetentionDays, getPublicOrigin } from '../src/config/redis.js';
-import showcase, { SHOWCASE_KEY, SHOWCASE_POLICY, exportKey, WITHDRAWN_KEY } from '../src/routes/showcase.js';
+import showcase, { SHOWCASE_KEY, SHOWCASE_POLICY, exportKey, EXPORT_INDEX_KEY, EXPORT_RATE_KEY, MAX_EXPORTS, EXPORTS_PER_MINUTE, NEW_EXPORT_WINDOW_MS } from '../src/routes/showcase.js';
 import stats from '../src/routes/stats.js';
 import ui from '../src/routes/ui.js';
 import { usageKeys, usageOptedOut } from '../src/utils/usage-stats.js';
@@ -34,11 +34,11 @@ const request = (path: string, body: unknown, method = 'POST', origin = 'http://
   method, headers: { origin, 'Content-Type':'application/json', DNT:'1', 'Sec-GPC':'1' }, body: JSON.stringify(body),
 });
 const snapshot = async () => (await app.request('/stats')).json();
-const submission = () => ({ action:'svg', showcase:true, id:randomUUID(), removalToken:randomBytes(32).toString('hex'), policyVersion:SHOWCASE_POLICY,
+const submission = () => ({ action:'svg', showcase:true, id:`${Date.now()}-${randomUUID()}`, removalToken:randomBytes(32).toString('hex'), policyVersion:SHOWCASE_POLICY,
   query:{ header:'Community banner', bg:'123456-654321', bgbrightness:'80', support:'true' } });
 let ownsKeys = false;
 try {
-  assert.equal(await redis.exists(SHOWCASE_KEY, WITHDRAWN_KEY, keys.counters, keys.repositories), 0, 'Existing data will not be touched');
+  assert.equal(await redis.exists(SHOWCASE_KEY, EXPORT_INDEX_KEY, EXPORT_RATE_KEY, keys.counters, keys.repositories), 0, 'Existing data will not be touched');
   assert.equal((await redis.keys('exports:v1:*')).length,0,'Existing exports will not be touched');
   ownsKeys = true;
   assert.ok(isStatsEnabled(), 'Official mode overrides ENABLE_STATS=false');
@@ -100,8 +100,9 @@ try {
   const page = await (await app.request('/showcase')).json();
   assert.equal(page.entries.length,12);
   assert.ok(page.nextCursor);
-  assert.deepEqual(Object.keys(page.entries[0]).sort(),['createdAt','id','previewUrl']);
+  assert.deepEqual(Object.keys(page.entries[0]).sort(),['createdAt','id','label','previewUrl']);
   assert.ok(!JSON.stringify(page).includes('options'));
+  assert.ok(page.entries.every((entry:any)=>entry.label && !entry.label.includes('<')),'Feed includes sanitized visible-text descriptions');
   const rest = await (await app.request(`/showcase?before=${encodeURIComponent(page.nextCursor)}`)).json();
   assert.equal(rest.entries.length,3);
   assert.equal(rest.nextCursor,null);
@@ -116,8 +117,12 @@ try {
   const withdrawnRetry = await (await request('/exports',first)).json();
   assert.equal(withdrawnRetry.showcased,false);
   assert.equal(withdrawnRetry.showcaseReason,'removed');
-  await redis.del(exportKey(first.id));
-  assert.equal((await request('/exports',first)).status,409,'Withdrawal ID prevents republishing even after saved export expiry');
+  const expired = {...first, id:`${Date.now()-NEW_EXPORT_WINDOW_MS-1000}-${randomUUID()}`};
+  await redis.hset(SHOWCASE_KEY,expired.id,JSON.stringify({...stored,id:expired.id}));
+  await redis.set(exportKey(expired.id),JSON.stringify({...stored,id:expired.id}));
+  assert.equal((await request(`/showcase/${expired.id}`,{removalToken:expired.removalToken},'DELETE')).status,200);
+  await redis.del(exportKey(expired.id));
+  assert.equal((await request('/exports',expired)).status,409,'Expired ID prevents republishing without a permanent withdrawal marker');
   assert.equal((await app.request(`/showcase/${first.id}.svg`)).status,404,'Retry never republishes a withdrawn showcase');
   await redis.del(exportKey(rejectedImage.id));
   const countBefore = (await snapshot()).exports.total;
@@ -135,11 +140,61 @@ try {
   assert.ok(await redis.exists(exportKey(full.id)));
   assert.equal((await app.request(`/showcase/${full.id}.svg`)).status,404);
   assert.equal((await app.request('/log',{method:'POST',body:'legacy'})).status,200,'Export middleware must not change legacy /log');
+  assert.equal(await redis.exists('showcase:v1:withdrawn'),0,'No permanent withdrawal identifiers are allocated');
+  assert.equal((await request('/exports',{...submission(),id:`${Date.now()+600000}-${randomUUID()}`})).status,409);
+  assert.equal((await request('/exports',{...submission(),query:{header:'bad\ud800'}})).status,400,'Reject malformed Unicode at the input boundary');
+  for (const query of [{header:'a'.repeat(49)+'😀'}, {header:'Test',subheader:'a'.repeat(59)+'😀'}]) {
+    assert.equal((await request('/exports',{...submission(),showcase:false,query})).status,201,'Valid emoji near a limit remains serializable in Redis');
+  }
+  await redis.hdel(SHOWCASE_KEY,(await redis.hkeys(SHOWCASE_KEY)).find(id=>id.length===36)!);
+  const delayed = submission();
+  assert.equal((await request(`/showcase/${delayed.id}`,{removalToken:delayed.removalToken},'DELETE')).status,409,'Do not promise removal before a delayed submission arrives');
+  assert.equal((await request('/exports',delayed)).status,201);
+  assert.equal((await app.request(`/showcase/${delayed.id}.svg`)).status,200,'Delayed publication still requires a confirmed withdrawal');
+  assert.equal((await request(`/showcase/${delayed.id}`,{removalToken:delayed.removalToken},'DELETE')).status,200);
+  assert.equal((await app.request(`/showcase/${delayed.id}.svg`)).status,404);
+  assert.equal((await (await request('/exports',delayed)).json()).showcased,false,'Confirmed withdrawal cannot be reversed by a delayed retry');
+  const stale = {...submission(),id:`${Date.now()-NEW_EXPORT_WINDOW_MS-1000}-${randomUUID()}`};
+  assert.equal((await request(`/showcase/${stale.id}`,{removalToken:stale.removalToken},'DELETE')).status,200);
+  assert.equal((await request('/exports',stale)).status,409,'A confirmed absent expired ID cannot later publish');
+
+  // Race for the last rate slot; existing retries do not consume quota or extend TTL.
+  await redis.del(EXPORT_RATE_KEY);
+  const rateSeed = redis.multi();
+  for(let i=0;i<EXPORTS_PER_MINUTE-1;i++) rateSeed.zadd(EXPORT_RATE_KEY,Date.now(),`rate-${i}`);
+  await rateSeed.exec();
+  const rateAttempts = [{...submission(),showcase:false},{...submission(),showcase:false}];
+  const rateResponses = await Promise.all(rateAttempts.map(entry=>request('/exports',entry)));
+  assert.deepEqual(rateResponses.map(r=>r.status).sort(),[201,429]);
+  assert.equal(await redis.zcard(EXPORT_RATE_KEY),EXPORTS_PER_MINUTE);
+  assert.equal((await request('/exports',unshared[0])).status,200,'Retry passes even when admission rate is exhausted');
+  const rejectedRate = rateAttempts[rateResponses.findIndex(r=>r.status===429)];
+  assert.equal(await redis.exists(exportKey(rejectedRate.id)),0,'Rate rejection cannot leave a record');
+  assert.equal(rateResponses.find(r=>r.status===429)!.headers.get('Retry-After'),'60');
+  await redis.del(EXPORT_RATE_KEY);
+
+  // Atomic retention cap, excluding expired reservations but never evicting retained exports.
+  const originalIndex = await redis.zrange(EXPORT_INDEX_KEY,0,-1,'WITHSCORES');
+  await redis.del(EXPORT_INDEX_KEY);
+  const capacitySeed = redis.multi();
+  for(let i=0;i<MAX_EXPORTS-1;i++) capacitySeed.zadd(EXPORT_INDEX_KEY,Date.now()+86400000,`capacity-${i}`);
+  capacitySeed.zadd(EXPORT_INDEX_KEY,Date.now()-1,'expired-reservation');
+  await capacitySeed.exec();
+  const capAttempts = [{...submission(),showcase:false},{...submission(),showcase:false}];
+  const capResponses = await Promise.all(capAttempts.map(entry=>request('/exports',entry)));
+  assert.deepEqual(capResponses.map(r=>r.status).sort(),[201,429]);
+  assert.equal(await redis.zcard(EXPORT_INDEX_KEY),MAX_EXPORTS,'Expired reservations reclaimed and cap never exceeded');
+  assert.equal((await request('/exports',unshared[0])).status,200,'Existing retry works at retained capacity');
+  const rejectedCap = capAttempts[capResponses.findIndex(r=>r.status===429)];
+  assert.equal(await redis.exists(exportKey(rejectedCap.id)),0);
+  assert.equal(JSON.parse((await redis.get(exportKey(unshared[0].id)))!).options.header,'Saved, not showcased','Capacity never evicts accepted designs');
+  await redis.del(EXPORT_INDEX_KEY,EXPORT_RATE_KEY);
+  for(let i=0;i<originalIndex.length;i+=2) await redis.zadd(EXPORT_INDEX_KEY,originalIndex[i+1],originalIndex[i]);
   const home = await (await app.request('/')).text();
   assert.ok(home.includes('data-official="true"'));
   assert.ok(home.includes('Exports are counted and their designs are saved for 30 days.'));
   assert.ok(home.includes('/export.js'));
-  await redis.del(SHOWCASE_KEY,WITHDRAWN_KEY,keys.counters,keys.repositories, ...await redis.keys('exports:v1:*'));
+  await redis.del(SHOWCASE_KEY,EXPORT_INDEX_KEY, EXPORT_RATE_KEY,keys.counters,keys.repositories, ...await redis.keys('exports:v1:*'));
   await closeRedis();
   process.env.OFFICIAL_HOSTED_INSTANCE = 'false';
   process.env.ENABLE_STATS = 'true';
@@ -148,8 +203,8 @@ try {
   assert.deepEqual(await (await request('/exports',{action:'svg',showcase:false})).json(),{showcased:false,counted:false},'Selfhost DNT/GPC remains respected');
   assert.equal(await redis.exists(keys.counters),0);
   assert.equal((await (await app.request('/showcase')).json()).enabled,false);
-  console.log('PASS: all official exports saved with TTL, explicit showcasing, hidden unshared records, atomic retry/counting, proxy origin, pagination, withdrawal without republishing, full-gallery saves and self-host compatibility');
+  console.log('PASS: official export saving, bounded concurrent admission, Unicode limits, TTL/retry/counting, proxy origin, accessible feed, pending removal, expiry replay protection and self-host compatibility');
 } finally {
-  if (ownsKeys && redis.status === 'ready') await redis.del(SHOWCASE_KEY,WITHDRAWN_KEY,keys.counters,keys.repositories, ...await redis.keys('exports:v1:*'));
+  if (ownsKeys && redis.status === 'ready') await redis.del(SHOWCASE_KEY,EXPORT_INDEX_KEY, EXPORT_RATE_KEY,keys.counters,keys.repositories, ...await redis.keys('exports:v1:*'));
   await closeRedis();
 }

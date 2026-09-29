@@ -9,6 +9,7 @@ const snapshot = {
   schemaVersion: 2, enabled: true, available: true, coverage: 'partial',
   window: { day: '2026-09-29', timezone: 'UTC', firstRecordedAt: '2026-09-29T08:00:00Z' },
   recordedBannerRequests: 250, requestsWithRepositoryReferer: 50,
+  exports: { total: 8 },
   pageViews: { generator: 200, documentation: 50, usage: 20, total: 270, firstRecordedAt: '2026-09-29T09:00:00Z' },
   estimatedUniqueRepositories: 12, repositoryRefererCoverage: 0.2,
 };
@@ -42,6 +43,7 @@ const { nodes, setResponse, calls } = setup();
 await flush();
 assert.equal(nodes['usage-host'].textContent, 'banners.example.test');
 assert.equal(nodes['usage-requests'].textContent, '250');
+assert.equal(nodes['usage-exports'].textContent, '8');
 assert.equal(nodes['usage-repositories'].textContent, '12');
 assert.equal(nodes['usage-coverage'].textContent, '20%');
 assert.equal(nodes['usage-page-total'].textContent, '270');
@@ -49,9 +51,21 @@ assert.equal(nodes['usage-page-documentation'].textContent, '50');
 assert.equal(nodes['usage-results'].hidden, false);
 assert.equal(nodes['usage-day'].attributes.datetime, '2026-09-29');
 const refresh = () => nodes['usage-refresh'].click();
+const noPageOrBannerRequests = { ...snapshot, pageViews: { generator: 0, documentation: 0, usage: 0, total: 0, firstRecordedAt: null }, recordedBannerRequests: 0, requestsWithRepositoryReferer: 0, estimatedUniqueRepositories: 0, repositoryRefererCoverage: null, window: { ...snapshot.window, firstRecordedAt: null } };
+for (const [exports, count, title] of [
+  [{ total: 0 }, '0', /No observations recorded/],
+  [{ total: 3 }, '3', /Latest observations loaded/],
+  [undefined, 'Not available', /Latest observations loaded/],
+  [{ total: -1 }, 'Not available', /Latest observations loaded/],
+]) {
+  setResponse(() => Promise.resolve(Response.json({ ...noPageOrBannerRequests, exports })));
+  await refresh();
+  assert.equal(nodes['usage-exports'].textContent, count);
+  assert.match(nodes['usage-state-title'].textContent, title, 'Only confirmed zero exports can produce the empty state');
+  assert.equal(nodes['usage-results'].hidden, false);
+}
 for (const [data, title, hidden] of [
   [{ schemaVersion: 2, enabled: false }, /tracking is off/, true],
-  [{ ...snapshot, pageViews: { generator: 0, documentation: 0, usage: 0, total: 0, firstRecordedAt: null }, recordedBannerRequests: 0, requestsWithRepositoryReferer: 0, estimatedUniqueRepositories: 0, repositoryRefererCoverage: null, window: { ...snapshot.window, firstRecordedAt: null } }, /No observations recorded/, false],
   [{ ...snapshot, schemaVersion: 1 }, /unavailable/, true],
   [{ ...snapshot, recordedBannerRequests: -1 }, /unavailable/, true],
   [{ ...snapshot, window: null }, /unavailable/, true],

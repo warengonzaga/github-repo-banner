@@ -15,7 +15,7 @@ const json = (status, body) => new Response(JSON.stringify(body), { status, head
 const saved = (request, extra = {}) => json(201, { saved: true, id: request.id, showcased: request.showcase, ...extra });
 const settle = () => new Promise(setImmediate);
 
-function harness({ official = true, clipboard = 'native', save, failedDownloads = 0 } = {}) {
+function harness({ official = true, clipboard = 'native', save, failedDownloads = 0, secureCrypto = true } = {}) {
   const requests = [], renders = [], downloads = [], copies = [];
   const storage = new Map();
   const element = () => ({
@@ -50,7 +50,7 @@ function harness({ official = true, clipboard = 'native', save, failedDownloads 
         return { ...element(), click() { downloads.push(this.download); } };
       },
     },
-    crypto: webcrypto, URL, Blob, Uint8Array, AbortSignal, setTimeout() {},
+    crypto: secureCrypto ? webcrypto : {getRandomValues: webcrypto.getRandomValues.bind(webcrypto)}, URL, Blob, Uint8Array, AbortSignal, setTimeout() {},
     Image: class { async decode() { assert.match(this.src, /^data:image\/svg\+xml;charset=utf-8,/, 'SVG conversion must keep the canvas origin-clean'); } },
     localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) },
     navigator: { clipboard: {
@@ -98,7 +98,7 @@ for (const action of ['markdown', 'url', 'svg', 'png']) {
     assert.equal(request.body.showcase, showcase);
     assert.deepEqual(request.body.query, query, 'Both choices save the complete final design');
     assert.equal(request.body.policyVersion, '2026-09-29');
-    assert.match(request.body.id, /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
+    assert.match(request.body.id, /^\d{13}-[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
     assert.match(request.body.removalToken, /^[a-f0-9]{64}$/);
     assert.equal(ui.receipt.hidden, !showcase);
     if (showcase) assert.equal(ui.link.href, `/usage#remove=${request.body.id}.${request.body.removalToken}`);
@@ -174,6 +174,13 @@ for (const showcase of [false, true]) {
   assert.equal(ui.requests.length, 2);
   assert.deepEqual(ui.requests[1], ui.requests[0], 'Retry reuses the ID, settings, choice and removal token');
   assert.equal(ui.copies.length, 1);
+}
+
+for (const action of ['svg','png']) {
+  const ui = harness({official:false,secureCrypto:false});
+  await ui.begin(action);
+  assert.deepEqual(ui.downloads,[`banner-full.${action}`],'Self-hosted HTTP exports do not require secure-context-only randomUUID');
+  assert.deepEqual(Object.keys(ui.requests[0].body).sort(),['action','showcase']);
 }
 
 console.log('PASS: all export formats and choices save full settings; fallback publication notices, self-hosted controls, download retries and ambiguous-save retries');

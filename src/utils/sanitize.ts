@@ -31,15 +31,16 @@ const ICON_SYNTAX_START_RE = createIconSyntaxStartRegExp('');
 const RAW_MAX_LENGTH = 500;
 // Maximum number of icons allowed per header/subheader field
 const MAX_ICONS = 5;
+// Unicode mode preserves valid pairs while matching malformed or split surrogates.
+const LONE_SURROGATE_RE = /[\uD800-\uDFFF]/gu;
 
 export function sanitizeHeader(raw: string, maxLength: number = 50): string {
   const stripped = raw.replace(/<[^>]*>/g, '');
 
   // Apply hard cap before any other processing
-  const safeCapped = stripped.slice(
-    0,
-    Math.min(stripped.length, RAW_MAX_LENGTH),
-  );
+  const safeCapped = stripped
+    .slice(0, RAW_MAX_LENGTH)
+    .replace(LONE_SURROGATE_RE, '');
 
   // Calculate display length by removing icon syntax from the count
   // Icons render as images, not text, so they shouldn't count toward text limits
@@ -98,7 +99,7 @@ export function sanitizeHeader(raw: string, maxLength: number = 50): string {
     }
   }
 
-  return result.trimEnd();
+  return result.replace(LONE_SURROGATE_RE, '').trimEnd();
 }
 
 /**

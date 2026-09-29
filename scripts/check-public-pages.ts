@@ -30,5 +30,9 @@ for (const [, id] of usage.matchAll(/href="\/docs#([^"]+)"/g)) {
 }
 assert.ok(usage.includes('href="/stats"'), 'raw API stays accessible');
 assert.ok(usage.includes('src="/usage.js"'));
+const showcase = usage.match(/<section\b[^>]*id="community-showcase"[^>]*>[\s\S]*?<\/section>/)?.[0];
+assert.ok(showcase);
+assert.ok(!showcase.includes('<noscript>'), 'The JavaScript fallback must not inherit the hidden showcase section');
+assert.match(usage, /<\/section>\s*<noscript><p[^>]*>If community showcasing is enabled on this instance, enable JavaScript/);
 assert.equal((await ui.request('/docs/../../.env')).status, 404);
 console.log('PASS: public page routes, navigation, single H1, doc cross-links and CSS/JS assets');

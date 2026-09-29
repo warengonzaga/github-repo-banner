@@ -11,6 +11,7 @@ import {
   isOfficialInstance,
   isStatsEnabled,
 } from '../config/redis.js';
+import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
 import {
   recordExportRequest,
   usageKeys,
@@ -18,11 +19,16 @@ import {
 } from '../utils/usage-stats.js';
 
 export const SHOWCASE_KEY = 'showcase:v1:entries';
-export const WITHDRAWN_KEY = 'showcase:v1:withdrawn';
+export const EXPORT_INDEX_KEY = 'exports:v1:expiry';
+export const EXPORT_RATE_KEY = 'exports:v1:admissions';
+export const MAX_EXPORTS = 5_000;
+export const MAX_EXPORT_BYTES = 8_192;
+export const EXPORTS_PER_MINUTE = 60;
+export const NEW_EXPORT_WINDOW_MS = 15 * 60_000;
 export const SHOWCASE_POLICY = '2026-09-29';
 export const exportKey = (id: string) => `exports:v1:${id}`;
-const uuid =
-  /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
+const exportId =
+  /^\d{13}-[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const tokenPattern = /^[a-f0-9]{64}$/;
 const actions = new Set(['markdown', 'url', 'svg', 'png']);
 const digest = (value: string) =>
@@ -120,7 +126,7 @@ route.post('/exports', async (c) => {
     );
   if (
     typeof body.id !== 'string' ||
-    !uuid.test(body.id) ||
+    !exportId.test(body.id) ||
     typeof body.removalToken !== 'string' ||
     !tokenPattern.test(body.removalToken) ||
     body.policyVersion !== SHOWCASE_POLICY ||
@@ -129,7 +135,10 @@ route.post('/exports', async (c) => {
     Array.isArray(body.query) ||
     Object.keys(body.query).length > 20 ||
     Object.values(body.query).some(
-      (value) => typeof value !== 'string' || value.length > 2048,
+      (value) =>
+        typeof value !== 'string' ||
+        value.length > 2048 ||
+        /[\uD800-\uDFFF]/u.test(value),
     )
   ) {
     return c.json(
@@ -184,7 +193,13 @@ route.post('/exports', async (c) => {
         if not reason or reason == '' then reason = published and '' or 'removed' end
         return {0, published and 1 or 0, entry.expiresAt, reason}
       end
-      if redis.call('SISMEMBER', KEYS[4], ARGV[1]) == 1 then return {-2} end
+      local clock = redis.call('TIME')
+      local now = tonumber(clock[1]) * 1000 + math.floor(tonumber(clock[2]) / 1000)
+      local submittedAt = tonumber(string.sub(ARGV[1], 1, 13))
+      if submittedAt < now - ${NEW_EXPORT_WINDOW_MS} or submittedAt > now + 300000 then return {-2} end
+      -- Read before the first write: do not prune first and bypass Redis OOM admission.
+      if redis.call('ZCOUNT', KEYS[4], '(' .. now, '+inf') >= ${MAX_EXPORTS} then return {-3} end
+      if redis.call('ZCOUNT', KEYS[5], '(' .. (now - 60000), '+inf') >= ${EXPORTS_PER_MINUTE} then return {-4} end
       local kind = redis.call('TYPE', KEYS[3]).ok
       if kind ~= 'none' and kind ~= 'hash' then return redis.error_reply('Invalid usage counters') end
       for _, field in ipairs({'exports', 'showcased'}) do
@@ -192,12 +207,15 @@ route.post('/exports', async (c) => {
         if not value or value < 0 or value >= 9007199254740991 or value % 1 ~= 0 then return redis.error_reply('Invalid usage count') end
       end
       local entry = cjson.decode(ARGV[2])
+      entry.createdAt = now
+      entry.expiresAt = now + tonumber(ARGV[4]) * 1000
       local publish = ARGV[5] == 'true' and redis.call('HLEN', KEYS[1]) < 1000
       entry.showcased = publish
       local reason = ARGV[5] == 'true' and not publish and 'full' or ''
       entry.showcaseReason = reason
       local encoded = cjson.encode(entry)
-      redis.call('SET', KEYS[2], encoded, 'EX', ARGV[4])
+      if string.len(encoded) > ${MAX_EXPORT_BYTES} then return {-5} end
+      redis.call('SET', KEYS[2], encoded, 'PXAT', entry.expiresAt)
       if publish then
         local publication = redis.pcall('HSET', KEYS[1], ARGV[1], encoded)
         if type(publication) == 'table' and publication.err then
@@ -205,17 +223,23 @@ route.post('/exports', async (c) => {
           return redis.error_reply(publication.err)
         end
       end
+      redis.call('ZREMRANGEBYSCORE', KEYS[4], '-inf', now)
+      redis.call('ZADD', KEYS[4], entry.expiresAt, ARGV[1])
+      redis.call('ZREMRANGEBYSCORE', KEYS[5], '-inf', now - 60000)
+      redis.call('ZADD', KEYS[5], now, ARGV[1])
+      redis.call('PEXPIRE', KEYS[5], 60000)
       redis.call('HINCRBY', KEYS[3], 'exports', 1)
       if publish then redis.call('HINCRBY', KEYS[3], 'showcased', 1) end
       redis.call('HSETNX', KEYS[3], 'exportsStartedAt', ARGV[6])
       redis.call('EXPIRE', KEYS[3], 604800)
       return {1, publish and 1 or 0, entry.expiresAt, reason}
     `,
-      4,
+      5,
       SHOWCASE_KEY,
       exportKey(entry.id),
       keys.counters,
-      WITHDRAWN_KEY,
+      EXPORT_INDEX_KEY,
+      EXPORT_RATE_KEY,
       entry.id,
       JSON.stringify(entry),
       fingerprint,
@@ -227,10 +251,24 @@ route.post('/exports', async (c) => {
       return c.json(
         {
           error:
-            'This submission was withdrawn and its saved export expired. Close this dialog and start a new export.',
+            'This export request has expired or your device clock is incorrect. Close this dialog, check your clock and start a new export.',
         },
         409,
       );
+    if (result[0] === -3 || result[0] === -4) {
+      if (result[0] === -4) c.header('Retry-After', '60');
+      return c.json(
+        {
+          error:
+            result[0] === -3
+              ? 'Export storage is at capacity. No export was saved. Please try again later.'
+              : 'Too many new exports. No export was saved. Please try again in a minute.',
+        },
+        429,
+      );
+    }
+    if (result[0] === -5)
+      return c.json({ error: 'This design is too large to save.' }, 413);
     if (result[0] === -1)
       return c.json(
         { error: 'This export was already submitted with different settings.' },
@@ -263,7 +301,7 @@ route.get('/showcase', async (c) => {
     return c.json({ enabled: false, entries: [], nextCursor: null });
   const before = c.req.query('before');
   // Timestamp plus ID gives stable pagination when submissions share a millisecond.
-  if (before && !/^\d{13}:[a-f0-9-]{36}$/.test(before))
+  if (before && !/^\d{13}:\d{13}-[a-f0-9-]{36}$/.test(before))
     return c.json({ error: 'Invalid cursor.' }, 400);
   try {
     const redis = getRedis();
@@ -277,9 +315,16 @@ route.get('/showcase', async (c) => {
     const last = page.at(-1);
     return c.json({
       enabled: true,
-      entries: page.map(({ id, createdAt }) => ({
+      entries: page.map(({ id, createdAt, options }) => ({
         id,
         createdAt,
+        label:
+          [options.header, options.subheader]
+            .filter(Boolean)
+            .join(' — ')
+            .replace(createIconSyntaxRegExp(), '$1 icon')
+            .replace(/\s+/g, ' ')
+            .trim() || 'Untitled banner',
         previewUrl: `/showcase/${id}.svg`,
       })),
       nextCursor:
@@ -293,7 +338,7 @@ route.get('/showcase', async (c) => {
 route.get('/showcase/:filename', async (c) => {
   const filename = c.req.param('filename');
   const id = filename.endsWith('.svg') ? filename.slice(0, -4) : '';
-  if (!isOfficialInstance() || !uuid.test(id)) return c.notFound();
+  if (!isOfficialInstance() || !exportId.test(id)) return c.notFound();
   try {
     const raw = await getRedis()?.hget(SHOWCASE_KEY, id);
     if (!raw) return c.notFound();
@@ -313,7 +358,7 @@ route.get('/showcase/:filename', async (c) => {
 
 route.delete('/showcase/:id', async (c) => {
   const id = c.req.param('id');
-  if (!isOfficialInstance() || !uuid.test(id)) return c.notFound();
+  if (!isOfficialInstance() || !exportId.test(id)) return c.notFound();
   let token: unknown;
   try {
     token = (await c.req.json()).removalToken;
@@ -328,17 +373,30 @@ route.delete('/showcase/:id', async (c) => {
     const removed = await redis.eval(
       `
       local entry = redis.call('HGET', KEYS[1], ARGV[1])
-      if not entry then return 0 end
+      if not entry then
+        if redis.call('EXISTS', KEYS[2]) == 1 then return 0 end
+        local clock = redis.call('TIME')
+        local now = tonumber(clock[1]) * 1000 + math.floor(tonumber(clock[2]) / 1000)
+        if tonumber(string.sub(ARGV[1], 1, 13)) >= now - ${NEW_EXPORT_WINDOW_MS} then return -2 end
+        return 0
+      end
       if cjson.decode(entry).removalHash ~= ARGV[2] then return -1 end
-      redis.call('SADD', KEYS[2], ARGV[1])
       return redis.call('HDEL', KEYS[1], ARGV[1])
     `,
       2,
       SHOWCASE_KEY,
-      WITHDRAWN_KEY,
+      exportKey(id),
       id,
       digest(token),
     );
+    if (removed === -2)
+      return c.json(
+        {
+          error:
+            'This export may still be submitting. Removal is not confirmed. Try this removal link again shortly.',
+        },
+        409,
+      );
     if (removed === -1)
       return c.json(
         { error: 'This removal code does not match the design.' },

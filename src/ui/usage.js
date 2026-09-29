@@ -69,7 +69,8 @@ async function loadUsage() {
     element('pages-window').textContent = data.pageViews.firstRecordedAt
       ? `First recorded page view: ${utcTime.format(new Date(data.pageViews.firstRecordedAt))} UTC.`
       : 'No page views recorded for this UTC day.';
-    element('exports').textContent = Number.isSafeInteger(data.exports?.total) && data.exports.total >= 0 ? number.format(data.exports.total) : 'Not available';
+    const exportTotal = Number.isSafeInteger(data.exports?.total) && data.exports.total >= 0 ? data.exports.total : null;
+    element('exports').textContent = exportTotal === null ? 'Not available' : number.format(exportTotal);
     element('requests').textContent = number.format(data.recordedBannerRequests);
     element('repositories').textContent = number.format(data.estimatedUniqueRepositories);
     element('referred').textContent = number.format(data.requestsWithRepositoryReferer);
@@ -78,7 +79,7 @@ async function loadUsage() {
       ? `First recorded banner request: ${utcTime.format(new Date(data.window.firstRecordedAt))} UTC. This may cover only part of the day.`
       : 'No banner request has been recorded for this UTC day.';
     element('updated').textContent = `Fetched at ${utcTime.format(new Date())} UTC. Refresh to check for newer observations.`;
-    const empty = data.recordedBannerRequests === 0 && data.pageViews.total === 0;
+    const empty = data.recordedBannerRequests === 0 && data.pageViews.total === 0 && exportTotal === 0;
     status(empty ? 'No observations recorded today' : 'Latest observations loaded',
       empty ? 'Zero recorded requests does not mean zero users. Caches, opt-outs and unrecorded periods affect this view.' : 'Daily observations, not lifetime totals. Includes previews, bots and retries.');
     results.hidden = false;

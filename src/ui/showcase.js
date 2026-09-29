@@ -12,7 +12,7 @@ if (section && document.body.dataset.official === 'true') {
   /** @type {string|null} */
   let cursor = null;
   let loading = false;
-  const pattern = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\.[a-f0-9]{64}$/;
+  const pattern = /^\d{13}-[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\.[a-f0-9]{64}$/;
   const fragment = new URLSearchParams(location.hash.slice(1)).get('remove');
   if (fragment && pattern.test(fragment)) {
     code.value = fragment;
@@ -35,9 +35,9 @@ if (section && document.body.dataset.official === 'true') {
       if (!response.ok) throw new Error();
       const data = await response.json();
       if (data.enabled !== true || !Array.isArray(data.entries) || data.entries.length > 12 ||
-        !(data.nextCursor === null || /^\d{13}:[a-f0-9-]{36}$/.test(data.nextCursor)) ||
-        data.entries.some(/** @param {{id:string,createdAt:number,previewUrl:string}} entry */ entry =>
-          !/^[a-f0-9-]{36}$/.test(entry.id) || !Number.isSafeInteger(entry.createdAt) || entry.createdAt < 0 || entry.previewUrl !== `/showcase/${entry.id}.svg`)) throw new Error();
+        !(data.nextCursor === null || /^\d{13}:\d{13}-[a-f0-9-]{36}$/.test(data.nextCursor)) ||
+        data.entries.some(/** @param {{id:string,createdAt:number,previewUrl:string,label:string}} entry */ entry =>
+          !/^\d{13}-[a-f0-9-]{36}$/.test(entry.id) || typeof entry.label !== 'string' || !entry.label.trim() || entry.label.length > 1200 || !Number.isSafeInteger(entry.createdAt) || entry.createdAt < 0 || entry.previewUrl !== `/showcase/${entry.id}.svg`)) throw new Error();
       const codes = savedCodes();
       for (const entry of data.entries) {
         if (seen.has(entry.id)) continue;
@@ -45,7 +45,7 @@ if (section && document.body.dataset.official === 'true') {
         const item = document.createElement('li'); item.dataset.id = entry.id;
         const image = document.createElement('img');
         image.src = entry.previewUrl; image.width = 1280; image.height = 304;
-        image.alt = 'Community banner design'; image.loading = 'lazy'; image.decoding = 'async';
+        image.alt = entry.label; image.loading = 'lazy'; image.decoding = 'async';
         const caption = document.createElement('p');
         const time = document.createElement('time');
         time.dateTime = new Date(entry.createdAt).toISOString();

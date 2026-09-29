@@ -42,7 +42,7 @@ function showStatus(text) {
 /** @param {Snapshot} snapshot @param {HTMLButtonElement} button */
 export function beginExport(snapshot, button) {
   if (busy || dialog.open) return;
-  current = { snapshot, button, id: crypto.randomUUID(), token: Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, '0')).join(''), recorded: false, pending: false, chosen: null, showcased: false, reason: '' };
+  current = { snapshot, button, id: '', token: '', recorded: false, pending: false, chosen: null, showcased: false, reason: '' };
   showStatus('');
   receipt.hidden = true;
   retry.hidden = true;
@@ -56,6 +56,10 @@ export function beginExport(snapshot, button) {
 /** @param {boolean} showcase */
 async function record(showcase) {
   if (!current || current.recorded) return;
+  if (official && !current.id) {
+    current.id = `${Date.now()}-${crypto.randomUUID()}`;
+    current.token = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, '0')).join('');
+  }
   const {snapshot, id, token} = current;
   const request = official ? { action: snapshot.action, showcase, id, removalToken: token,
     query: Object.fromEntries(new URL(snapshot.url).searchParams), policyVersion: '2026-09-29' } : { action: snapshot.action, showcase };

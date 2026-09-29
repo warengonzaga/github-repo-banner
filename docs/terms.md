@@ -30,7 +30,7 @@ Public showcase copies remain until withdrawn or removed by the operator, indepe
 
 If you cannot use the removal code, contact the maintainer through [project issues](https://github.com/warengonzaga/github-repo-banner/issues) with the entry ID. Do not post removal codes or sensitive content in a public issue.
 
-Previews are rendered from settings, not archived image snapshots. External images, fonts or other assets may change or become unavailable. If the gallery is full, the service still saves the export and counts usage, but explains that the design was not showcased. A storage failure can prevent an official export from completing; retrying the same saved export does not extend its retention, count it again or republish a withdrawn showcase.
+Previews are rendered from settings, not archived image snapshots. External images, fonts or other assets may change or become unavailable. If the gallery is full, the service still saves the export and counts usage, but explains that the design was not showcased. A storage failure or a service capacity/rate limit can prevent an official export from completing; retrying the same saved export does not extend its retention, count it again or republish a withdrawn showcase.
 
 ## Software and service
 
