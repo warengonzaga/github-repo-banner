@@ -16,7 +16,7 @@ async function fails(redisUrl: string, expected: RegExp) {
   try {
     const code = await new Promise<number | null>((resolve, reject) => {
       child.once('error', reject);
-      child.once('exit', resolve);
+      child.once('close', resolve);
     });
     assert.equal(code, 1, 'startup must exit without hanging or serving');
     assert.match(output, expected);

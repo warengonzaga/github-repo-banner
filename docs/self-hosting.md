@@ -46,7 +46,7 @@ See [`.env.example`](../.env.example). Disabling tracking does not disable Redis
 
 ## Upgrade and Availability
 
-**Breaking configuration change:** every deployment now requires Redis, even with `ENABLE_STATS=false`. Existing deployments must provision Redis and set `REDIS_URL` before upgrading. Startup fails with a credential-free error if the URL is missing/invalid or Redis cannot be reached; the HTTP listener does not start.
+**Breaking configuration change in 2.0.0:** every deployment now requires Redis, even with `ENABLE_STATS=false`. Existing deployments must provision Redis and set `REDIS_URL` before upgrading. Startup fails with a credential-free error if the URL is missing/invalid or Redis cannot be reached; the HTTP listener does not start.
 
 During an outage, `/health` returns 503 and Pexels search returns 503 without bypassing the request budget. The app reconnects automatically when Redis recovers. Plain banner rendering remains available directly from the running process, but a hosting platform may remove unhealthy instances from traffic. Statistics remain optional; `/stats` reports storage failures when tracking is enabled.
 
