@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import bannerRoute from '../src/routes/banner';
+import { sanitizeHeader } from '../src/utils/sanitize';
+
+// Execute the documented example rather than a second URL builder.
+const skill = readFileSync('skills/github-repo-banner/SKILL.md', 'utf8');
+const example = skill.match(/```js\n([\s\S]*?)```/)?.[1];
+assert.ok(example);
+const basic = new Function(`${example}; return bannerUrl;`)();
+assert.equal(new URL(basic).pathname, '/banner');
+assert.equal(new URL(basic).searchParams.get('header'), 'My Project');
+for (const bg of ['0d1117', '0d1117-243b55', '00000000']) {
+  const url = new URL(basic);
+  url.searchParams.set('bg', bg);
+  url.searchParams.set('header', 'Café 🚀 & + #');
+  assert.equal(url.searchParams.get('header'), 'Café 🚀 & + #');
+  const response = await bannerRoute.request(url);
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type') || '', /image\/svg\+xml/);
+  const svg = await response.text();
+  assert.ok(svg.includes('Café '));
+  assert.ok(svg.includes('&amp; + #'));
+  assert.ok(svg.includes(`#${bg.split('-')[0]}`));
+}
+const image = 'https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg?w=1280&auto=compress';
+const url = new URL(basic);
+url.searchParams.set('bgimg', image);
+url.searchParams.set('header', '![github] Café 🚀');
+url.searchParams.set('headerfont', 'Roboto');
+assert.equal(new URL(url.href).searchParams.get('bgimg'), image);
+assert.equal(new URL(url.href).searchParams.get('header'), '![github] Café 🚀');
+assert.equal(sanitizeHeader('![github] Café 🚀'), '![github] Café 🚀');
+assert.equal(sanitizeHeader('a'.repeat(51)), 'a'.repeat(50));
+assert.equal(sanitizeHeader('b'.repeat(61), 60), 'b'.repeat(60));
+assert.equal(sanitizeHeader('🚀'.repeat(26)).length, 50);
+assert.equal((sanitizeHeader('![github]'.repeat(6)).match(/!\[github\]/g) || []).length, 5);
+url.searchParams.set('bgimg', 'https://localhost/image.png');
+url.searchParams.set('bg', 'not-a-color');
+url.searchParams.set('header', 'Fallback');
+url.searchParams.delete('headerfont');
+const fallback = await (await bannerRoute.request(url)).text();
+assert.ok(fallback.includes('#1a1a1a'));
+assert.ok(!fallback.includes('data:image/'));
+const manifest = JSON.parse(readFileSync('.codex-plugin/plugin.json', 'utf8'));
+const catalog = JSON.parse(readFileSync('.agents/plugins/marketplace.json', 'utf8'));
+assert.equal(manifest.name, 'github-repo-banner');
+assert.equal(catalog.plugins[0].name, manifest.name);
+assert.equal(catalog.plugins[0].source.path, './');
+console.log('PASS: documented example, backgrounds, encoding, limits, fallback, package linkage');
+console.log('Not covered: model behavior, fresh-session discovery, external assets, visual preview, README edits');
