@@ -148,6 +148,20 @@
       border-bottom: 1px solid #21262d;
     }
 
+    .background-controls {
+      border: 0;
+      min-width: 0;
+    }
+
+    .background-controls:disabled {
+      opacity: 0.5;
+    }
+
+    .background-controls:disabled .color-preview,
+    .background-controls:disabled button {
+      cursor: not-allowed;
+    }
+
     .settings-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -1355,7 +1369,7 @@
           </div>
         </div>
 
-        <div class="form-group">
+        <fieldset class="form-group background-controls" data-background-controls aria-describedby="background-state">
           <label for="bg-input">Primary Background Color</label>
           <div class="color-row">
             <div class="hex-input-group">
@@ -1365,9 +1379,9 @@
             <span class="color-preview" id="bg-preview" title="Click to open color picker"></span>
             <input type="color" id="bg-picker" class="color-picker-input" />
           </div>
-        </div>
+        </fieldset>
 
-        <div class="form-group">
+        <fieldset class="form-group background-controls" data-background-controls aria-describedby="background-state">
           <label for="bg-input-2">Secondary Background Color</label>
           <div class="color-row">
             <div class="hex-input-group">
@@ -1380,7 +1394,7 @@
           <p style="font-size: 0.75rem; color: #7d8590; margin-top: 0.5rem;">
             Leave empty for solid background color.
           </p>
-        </div>
+        </fieldset>
         </div>
 
         <div class="form-group" style="grid-column: 1 / -1;">
@@ -1388,6 +1402,9 @@
           <input type="text" id="bgimg-input" value="" placeholder="https://images.pexels.com/photos/..." maxlength="2048" />
           <p style="font-size: 0.75rem; color: #7d8590; margin-top: 0.5rem;">
             HTTPS image URL. Overrides background color when set. Max 10 MB.
+          </p>
+          <p id="background-state" role="status" style="font-size: 0.875rem; color: #c9d1d9; margin-top: 0.5rem;">
+            Background colors and presets are available.
           </p>
           <div id="pexels-section" style="margin-top: 0.75rem;">
             <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -1402,7 +1419,7 @@
           </div>
         </div>
 
-        <div class="form-group">
+        <fieldset class="form-group background-controls" data-background-controls aria-describedby="background-state">
           <label>Color Presets (click to apply)</label>
           <div class="bg-options">
             <div class="bg-option">
@@ -1487,7 +1504,7 @@
           </button>
         </div>
       </div>
-        </div>
+        </fieldset>
 
         </div>
 
@@ -1834,6 +1851,27 @@
       subheaderFontGroup.style.display = hasSubheader ? 'block' : 'none';
     }
 
+    function getBackgroundImageUrl() {
+      const value = bgImgInput.value.trim();
+      if (!value || value.length > 2048) return '';
+      try {
+        const url = new URL(value);
+        return url.protocol === 'https:' && !url.username && !url.password ? value : '';
+      } catch {
+        return '';
+      }
+    }
+
+    function updateBackgroundControls() {
+      const hasImage = Boolean(getBackgroundImageUrl());
+      document.querySelectorAll('[data-background-controls]').forEach(group => {
+        group.disabled = hasImage;
+      });
+      document.getElementById('background-state').textContent = hasImage
+        ? 'Image background active. Clear the image URL to use colors and presets; your color settings are saved.'
+        : 'Background colors and presets are available.';
+    }
+
     function buildUrl() {
       const params = new URLSearchParams();
       const header = headerInput.value || '![github] Hello World 👋';
@@ -1843,16 +1881,8 @@
         params.set('subheader', subheader);
       }
       
-      // Background image URL takes priority over color
-      const bgImgUrl = bgImgInput.value.trim();
-      if (bgImgUrl) {
-        try {
-          const parsed = new URL(bgImgUrl);
-          if (parsed.protocol === 'https:') {
-            params.set('bgimg', bgImgUrl);
-          }
-        } catch {}
-      }
+      const bgImgUrl = getBackgroundImageUrl();
+      if (bgImgUrl) params.set('bgimg', bgImgUrl);
 
       // Check if second bg exists to determine gradient or solid
       const bgHex = getBgHex();
@@ -1902,6 +1932,7 @@
     }
 
     function update() {
+      updateBackgroundControls();
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         const url = buildUrl();
@@ -2222,7 +2253,7 @@
     function setupColorPicker(previewEl, pickerEl, inputEl) {
       // Click preview to open picker
       previewEl.addEventListener('click', () => {
-        pickerEl.click();
+        if (!pickerEl.matches(':disabled')) pickerEl.click();
       });
 
       // When picker changes, update hex input
@@ -2492,16 +2523,8 @@
         params.set('subheader', subheader);
       }
       
-      // Background image URL takes priority
-      const bgImgUrl = bgImgInput.value.trim();
-      if (bgImgUrl) {
-        try {
-          const parsed = new URL(bgImgUrl);
-          if (parsed.protocol === 'https:') {
-            params.set('bgimg', bgImgUrl);
-          }
-        } catch {}
-      }
+      const bgImgUrl = getBackgroundImageUrl();
+      if (bgImgUrl) params.set('bgimg', bgImgUrl);
 
       // Use preset bg if active (gradient or transparent), otherwise custom hex
       if (currentPreset) {
