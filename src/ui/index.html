@@ -1649,7 +1649,8 @@
     </aside>
   </div>
 
-  <script>
+  <script type="module">
+    import { isValidImageUrl } from '/image-url.js';
     const headerInput = document.getElementById('header');
     const subheaderInput = document.getElementById('subheader');
     const previewImg = document.getElementById('preview');
@@ -1853,13 +1854,7 @@
 
     function getBackgroundImageUrl() {
       const value = bgImgInput.value.trim();
-      if (!value || value.length > 2048) return '';
-      try {
-        const url = new URL(value);
-        return url.protocol === 'https:' && !url.username && !url.password ? value : '';
-      } catch {
-        return '';
-      }
+      return isValidImageUrl(value) ? value : '';
     }
 
     function updateBackgroundControls() {
@@ -1867,9 +1862,11 @@
       document.querySelectorAll('[data-background-controls]').forEach(group => {
         group.disabled = hasImage;
       });
-      document.getElementById('background-state').textContent = hasImage
+      const status = document.getElementById('background-state');
+      const message = hasImage
         ? 'Image background active. Clear the image URL to use colors and presets; your color settings are saved.'
         : 'Background colors and presets are available.';
+      if (status.textContent !== message) status.textContent = message;
     }
 
     function buildUrl() {
