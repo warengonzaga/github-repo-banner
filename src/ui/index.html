@@ -61,8 +61,14 @@
       margin-bottom: 0;
       gap: 0;
       overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
       background: transparent;
       padding: 0.5rem 1rem 0 1rem;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+      display: none;
     }
 
     .nav-tab {
@@ -85,7 +91,6 @@
       align-items: center;
       gap: 0.5rem;
       position: relative;
-      margin-bottom: -1px;
     }
 
     .nav-tab:focus-visible {
@@ -1796,6 +1801,7 @@
         event.preventDefault();
         documentTabs[nextIndex].focus();
         selectDocumentTab(documentTabs[nextIndex]);
+        documentTabs[nextIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' });
       });
     });
 

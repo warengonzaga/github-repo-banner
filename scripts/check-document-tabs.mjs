@@ -5,9 +5,14 @@ import { runInNewContext } from 'node:vm';
 const html = readFileSync(new URL('../src/ui/index.html', import.meta.url), 'utf8');
 const source = html.slice(html.indexOf('    function selectDocumentTab('), html.indexOf('    documentTabs.forEach((tab, index)'));
 const panels = { readme: {}, conduct: {}, license: {} };
+let focused;
+let scrolled;
 const tabs = Object.keys(panels).map(id => ({
   getAttribute: () => id, setAttribute(key, value) { this[key] = value; },
   classList: { toggle() {} },
+  addEventListener(event, handler) { this[event] = handler; },
+  focus() { focused = this; },
+  scrollIntoView() { scrolled = this; },
 }));
 const context = { documentTabs: tabs, document: { getElementById: id => panels[id] } };
 for (const selected of tabs) {
@@ -17,4 +22,12 @@ for (const selected of tabs) {
     assert.equal(panels[tab.getAttribute()].hidden, tab !== selected);
     assert.equal(tab.tabIndex, tab === selected ? 0 : -1);
   }
+}
+const keySource = html.slice(html.indexOf('    documentTabs.forEach((tab, index)'), html.indexOf('    const headerInput ='));
+runInNewContext(source + keySource, context);
+for (const [from, key, expected] of [[0, 'End', 2], [2, 'Home', 0], [0, 'ArrowLeft', 2], [2, 'ArrowRight', 0]]) {
+  tabs[from].keydown({ key, preventDefault() {} });
+  assert.equal(focused, tabs[expected]);
+  assert.equal(scrolled, tabs[expected], 'keyboard-selected tab must be revealed when it overflows');
+  assert.equal(tabs[expected]['aria-selected'], 'true');
 }

@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# Keep release creation and its image publishing in order on main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   ci:
     name: CI
@@ -82,17 +87,72 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    concurrency:
-      group: github-repo-banner-release
-      cancel-in-progress: false
+    outputs:
+      created: ${{ steps.release.outputs.release-created }}
+      version-tag: ${{ steps.release.outputs.version-tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      # Railway deploys from GitHub; releases do not require registry publishing.
       - name: Create Release
+        id: release
         uses: wgtechlabs/release-build-flow-action@6df9cb42c24c296d902150d051a0b6be4422cccc # v1.8.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  container:
+    name: Publish Container
+    needs: release
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.release.outputs.created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - name: Reject superseded release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.release.outputs.version-tag }}
+        run: |
+          latest_tag=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)
+          if [ -z "$RELEASE_TAG" ] || [ "$latest_tag" != "$RELEASE_TAG" ]; then
+            echo "::error::This release is no longer current. Refusing to overwrite floating image tags."
+            exit 1
+          fi
+
+      - name: Checkout released source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.version-tag }}
+
+      - name: Record released revision
+        id: source
+        run: printf 'sha=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
+
+      - name: Publish release images
+        id: container
+        uses: wgtechlabs/container-build-flow-action@fb5c0662b33f7702bc1ccf85350689436989f606 # v1.9.0
+        with:
+          registry: both
+          dockerhub-username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          ghcr-token: ${{ secrets.GITHUB_TOKEN }}
+          planned-version-tag: ${{ needs.release.outputs.version-tag }}
+          bot-detection: false
+          labels: |
+            org.opencontainers.image.revision=${{ steps.source.outputs.sha }}
+
+      - name: Require both registries
+        env:
+          DOCKERHUB_PUBLISHED: ${{ steps.container.outputs.dockerhub-published }}
+          GHCR_PUBLISHED: ${{ steps.container.outputs.ghcr-published }}
+        run: test "$DOCKERHUB_PUBLISHED" = true && test "$GHCR_PUBLISHED" = true
