@@ -1,0 +1,20 @@
+{
+  "name": "github-repo-banner",
+  "interface": {
+    "displayName": "GitHub Repo Banner"
+  },
+  "plugins": [
+    {
+      "name": "github-repo-banner",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

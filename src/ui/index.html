@@ -60,11 +60,14 @@
       border-bottom: 1px solid #21262d;
       margin-bottom: 0;
       gap: 0;
+      overflow-x: auto;
       background: transparent;
       padding: 0.5rem 1rem 0 1rem;
     }
 
     .nav-tab {
+      flex: 0 0 auto;
+      white-space: nowrap;
       padding: 0.5rem 0.75rem;
       font-size: 0.875rem;
       font-weight: 400;
@@ -75,12 +78,53 @@
       border-bottom: 2px solid transparent;
       background: transparent;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: color 0.15s, border-color 0.15s;
+      font-family: inherit;
+      min-height: 44px;
       display: flex;
       align-items: center;
       gap: 0.5rem;
       position: relative;
       margin-bottom: -1px;
+    }
+
+    .nav-tab:focus-visible {
+      outline: 2px solid #58a6ff;
+      outline-offset: -2px;
+    }
+
+    .document-panel {
+      padding: 1.5rem 2rem;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .policy-document > * {
+      max-width: 75ch;
+    }
+
+    .policy-document h2, .policy-document h3 {
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+    }
+
+    .policy-document p, .policy-document ul {
+      margin-bottom: 1em;
+    }
+
+    .policy-document ul {
+      padding-left: 1.5em;
+    }
+
+    .policy-document a {
+      color: #58a6ff;
+      text-underline-offset: 0.15em;
+    }
+
+    .document-text {
+      max-width: 75ch;
+      white-space: pre-wrap;
+      font: inherit;
     }
 
     .nav-tab svg {
@@ -91,6 +135,7 @@
     }
 
     .nav-tab:hover {
+      background: #161b22;
       color: #c9d1d9;
       border-bottom-color: #484f58;
     }
@@ -98,6 +143,13 @@
     .nav-tab.active {
       color: #c9d1d9;
       border-bottom-color: #f78166;
+    }
+
+    @media (max-width: 480px) {
+      .nav-tabs { padding-inline: 0.25rem; }
+      .nav-tab { padding-inline: 0.375rem; }
+      .nav-tab svg { display: none; }
+      .document-panel { padding: 1.25rem 1rem; }
     }
 
     .content-container {
@@ -146,6 +198,36 @@
       color: #c9d1d9;
       padding-bottom: 0.375rem;
       border-bottom: 1px solid #21262d;
+    }
+
+    .background-styling {
+      grid-column: 1 / -1;
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+    }
+    .background-styling legend { padding: 0 0.375rem; font-weight: 600; }
+    .effect-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .effect-control label { display: flex; justify-content: space-between; gap: 0.5rem; }
+    .effect-control output { font-variant-numeric: tabular-nums; color: #c9d1d9; }
+    .effect-control input[type="range"] { width: 100%; min-height: 44px; padding: 0; border: 0; background: transparent; accent-color: #58a6ff; cursor: pointer; }
+    .effect-control input:disabled { opacity: 0.45; cursor: not-allowed; }
+    .background-styling p { color: #9da7b3; font-size: 0.8125rem; line-height: 1.5; }
+    .background-styling button { min-height: 44px; }
+    @media (max-width: 480px) { .effect-controls { grid-template-columns: 1fr; } }
+    .background-controls {
+      border: 0;
+      min-width: 0;
+    }
+
+    .background-controls:disabled {
+      opacity: 0.5;
+    }
+
+    .background-controls:disabled .color-preview,
+    .background-controls:disabled button {
+      cursor: not-allowed;
     }
 
     .settings-grid {
@@ -611,27 +693,6 @@
     .preset-btn.active {
       border-color: #1f6feb;
       background: rgba(31, 111, 235, 0.1);
-    }
-
-    .new-badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #238636;
-      color: #fff;
-      font-size: 0.625rem;
-      font-weight: 600;
-      padding: 0.125rem 0.375rem;
-      border-radius: 12px;
-      text-transform: uppercase;
-      z-index: 1;
-      pointer-events: none;
-      opacity: 1;
-      transition: opacity 0.3s ease-out;
-    }
-
-    .new-badge.fade-out {
-      opacity: 0;
     }
 
     .settings-header {
@@ -1177,28 +1238,28 @@
   <div class="layout">
     <main class="main-content">
       <div class="readme-container">
-        <div class="nav-tabs">
-        <div class="nav-tab active">
+        <div class="nav-tabs" role="tablist" aria-label="Repository documents">
+        <button type="button" class="nav-tab active" id="readme-tab" role="tab" aria-selected="true" aria-controls="readme-panel">
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path>
           </svg>
           README
-        </div>
-        <div class="nav-tab">
+        </button>
+        <button type="button" class="nav-tab" id="conduct-tab" role="tab" aria-selected="false" aria-controls="conduct-panel" tabindex="-1">
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
           </svg>
           Code of conduct
-        </div>
-        <div class="nav-tab">
+        </button>
+        <button type="button" class="nav-tab" id="license-tab" role="tab" aria-selected="false" aria-controls="license-panel" tabindex="-1">
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.234a.75.75 0 0 1 0 1.5h-.427l2.111 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.006.005-.01.01-.045.04c-.21.176-.441.327-.686.45C14.556 10.78 13.88 11 13 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L12.178 4.5h-.162c-.305 0-.604-.079-.868-.231l-1.29-.736a.245.245 0 0 0-.124-.033H8.75V13h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5V3.5h-.984a.245.245 0 0 0-.124.033l-1.289.737c-.265.15-.564.23-.869.23h-.162l2.112 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.016.015-.045.04c-.21.176-.441.327-.686.45C4.556 10.78 3.88 11 3 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L2.178 4.5H1.75a.75.75 0 0 1 0-1.5h2.234a.249.249 0 0 0 .125-.033l1.288-.737c.265-.15.564-.23.869-.23h.984V.75a.75.75 0 0 1 1.5 0Zm2.945 8.477c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L13 6.327Zm-10 0c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L3 6.327Z"></path>
           </svg>
           MIT license
-        </div>
+        </button>
       </div>
 
-      <div class="content-container">
+      <div class="content-container" id="readme-panel" role="tabpanel" aria-labelledby="readme-tab" tabindex="0">
         <div class="article-title-container">
           <h1 class="article-title">GitHub Repo Banner</h1>
         </div>
@@ -1355,7 +1416,7 @@
           </div>
         </div>
 
-        <div class="form-group">
+        <fieldset class="form-group background-controls" data-background-controls aria-describedby="background-state">
           <label for="bg-input">Primary Background Color</label>
           <div class="color-row">
             <div class="hex-input-group">
@@ -1365,9 +1426,9 @@
             <span class="color-preview" id="bg-preview" title="Click to open color picker"></span>
             <input type="color" id="bg-picker" class="color-picker-input" />
           </div>
-        </div>
+        </fieldset>
 
-        <div class="form-group">
+        <fieldset class="form-group background-controls" data-background-controls aria-describedby="background-state">
           <label for="bg-input-2">Secondary Background Color</label>
           <div class="color-row">
             <div class="hex-input-group">
@@ -1380,7 +1441,7 @@
           <p style="font-size: 0.75rem; color: #7d8590; margin-top: 0.5rem;">
             Leave empty for solid background color.
           </p>
-        </div>
+        </fieldset>
         </div>
 
         <div class="form-group" style="grid-column: 1 / -1;">
@@ -1389,20 +1450,56 @@
           <p style="font-size: 0.75rem; color: #7d8590; margin-top: 0.5rem;">
             HTTPS image URL. Overrides background color when set. Max 10 MB.
           </p>
+          <p id="background-state" role="status" style="font-size: 0.875rem; color: #c9d1d9; margin-top: 0.5rem;">
+            Background colors and presets are available.
+          </p>
           <div id="pexels-section" style="margin-top: 0.75rem;">
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <input type="text" id="pexels-query" placeholder="Search Pexels for images..." style="flex: 1;" />
+              <input type="text" id="pexels-query" aria-label="Search Pexels images" aria-describedby="pexels-status" placeholder="Search Pexels for images..." style="flex: 1;" />
               <button type="button" id="pexels-search-btn" style="padding: 0.5rem 1rem; background: #238636; color: #fff; border: 1px solid rgba(240,246,252,0.1); border-radius: 6px; cursor: pointer; font-size: 0.875rem; white-space: nowrap;">Search</button>
               <button type="button" id="pexels-clear-btn" style="padding: 0.5rem 0.75rem; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; font-size: 0.875rem; display: none; white-space: nowrap;">Clear</button>
             </div>
+            <p id="pexels-status" role="status" style="font-size: 0.875rem; color: #c9d1d9; margin-top: 0.5rem;"></p>
             <div id="pexels-results" style="display: none; margin-top: 0.75rem; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;"></div>
+            <button type="button" id="pexels-more-btn" hidden style="margin-top: 0.75rem; min-height: 44px;">Load more images</button>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+              You can also <a href="https://www.pexels.com/search/" target="_blank" rel="noopener" style="color: #58a6ff;">search on Pexels</a> and paste a direct image URL above.
+            </p>
             <p id="pexels-attribution" style="font-size: 0.7rem; color: #7d8590; margin-top: 0.5rem; display: none;">
               Photos provided by <a href="https://www.pexels.com" target="_blank" rel="noopener" style="color: #58a6ff;">Pexels</a>
             </p>
           </div>
         </div>
 
-        <div class="form-group">
+        <fieldset class="background-styling">
+          <legend>Background styling</legend>
+          <p id="background-style-help">Color filters affect only the background. Add an HTTPS image URL to enable blur. Text and watermarks stay sharp.</p>
+          <div class="effect-controls">
+              <div class="effect-control">
+                <label for="bgblur">Blur <output id="bgblur-value" for="bgblur">0px</output></label>
+                <input type="range" id="bgblur" name="bgblur" min="0" max="30" step="1" value="0" data-unit="px" aria-describedby="background-style-help" disabled />
+              </div>
+              <div class="effect-control">
+                <label for="bgbrightness">Brightness <output id="bgbrightness-value" for="bgbrightness">100%</output></label>
+                <input type="range" id="bgbrightness" name="bgbrightness" min="0" max="200" step="1" value="100" data-unit="%" aria-describedby="background-style-help" />
+              </div>
+              <div class="effect-control">
+                <label for="bgcontrast">Contrast <output id="bgcontrast-value" for="bgcontrast">100%</output></label>
+                <input type="range" id="bgcontrast" name="bgcontrast" min="0" max="200" step="1" value="100" data-unit="%" aria-describedby="background-style-help" />
+              </div>
+              <div class="effect-control">
+                <label for="bgsaturation">Saturation <output id="bgsaturation-value" for="bgsaturation">100%</output></label>
+                <input type="range" id="bgsaturation" name="bgsaturation" min="0" max="200" step="1" value="100" data-unit="%" aria-describedby="background-style-help" />
+              </div>
+              <div class="effect-control">
+                <label for="bggrayscale">Grayscale <output id="bggrayscale-value" for="bggrayscale">0%</output></label>
+                <input type="range" id="bggrayscale" name="bggrayscale" min="0" max="100" step="1" value="0" data-unit="%" aria-describedby="background-style-help" />
+              </div>
+          </div>
+          <button type="button" class="secondary" id="reset-background-style">Reset styling</button>
+        </fieldset>
+
+        <fieldset class="form-group background-controls" data-background-controls aria-describedby="background-state">
           <label>Color Presets (click to apply)</label>
           <div class="bg-options">
             <div class="bg-option">
@@ -1424,21 +1521,18 @@
           </button>
         </div>
         <div class="bg-option">
-          <span class="new-badge">New</span>
           <button type="button" class="preset-btn" data-bg="431586-9231A8" data-color="FFFFFF" data-gradient="true">
             <span class="swatch" style="background: linear-gradient(90deg, #431586, #9231A8);"></span>
             Railway
           </button>
         </div>
         <div class="bg-option">
-          <span class="new-badge">New</span>
           <button type="button" class="preset-btn" data-bg="F38020-FBAB41" data-color="FFFFFF" data-gradient="true">
             <span class="swatch" style="background: linear-gradient(90deg, #F38020, #FBAB41);"></span>
             Cloudflare
           </button>
         </div>
         <div class="bg-option">
-          <span class="new-badge">New</span>
           <button type="button" class="preset-btn" data-bg="013B84-016EEA" data-color="FFFFFF" data-gradient="true">
             <span class="swatch" style="background: linear-gradient(90deg, #013B84, #016EEA);"></span>
             Waren
@@ -1487,7 +1581,7 @@
           </button>
         </div>
       </div>
-        </div>
+        </fieldset>
 
         </div>
 
@@ -1527,6 +1621,10 @@
           </div>
 
           <div class="form-group" style="margin-top: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; min-height: 44px; margin-bottom: 1rem;">
+              <input type="checkbox" id="stats-opt-out" />
+              Exclude this banner from usage statistics
+            </label>
             <label class="checkbox-container">
               <input type="checkbox" id="support" checked />
               <div class="checkbox-label">
@@ -1555,6 +1653,13 @@
         </div>
 
         </div>
+        <section id="conduct-panel" class="document-panel policy-document" role="tabpanel" aria-labelledby="conduct-tab" tabindex="0" hidden>
+          <!-- repository-document:conduct -->
+        </section>
+        <section id="license-panel" class="document-panel" role="tabpanel" aria-labelledby="license-tab" tabindex="0" hidden>
+          <h1>MIT license</h1>
+          <pre class="document-text"><!-- repository-document:license --></pre>
+        </section>
       </div>
     </main>
 
@@ -1586,12 +1691,18 @@
       <div class="sidebar-section">
         <h2>🔒 Privacy Notice</h2>
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590; margin-bottom: 0.75rem;">
-          This service logs button clicks and banner URLs to improve features (console only). When <code>ENABLE_STATS</code> is enabled, repository names are stored in Redis for usage statistics. <strong>No IPs, personal info, or user identities are tracked.</strong>
+          Optional statistics count banner requests reaching this server and estimate repositories from GitHub Referers. Daily aggregates expire after seven days. Banner content, raw repository names, IPs, and user identifiers are not stored by this measurement.
         </p>
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590;">
-          All content is meant for public display on GitHub. 
+          These are partial observations, not a count of users or installations. Caches, missing or spoofed Referers, opt-outs, and outages limit coverage.
           <a href="https://github.com/warengonzaga/github-repo-banner#-privacy--transparency" target="_blank" rel="noopener" style="color: #58a6ff;">Learn more</a>
         </p>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>Usage observations</h2>
+        <p id="usage-status" role="status" style="font-size: 0.875rem; line-height: 1.5; font-variant-numeric: tabular-nums;">Loading statistics status…</p>
+        <p style="font-size: 0.875rem; margin-top: 0.75rem;"><a href="/stats" style="color: #58a6ff;">View metrics and coverage limits</a></p>
       </div>
 
       <div class="sidebar-section">
@@ -1632,7 +1743,57 @@
     </aside>
   </div>
 
-  <script>
+  <script type="module">
+    import { isValidImageUrl } from '/image-url.js';
+    async function loadUsageStats() {
+      const status = document.getElementById('usage-status');
+      try {
+        const response = await fetch('/stats', { signal: AbortSignal.timeout(10_000) });
+        if (!response.ok) throw new Error('Stats unavailable');
+        const stats = await response.json();
+        if (!stats.enabled) {
+          status.textContent = 'Usage statistics are disabled on this instance.';
+          return;
+        }
+        if (stats.schemaVersion !== 2 || !stats.available) throw new Error('Stats unavailable');
+        const coverage = stats.repositoryRefererCoverage === null
+          ? 'No recorded requests yet.'
+          : (stats.repositoryRefererCoverage * 100).toFixed(1) + '% of recorded requests had a usable repository Referer.';
+        status.textContent = 'Today (UTC): ' + stats.recordedBannerRequests.toLocaleString() +
+          ' recorded banner requests; approximately ' + stats.estimatedUniqueRepositories.toLocaleString() +
+          ' observed repositories. ' + coverage + ' Partial coverage; not total project usage.';
+      } catch {
+        status.textContent = 'Statistics are unavailable. No reliable count is available right now.';
+      }
+    }
+    loadUsageStats();
+    const documentTabs = Array.from(document.querySelectorAll('[role="tab"]'));
+
+    function selectDocumentTab(selectedTab) {
+      documentTabs.forEach(tab => {
+        const selected = tab === selectedTab;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        tab.classList.toggle('active', selected);
+        document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+      });
+    }
+
+    documentTabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => selectDocumentTab(tab));
+      tab.addEventListener('keydown', event => {
+        let nextIndex;
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % documentTabs.length;
+        else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + documentTabs.length) % documentTabs.length;
+        else if (event.key === 'Home') nextIndex = 0;
+        else if (event.key === 'End') nextIndex = documentTabs.length - 1;
+        else return;
+        event.preventDefault();
+        documentTabs[nextIndex].focus();
+        selectDocumentTab(documentTabs[nextIndex]);
+      });
+    });
+
     const headerInput = document.getElementById('header');
     const subheaderInput = document.getElementById('subheader');
     const previewImg = document.getElementById('preview');
@@ -1654,6 +1815,8 @@
     const subheaderFontInput = document.getElementById('subheader-font-input');
     const subheaderFontGroup = document.getElementById('subheader-font-group');
     const bgImgInput = document.getElementById('bgimg-input');
+    const statsOptOut = document.getElementById('stats-opt-out');
+    statsOptOut.addEventListener('change', update);
     const supportCheckbox = document.getElementById('support');
     const sponsorLink = document.getElementById('sponsor-link');
     const sponsorMessage = document.getElementById('sponsor-message');
@@ -1834,8 +1997,56 @@
       subheaderFontGroup.style.display = hasSubheader ? 'block' : 'none';
     }
 
+    const backgroundEffectInputs = Array.from(document.querySelectorAll('.effect-controls input'));
+
+    function updateBackgroundEffectControls() {
+      let hasImage = false;
+      try { hasImage = new URL(bgImgInput.value.trim()).protocol === 'https:'; } catch {}
+      document.getElementById('bgblur').disabled = !hasImage;
+      backgroundEffectInputs.forEach(input => {
+        document.getElementById(input.id + '-value').textContent = input.value + input.dataset.unit;
+        input.setAttribute('aria-valuetext', input.value + (input.dataset.unit === 'px' ? ' pixels' : ' percent'));
+      });
+    }
+
+    function appendBackgroundEffects(params) {
+      backgroundEffectInputs.forEach(input => {
+        if (input.name === 'bgblur' && !params.has('bgimg')) return;
+        if (input.value !== input.defaultValue) params.set(input.name, input.value);
+      });
+    }
+
+    function resetBackgroundEffects() {
+      backgroundEffectInputs.forEach(input => { input.value = input.defaultValue; });
+      updateBackgroundEffectControls();
+    }
+
+    backgroundEffectInputs.forEach(input => input.addEventListener('input', update));
+    document.getElementById('reset-background-style').addEventListener('click', () => {
+      resetBackgroundEffects();
+      update();
+    });
+
+    function getBackgroundImageUrl() {
+      const value = bgImgInput.value.trim();
+      return isValidImageUrl(value) ? value : '';
+    }
+
+    function updateBackgroundControls() {
+      const hasImage = Boolean(getBackgroundImageUrl());
+      document.querySelectorAll('[data-background-controls]').forEach(group => {
+        group.disabled = hasImage;
+      });
+      const status = document.getElementById('background-state');
+      const message = hasImage
+        ? 'Image background active. Clear the image URL to use colors and presets; your color settings are saved.'
+        : 'Background colors and presets are available.';
+      if (status.textContent !== message) status.textContent = message;
+    }
+
     function buildUrl() {
       const params = new URLSearchParams();
+      if (statsOptOut.checked) params.set('stats', 'false');
       const header = headerInput.value || '![github] Hello World 👋';
       params.set('header', header);
       const subheader = subheaderInput.value.trim();
@@ -1843,16 +2054,8 @@
         params.set('subheader', subheader);
       }
       
-      // Background image URL takes priority over color
-      const bgImgUrl = bgImgInput.value.trim();
-      if (bgImgUrl) {
-        try {
-          const parsed = new URL(bgImgUrl);
-          if (parsed.protocol === 'https:') {
-            params.set('bgimg', bgImgUrl);
-          }
-        } catch {}
-      }
+      const bgImgUrl = getBackgroundImageUrl();
+      if (bgImgUrl) params.set('bgimg', bgImgUrl);
 
       // Check if second bg exists to determine gradient or solid
       const bgHex = getBgHex();
@@ -1886,12 +2089,20 @@
         params.set('subheaderfont', subheaderFont);
       }
       
-      if (!supportCheckbox.checked) {
-        params.set('support', 'false');
-      } else {
+      params.set('support', String(supportCheckbox.checked));
+      if (supportCheckbox.checked) {
         params.set('watermarkpos', watermarkPosition);
       }
+      appendBackgroundEffects(params);
       return '/banner?' + params.toString();
+    }
+
+    function buildMarkdown(url) {
+      let markdown = '![GitHub Repo Banner](' + window.location.origin + url + ')';
+      if (supportCheckbox.checked) {
+        markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
+      }
+      return markdown;
     }
 
     function autoResizeTextarea() {
@@ -1902,20 +2113,14 @@
     }
 
     function update() {
+      updateBackgroundEffectControls();
+      updateBackgroundControls();
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         const url = buildUrl();
         // Cache-bust for preview, clean URL for markdown
         previewImg.src = url + '&_t=' + Date.now();
-        const fullUrl = window.location.origin + url;
-        let markdown = '![GitHub Repo Banner](' + fullUrl + ')';
-        
-        // Add attribution as a new line when support is enabled
-        if (supportCheckbox.checked) {
-          markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
-        }
-        
-        markdownInput.value = markdown;
+        markdownInput.value = buildMarkdown(url);
         autoResizeTextarea();
       }, 300);
     }
@@ -2222,7 +2427,7 @@
     function setupColorPicker(previewEl, pickerEl, inputEl) {
       // Click preview to open picker
       previewEl.addEventListener('click', () => {
-        pickerEl.click();
+        if (!pickerEl.matches(':disabled')) pickerEl.click();
       });
 
       // When picker changes, update hex input
@@ -2254,15 +2459,6 @@
         const bgValue = btn.dataset.bg;
         const colorValue = btn.dataset.color;
         const isGradient = btn.dataset.gradient === 'true';
-        
-        // Fade out "New" badge if present
-        const bgOption = btn.closest('.bg-option');
-        if (bgOption) {
-          const badge = bgOption.querySelector('.new-badge');
-          if (badge && !badge.classList.contains('fade-out')) {
-            badge.classList.add('fade-out');
-          }
-        }
         
         // Update active state
         clearActivePresets();
@@ -2341,24 +2537,71 @@
     const pexelsResults = document.getElementById('pexels-results');
     const pexelsAttribution = document.getElementById('pexels-attribution');
 
-    async function searchPexels() {
-      const query = pexelsQuery.value.trim();
-      if (!query) return;
-      pexelsSearchBtn.textContent = '...';
+    const pexelsStatus = document.getElementById('pexels-status');
+
+    const pexelsMoreBtn = document.getElementById('pexels-more-btn');
+    let pexelsSearchQuery = '';
+    let pexelsNextPage = null;
+    let pexelsRequest = 0;
+
+    function clearPexelsResults() {
+      pexelsRequest++;
+      pexelsNextPage = null;
+      pexelsSearchQuery = '';
+      pexelsResults.innerHTML = '';
+      pexelsResults.style.display = 'none';
+      pexelsAttribution.style.display = 'none';
+      pexelsClearBtn.style.display = 'none';
+      pexelsMoreBtn.hidden = true;
+      pexelsMoreBtn.disabled = false;
+      pexelsMoreBtn.textContent = 'Load more images';
+      pexelsSearchBtn.disabled = false;
+      pexelsSearchBtn.textContent = 'Search';
+      pexelsStatus.textContent = '';
+    }
+
+    async function searchPexels(loadMore = false) {
+      if (pexelsSearchBtn.disabled || (loadMore && !pexelsNextPage)) return;
+      const query = loadMore ? pexelsSearchQuery : pexelsQuery.value.trim();
+      if (!query) {
+        pexelsStatus.textContent = 'Enter a search term to find images.';
+        return;
+      }
+      if (!loadMore) {
+        clearPexelsResults();
+        pexelsSearchQuery = query;
+      }
+      const page = loadMore ? pexelsNextPage : 1;
+      const request = ++pexelsRequest;
+      pexelsStatus.textContent = loadMore ? 'Loading more images…' : 'Searching Pexels…';
+      pexelsSearchBtn.textContent = 'Searching…';
       pexelsSearchBtn.disabled = true;
+      pexelsMoreBtn.disabled = true;
+      pexelsMoreBtn.textContent = 'Loading…';
+      pexelsClearBtn.style.display = 'inline-block';
       try {
-        const res = await fetch('/api/pexels/search?q=' + encodeURIComponent(query));
-        const data = await res.json();
-        if (data.error) {
-          pexelsResults.style.display = 'none';
-          pexelsAttribution.style.display = 'none';
-          pexelsClearBtn.style.display = 'none';
+        const res = await fetch('/api/pexels/search?q=' + encodeURIComponent(query) + '&page=' + page, {
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (request !== pexelsRequest) return;
+        if (res.status === 503) {
+          pexelsStatus.textContent = 'Image search is not enabled on this site. Paste a direct HTTPS image URL above, or search on Pexels using the link below.';
           return;
         }
-        pexelsResults.innerHTML = '';
+        if (!res.ok) throw new Error('Search unavailable');
+        const data = await res.json();
+        if (request !== pexelsRequest) return;
+        if (!Array.isArray(data.photos)) throw new Error('Invalid search response');
+        pexelsNextPage = data.photos.length && data.hasMore === true ? page + 1 : null;
+        pexelsMoreBtn.hidden = !pexelsNextPage;
+        if (data.photos.length === 0) {
+          pexelsStatus.textContent = loadMore
+            ? 'No more images. Try another search for more choices.'
+            : 'No images found. Try another search term or paste a direct HTTPS image URL above.';
+          return;
+        }
         pexelsResults.style.display = 'grid';
         pexelsAttribution.style.display = 'block';
-        pexelsClearBtn.style.display = 'inline-block';
         data.photos.forEach(photo => {
           const img = document.createElement('img');
           img.src = photo.thumb;
@@ -2373,25 +2616,33 @@
           });
           pexelsResults.appendChild(img);
         });
+        pexelsStatus.textContent = pexelsResults.children.length + ' images shown. ' +
+          (pexelsNextPage ? 'Select an image or load more.' : 'No more images for this search.');
       } catch {
-        pexelsResults.style.display = 'none';
+        if (request !== pexelsRequest) return;
+        pexelsStatus.textContent = loadMore
+          ? 'Could not load more images. Your results are saved; try Load more images again.'
+          : 'Image search is unavailable right now. Try Search again, or paste a direct HTTPS image URL above.';
       } finally {
-        pexelsSearchBtn.textContent = 'Search';
-        pexelsSearchBtn.disabled = false;
+        if (request === pexelsRequest) {
+          pexelsSearchBtn.textContent = 'Search';
+          pexelsSearchBtn.disabled = false;
+          pexelsMoreBtn.disabled = false;
+          pexelsMoreBtn.textContent = 'Load more images';
+        }
       }
     }
 
-    pexelsSearchBtn.addEventListener('click', searchPexels);
+    pexelsSearchBtn.addEventListener('click', () => searchPexels());
+    pexelsMoreBtn.addEventListener('click', () => searchPexels(true));
     pexelsQuery.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') searchPexels();
     });
     pexelsClearBtn.addEventListener('click', () => {
       bgImgInput.value = '';
-      pexelsResults.innerHTML = '';
-      pexelsResults.style.display = 'none';
-      pexelsAttribution.style.display = 'none';
-      pexelsClearBtn.style.display = 'none';
+      clearPexelsResults();
       pexelsQuery.value = '';
+      pexelsStatus.textContent = '';
       update();
     });
 
@@ -2415,6 +2666,7 @@
     });
 
     resetBtn.addEventListener('click', () => {
+      resetBackgroundEffects();
       // Reset all form fields to defaults
       headerInput.value = '![github] Hello World 👋';
       subheaderInput.value = 'Great projects deserve great repository banners';
@@ -2424,10 +2676,8 @@
       bgInput2.value = '4A4A4A';
       bgImgInput.value = '';
       pexelsQuery.value = '';
-      pexelsResults.innerHTML = '';
-      pexelsResults.style.display = 'none';
-      pexelsAttribution.style.display = 'none';
-      pexelsClearBtn.style.display = 'none';
+      pexelsStatus.textContent = '';
+      clearPexelsResults();
       colorInput.value = 'FFFFFF';
       subheaderColorInput.value = '';
       supportCheckbox.checked = true;
@@ -2465,14 +2715,8 @@
     copyBtn.addEventListener('click', () => {
       const url = buildUrl();
       
-      // Log action to server
-      fetch('/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'Copy Markdown', url })
-      }).catch(() => {}); // Silent fail
       
-      navigator.clipboard.writeText(markdownInput.value).then(() => {
+      navigator.clipboard.writeText(buildMarkdown(url)).then(() => {
         copyBtn.textContent = 'Copied!';
         copyBtn.classList.add('copied');
         setTimeout(() => {
@@ -2483,55 +2727,12 @@
     });
 
     copyUrlBtn.addEventListener('click', () => {
-      // Build URL without support parameter
-      const params = new URLSearchParams();
-      const header = headerInput.value || '![github] Hello World 👋';
-      params.set('header', header);
-      const subheader = subheaderInput.value.trim();
-      if (subheader) {
-        params.set('subheader', subheader);
-      }
-      
-      // Background image URL takes priority
-      const bgImgUrl = bgImgInput.value.trim();
-      if (bgImgUrl) {
-        try {
-          const parsed = new URL(bgImgUrl);
-          if (parsed.protocol === 'https:') {
-            params.set('bgimg', bgImgUrl);
-          }
-        } catch {}
-      }
+      const url = new URL(buildUrl(), window.location.origin);
+      // Preserve the existing choice to omit attribution from copied image URLs.
+      url.searchParams.delete('support');
+      url.searchParams.delete('watermarkpos');
+      const imageUrl = url.toString();
 
-      // Use preset bg if active (gradient or transparent), otherwise custom hex
-      if (currentPreset) {
-        params.set('bg', currentPreset.bg);
-      } else {
-        // Custom background color
-        const bgHex = getBgHex();
-        if (bgHex) {
-          params.set('bg', bgHex);
-        }
-      }
-      
-      const hex = getColorHex();
-      if (hex) {
-        params.set('color', hex);
-      }
-      const subHex = getSubheaderColorHex();
-      if (subHex && subheader) {
-        params.set('subheadercolor', subHex);
-      }
-      // Note: We intentionally do NOT include the support parameter here
-      
-      const imageUrl = window.location.origin + '/banner?' + params.toString();
-      
-      // Log action to server
-      fetch('/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'Copy Image URL', url: '/banner?' + params.toString() })
-      }).catch(() => {}); // Silent fail
       
       navigator.clipboard.writeText(imageUrl).then(() => {
         copyUrlBtn.textContent = 'Copied!';
@@ -2546,14 +2747,7 @@
     downloadBtn.addEventListener('click', async () => {
       try {
         const url = buildUrl();
-        
-        // Log action to server
-        fetch('/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'Download SVG', url })
-        }).catch(() => {}); // Silent fail
-        
+
         const response = await fetch(url);
         const svgBlob = await response.blob();
         const downloadUrl = URL.createObjectURL(svgBlob);
@@ -2580,14 +2774,7 @@
     downloadPngBtn.addEventListener('click', async () => {
       try {
         const url = buildUrl();
-        
-        // Log action to server
-        fetch('/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'Download PNG', url })
-        }).catch(() => {}); // Silent fail
-        
+
         const response = await fetch(url);
         const svgText = await response.text();
         
@@ -2667,6 +2854,8 @@
       }
     });
 
+    updateBackgroundEffectControls();
+
     // Initial render (no debounce)
     (function() {
       // Set default Midnight preset as active
@@ -2693,12 +2882,7 @@
       
       const url = buildUrl();
       previewImg.src = url + '&_t=' + Date.now();
-      const fullUrl = window.location.origin + url;
-      let markdown = '![GitHub Repo Banner](' + fullUrl + ')';
-      if (supportCheckbox.checked) {
-        markdown += '\n<!-- Created with GitHub Repo Banner by Waren Gonzaga: https://ghrb.waren.build -->';
-      }
-      markdownInput.value = markdown;
+      markdownInput.value = buildMarkdown(url);
       autoResizeTextarea();
     })();
 
