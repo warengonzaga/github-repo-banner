@@ -38,7 +38,7 @@ Use inline custom icons in `header` or `subheader`:
 ![icon src="https://example.com/logo.png" w="100%"] My Project
 ```
 
-Attributes use double quotes. `src` is required; `w` and `h` are optional and each accepts `1–304px` or `1–200%`. Percentages are relative to the surrounding rendered font size, not the banner. Omitting both sizes uses the text height; specifying one preserves the image's aspect ratio. With both, the image fits inside the requested box while preserving proportions. Available line space limits oversized icons. Existing Simple Icons syntax (`![github]`, `![github](light)`) and emoji remain supported. Custom icons do not accept X/Y positions.
+Attributes use double quotes. `src` is required; `w` and `h` are optional and each accepts `1–304px` or `1–200%`. Percentages are relative to the surrounding rendered font size, not the banner. Omitting both sizes uses the text height; specifying one preserves the image's aspect ratio. With both, the image fits inside the requested box while preserving proportions. Available line space limits oversized icons. Existing Simple Icons syntax (`![github]`, `![github](light)`) and emoji remain supported. Custom icons do not accept X/Y positions or rotation; use positioned images for these controls.
 
 For independent images, supply `images` as one JSON-encoded array, at most 4,096 JavaScript string units before URL encoding. Each object accepts only these fields:
 
@@ -49,10 +49,11 @@ For independent images, supply `images` as one JSON-encoded array, at most 4,096
 | `y` | `0` | Number from 0 to 304 pixels from the top edge |
 | `w` | `128` | Width from 1 to 1280 pixels |
 | `h` | `128` | Height from 1 to 304 pixels |
+| `rotation` | `0` | Finite number from 0 to 360 degrees clockwise around the image box’s center; decimals are accepted |
 | `fit` | `contain` | `contain` preserves proportions inside the box; `stretch` fills it |
 | `placement` | `behind` | `behind` or `front`, relative to text |
 
-The canvas is 1280×304 pixels; portions outside it are cropped. Images render above the background, in array order from back to front within each placement group. The watermark remains above all images. Background filters do not affect custom icons or positioned images.
+The canvas is 1280×304 pixels; portions outside it, including rotated corners, are cropped. X/Y and width/height define the unrotated box. Rotation uses its center `(x + w/2, y + h/2)` without changing those values. Omitted or zero rotation preserves existing designs; 360° is a full turn. Invalid rotation values return HTTP 400. Images render above the background, in array order from back to front within each placement group. The watermark remains above all images. Background filters do not affect custom icons or positioned images.
 
 This example builds a URL without manually escaping nested quotes or image URL parameters. The image URLs are illustrative; replace them with working direct image URLs.
 
@@ -60,7 +61,7 @@ This example builds a URL without manually escaping nested quotes or image URL p
 const query = new URLSearchParams({
   header: '![icon src="https://example.com/logo.png" w="100%"] My Project',
   images: JSON.stringify([
-    { src: 'https://example.com/decoration.png', x: 32, y: 32, w: 128, h: 128, fit: 'contain', placement: 'behind' },
+    { src: 'https://example.com/decoration.png', x: 32, y: 32, w: 128, h: 128, rotation: 30, fit: 'contain', placement: 'behind' },
   ]),
 });
 const bannerUrl = `https://ghrb.waren.build/banner?${query}`;
@@ -68,7 +69,7 @@ const bannerUrl = `https://ghrb.waren.build/banner?${query}`;
 
 There is a shared limit of five custom images across positioned layers and inline icons in both text fields; repeated uses still count. Each custom image must serve JPEG, PNG, GIF, WebP, or AVIF with a matching image content type and a download no larger than 1 MiB. Image data must decode successfully; the limit is 16,777,216 decoded pixels across all frames. SVG, redirects, credentials, and non-public addresses are rejected. The server fetches and embeds image data into the SVG. Malformed settings return HTTP 400; an unavailable, oversized, or unsupported custom image returns HTTP 422 instead of a partial banner. The generator disables exports until the custom-image preview succeeds.
 
-The same settings travel through copied URLs/Markdown and SVG/PNG downloads. Official saved exports and optional showcase previews keep normalized settings and URLs, not image binaries. Later previews can change or fail if a source changes. Existing designs without `images` keep their prior behavior.
+Rotation and the other settings travel through copied URLs/Markdown and SVG/PNG downloads. Official saved exports and optional showcase previews keep normalized settings and URLs, not image binaries. Later previews can change or fail if a source changes. Existing designs without `images` keep their prior behavior.
 
 ### Background Effects
 
