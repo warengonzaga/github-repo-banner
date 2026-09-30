@@ -35,7 +35,7 @@ export function initImageLayers({ container, addButton, status, onChange, getInl
       for (const field of row.fields) {
         if (!field.value.trim() || !field.checkValidity()) {
           field.setAttribute('aria-invalid', 'true');
-          throw new Error(`Image ${index + 1}: ${field.dataset.label} must be between ${field.min} and ${field.max} pixels.`);
+          throw new Error(`Image ${index + 1}: ${field.dataset.label} must be between ${field.min} and ${field.max} ${field.dataset.unit || 'pixels'}.`);
         }
         geometry[field.name] = Number(field.value);
       }
@@ -73,6 +73,8 @@ export function initImageLayers({ container, addButton, status, onChange, getInl
     element.innerHTML = `<legend></legend>
 <label for="${id}-src">Image URL</label><input type="url" id="${id}-src" placeholder="https://example.com/logo.png" maxlength="512" required autocomplete="off" aria-describedby="design-error" />
 <div class="image-geometry">${[['x','X position',0,1280,0],['y','Y position',0,304,0],['w','Width',1,1280,128],['h','Height',1,304,128]].map(([name,label,min,max,value]) => `<label for="${id}-${name}">${label} <span>(px)</span><input type="number" id="${id}-${name}" name="${name}" data-label="${label}" min="${min}" max="${max}" step="1" value="${value}" required aria-describedby="design-error" /></label>`).join('')}</div>
+<label for="${id}-rotation">Rotation (degrees)</label><input type="number" id="${id}-rotation" name="rotation" data-label="Rotation" data-unit="degrees" min="0" max="360" step="1" value="0" required aria-describedby="${id}-rotation-help design-error" />
+<p id="${id}-rotation-help">Turns clockwise around the image’s center. Set 0° to reset; 360° is a full turn.</p>
 <label class="image-preserve"><input type="checkbox" id="${id}-fit" checked /> Preserve proportions</label>
 <label for="${id}-placement">Position relative to text</label><select id="${id}-placement"><option value="behind">Behind text</option><option value="front">In front of text</option></select>
 <div class="image-layer-actions"><button type="button" data-action="lower">Lower layer</button><button type="button" data-action="raise">Raise layer</button><button type="button" data-action="remove">Remove image</button></div>`;

@@ -25,6 +25,8 @@ assert.ok(!home.includes('<!-- site-navigation -->'));
 assert.ok(home.includes('id="readme-tab"'));
 const usage = await (await ui.request('/usage')).text();
 const docs = await (await ui.request('/docs')).text();
+assert.ok(docs.includes('Rotation (degrees)'), 'Documentation includes README rotation controls');
+assert.ok(docs.includes('<code>rotation</code>') && docs.includes('x + w/2, y + h/2'), 'Documentation includes the API field and rotation center');
 for (const [, id] of usage.matchAll(/href="\/docs#([^"]+)"/g)) {
   assert.ok(docs.includes(`id="${id}"`), `usage documentation link ${id} must resolve`);
 }

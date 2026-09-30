@@ -32,12 +32,16 @@ for(const patch of [{x:-1},{y:305},{w:0},{h:305},{x:'2'},{x:null},{fit:'fill'},{
   assert.throws(()=>parseImageLayers(JSON.stringify([{...layer,...patch}])));
 }
 assert.throws(()=>parseImageLayers('{}'));
+assert.deepEqual(parseImageLayers(JSON.stringify([{src,rotation:0}]))[0],layer,'Zero rotation preserves the legacy normalized record');
+for(const rotation of [30,90,180,270,360,22.5]) assert.equal(parseImageLayers(JSON.stringify([{src,rotation}]))[0].rotation,rotation);
+for(const rotation of [-1,361,'90',null,true,{},[],NaN,Infinity]) assert.throws(()=>parseImageLayers(JSON.stringify([{src,rotation}])));
+assert.throws(()=>parseImageLayers('[{"src":"https://example.com/logo.png","rotation":1e400}]'),'Non-finite JSON numbers are rejected');
 assert.throws(()=>parseBannerOptions({header: '![ic<b></b>on src="http://127.0.0.1/"]'}));
 assert.throws(()=>parseBannerOptions({header: '![ic<b></b>on src="https://example.com/a.png"]', images:JSON.stringify(Array(5).fill(layer))}));
 assert.throws(()=>parseImageLayers('['));
 assert.throws(()=>parseImageLayers(JSON.stringify(Array(6).fill(layer))));
 assert.throws(()=>parseBannerOptions({header:token,images:JSON.stringify(Array(5).fill(layer))}));
-const query={header:token+' Hello',subheader:`![icon src="${src}" h="150%"]`,images:JSON.stringify([{...layer,x:12,y:18}, {...layer,src:'https://example.com/front.png',placement:'front',fit:'stretch'}]),support:'true'};
+const query={header:token+' Hello',subheader:`![icon src="${src}" h="150%"]`,images:JSON.stringify([{...layer,x:12,y:18,rotation:30}, {...layer,src:'https://example.com/front.png',placement:'front',fit:'stretch',rotation:270}]),support:'true'};
 const options=parseBannerOptions(query);
 assert.deepEqual(parseBannerOptions(Object.fromEntries(new URLSearchParams(query))),options,'Query round trip preserves options');
 assert.equal(parseBannerOptions({header:'Legacy'}).images,undefined,'Old saved records remain compatible');
@@ -53,7 +57,8 @@ assert.equal(requested.length,2,'Repeated icons/layers share one protected downl
 assert.match(svg,/width:48px;height:auto/);
 assert.match(svg,/width:auto;height:[\d.]+px/);
 assert.match(svg,/x="12" y="18" width="128" height="128" preserveAspectRatio="xMidYMid meet"/);
-assert.match(svg,/preserveAspectRatio="none"/);
+assert.match(svg,/preserveAspectRatio="none" transform="rotate\(270 64 64\)"/);
+assert.match(svg,/transform="rotate\(30 76 82\)"/);
 const behind=svg.indexOf('x="12" y="18"'), text=svg.indexOf('<foreignObject'), front=svg.indexOf('preserveAspectRatio="none"'), watermark=svg.lastIndexOf('ghrb.waren.build');
 assert.ok(behind<text && text<front && front<watermark,'Layers surround text and stay below the watermark');
 assert.match(svg,/overflow="hidden"/);
@@ -69,4 +74,12 @@ const fontSizes=[...tight.matchAll(/font-size:([\d.]+)px;font-weight:/g)].map(ma
 assert.ok(fontSizes[1]<=Math.round(fontSizes[0]*.4),'Fitting never enlarges a small subheader to the header size');
 const defaultIcons=await buildBannerSVG(parseBannerOptions({header:`![icon src="${src}"]`.repeat(5)}));
 assert.match(defaultIcons,/font-size:192px;font-weight:700/,'Default text-sized icons do not reserve a fixed 304px each');
-console.log('PASS: custom icon parsing, safe URLs, sizing, limits, layer order, embedding/failure, five-image batching and query round trip');
+const legacyOptions=parseBannerOptions({header:'Legacy',images:JSON.stringify([layer])});
+const legacySVG=await buildBannerSVG(legacyOptions);
+assert.ok(!legacySVG.includes('transform="rotate('));
+assert.equal(await buildBannerSVG(parseBannerOptions({header:'Legacy',images:JSON.stringify([{...layer,rotation:0}])})),legacySVG,'Zero angle keeps legacy rendering identical');
+const {default:bannerRoute}=await import('../src/routes/banner.js');
+const invalidRotation=await bannerRoute.request('/banner?'+new URLSearchParams({images:JSON.stringify([{src,rotation:361}])}));
+assert.equal(invalidRotation.status,400);
+assert.match((await invalidRotation.json()).error,/rotation/);
+console.log('PASS: custom icon parsing, safe URLs, sizing, limits, layer order, rotation/legacy compatibility, embedding/failure, five-image batching and query round trip');

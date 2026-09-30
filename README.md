@@ -19,7 +19,7 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - 🎨 **Backgrounds** — Solid colors, gradients, transparency, presets, and public HTTPS images.
 - 📸 **Image search and styling** — Pexels search with more results, image blur, and background color filters.
 - 🔤 **Typography** — Google Fonts, emoji, Simple Icons using `![slug]`, and inline custom images using `![icon src="https://…"]`.
-- 🧩 **Custom Images** — Position multiple logos or decorations, resize them, preserve proportions, and arrange them behind or in front of text.
+- 🧩 **Custom Images** — Position multiple logos or decorations, resize and rotate them, preserve proportions, and arrange them behind or in front of text.
 - 📥 **Output** — Live preview, README Markdown, image URLs, SVG, and PNG downloads.
 - 💖 **Optional attribution** — Toggle the watermark and choose any corner.
 - 📚 **Accessible controls** — Keyboard-selectable photos and responsive Code of conduct and MIT license tabs.
@@ -85,11 +85,11 @@ Put an image inline with header or subheader text:
 
 Replace the example URL with a direct public image URL. Optional `w` and `h` accept `1–304px` or `1–200%`; percentages follow the surrounding text size. With neither set, the icon follows the text height. With one set, the other preserves its proportions; with both set, the image fits inside that box. Oversized icons shrink to fit the available line space. Existing `![github]` icons and emoji still work alongside custom icons.
 
-For freely positioned images, open **Custom Images** and choose **Add image**. Set X/Y from the banner's top-left and width/height in pixels on the 1280×304 canvas. **Preserve proportions** fits inside the box; uncheck it to stretch. Choose **Behind text** or **In front of text**, then use **Lower layer**, **Raise layer**, or **Remove image**. Images crossing a banner edge are cropped, and the watermark stays above them. New images start at `(0, 0)` in a 128×128 box, behind text. The main **Reset** clears them.
+For freely positioned images, open **Custom Images** and choose **Add image**. Set X/Y from the banner's top-left and width/height in pixels on the 1280×304 canvas. **Rotation (degrees)** turns each image clockwise from 0° to 360° around its center, keeping the X/Y position and size as the unrotated box. Set 0° to reset its angle; 360° is a full turn. **Preserve proportions** fits inside the box; uncheck it to stretch. Choose **Behind text** or **In front of text**, then use **Lower layer**, **Raise layer**, or **Remove image**. Images crossing a banner edge, including after rotation, are cropped, and the watermark stays above them. New images start at `(0, 0)` in a 128×128 box at 0°, behind text. The main **Reset** clears them.
 
 A banner supports five custom images total, including inline icons in both text fields. Each needs a public HTTPS URL of at most 512 characters and a PNG, JPEG, WebP, GIF, or AVIF download of at most 1 MiB and 16,777,216 decoded pixels across all frames. The image data must decode successfully and match its declared content type. SVG, redirects, credentials, and private addresses are not supported. Invalid or unavailable custom images show an error and block exports until fixed or removed.
 
-Custom image settings follow the live preview, copied URLs/Markdown, SVG/PNG downloads, saved official exports, and optional showcase previews. Saved designs keep URLs and settings, not image binaries, so later previews depend on those images remaining available. See the [custom image API](docs/api.md#custom-icons-and-positioned-images) for parameter details.
+Custom image settings, including rotation, follow the live preview, copied URLs/Markdown, SVG/PNG downloads, saved official exports, and optional showcase previews. Saved designs keep URLs and settings, not image binaries, so later previews depend on those images remaining available. See the [custom image API](docs/api.md#custom-icons-and-positioned-images) for parameter details.
 
 ### Pexels Integration
 

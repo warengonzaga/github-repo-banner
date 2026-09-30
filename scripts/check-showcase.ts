@@ -47,7 +47,7 @@ try {
   ownsKeys = true;
   assert.ok(isStatsEnabled(), 'Official mode overrides ENABLE_STATS=false');
   assert.equal(usageOptedOut('false','1','1'), false);
-  const customQuery = {header:'![icon src="https://example.com/logo.png" w="48px"] Saved',subheader:'![icon src="https://example.com/sub.png" h="100%"] Details',images:JSON.stringify([{src:'https://example.com/layer.png',x:12,y:24,w:120,h:80,placement:'front'}])};
+  const customQuery = {header:'![icon src="https://example.com/logo.png" w="48px"] Saved',subheader:'![icon src="https://example.com/sub.png" h="100%"] Details',images:JSON.stringify([{src:'https://example.com/layer.png',x:12,y:24,w:120,h:80,rotation:45,placement:'front'}])};
   const unshared = [];
   for (const action of ['markdown','url','svg','png']) {
     const entry = {...submission(),action,showcase:false,query:customQuery};
@@ -87,6 +87,7 @@ try {
   assert.equal((await snapshot()).exports.showcased,1);
   assert.equal(await redis.hlen(SHOWCASE_KEY),1);
   assert.equal((await request('/exports',{...first,query:{header:'changed'}})).status,409);
+  assert.equal((await request('/exports',{...first,query:{...customQuery,images:JSON.stringify([{...JSON.parse(customQuery.images)[0],rotation:90}])}})).status,409,'A changed rotation is a different saved design');
   const stored = JSON.parse((await redis.hget(SHOWCASE_KEY,first.id))!);
   assert.ok(!JSON.stringify(stored).includes(first.removalToken),'Removal secrets are hashed');
   assert.deepEqual(stored.options,JSON.parse(JSON.stringify(parseBannerOptions(customQuery))));
@@ -101,6 +102,7 @@ try {
   const renderedCustom = await preview.text();
   assert.match(renderedCustom, /data:image\/png;base64/);
   assert.match(renderedCustom, /x="12" y="24" width="120" height="80"/);
+  assert.match(renderedCustom,/transform="rotate\(45 72 64\)"/,'Showcase renders the saved angle around the image center');
   assert.ok(renderedCustom.indexOf('</foreignObject>') < renderedCustom.indexOf('x="12" y="24"'));
   assert.match(renderedCustom,/Saved/);
   assert.deepEqual(await redis.hgetall(keys.counters),beforePreview,'Gallery previews do not increment usage');

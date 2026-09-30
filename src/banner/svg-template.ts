@@ -386,8 +386,11 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   const layers = { behind: '', front: '' };
   for (const image of options.images || []) {
     const data = customImages.get(image.src);
+    const rotation = image.rotation
+      ? ` transform="rotate(${image.rotation} ${image.x + image.w / 2} ${image.y + image.h / 2})"`
+      : '';
     layers[image.placement] +=
-      `<image href="${data}" x="${image.x}" y="${image.y}" width="${image.w}" height="${image.h}" preserveAspectRatio="${image.fit === 'stretch' ? 'none' : 'xMidYMid meet'}" />`;
+      `<image href="${data}" x="${image.x}" y="${image.y}" width="${image.w}" height="${image.h}" preserveAspectRatio="${image.fit === 'stretch' ? 'none' : 'xMidYMid meet'}"${rotation} />`;
   }
 
   // Determine font families to use - Google Font if specified, otherwise default

@@ -57,6 +57,19 @@ try {
   row(0).querySelector('input[type="checkbox"]').checked = false;
   row(0).emit('input');
   assert.deepEqual(JSON.parse(editor.serialize())[0], {src:src(0).value,x:320,y:80,w:200,h:64,fit:'stretch',placement:'behind'});
+  const rotation = row(0).querySelector('input[name="rotation"]');
+  assert.equal(rotation.value,'0');
+  rotation.value='45'; row(0).emit('input');
+  assert.equal(JSON.parse(editor.serialize())[0].rotation,45);
+  for(const invalid of ['', '-1', '361', 'not-a-number']) {
+    rotation.value=invalid;
+    assert.throws(()=>editor.serialize(),/Rotation must be between 0 and 360 degrees/);
+    assert.equal(rotation.attributes['aria-invalid'],'true');
+  }
+  rotation.value='360'; assert.equal(JSON.parse(editor.serialize())[0].rotation,360);
+  assert.equal(rotation.attributes['aria-invalid'],undefined);
+  rotation.value='0'; assert.equal('rotation' in JSON.parse(editor.serialize())[0],false);
+  rotation.value='45';
   controls(0)[2].value = '';
   assert.throws(() => editor.serialize(), /Width must be/);
   controls(0)[2].value = '200';
@@ -67,6 +80,7 @@ try {
   addButton.emit('click'); src(1).value = 'https://example.com/two.png';
   const first = row(0);
   first.querySelector('[data-action="raise"]').emit('click');
+  assert.equal(JSON.parse(editor.serialize())[1].rotation,45,'Reordering preserves the image angle');
   assert.equal(row(1), first, 'Reorder moves existing controls without recreating input values');
   assert.deepEqual(JSON.parse(editor.serialize()).map(image => image.src), ['https://example.com/two.png','https://example.com/one.png']);
   assert.equal(focused, src(1), 'Focus remains in the moved image when its action reaches the boundary');
@@ -101,9 +115,11 @@ try {
   runInContext(html.slice(html.indexOf('    for (const [button, action]'),html.indexOf('    updateBackgroundEffectControls();',html.indexOf('    for (const [button, action]'))),context);
   for (const action of ['markdown','url','svg','png']) {
     controls(0)[0].value = String(100 + snapshots.length);
+    row(0).querySelector('input[name="rotation"]').value = String(30 + snapshots.length);
     handlers[action]();
     const snapshot = snapshots.at(-1), url = new URL(snapshot.url);
     assert.equal(snapshot.action,action);
+    assert.equal(JSON.parse(url.searchParams.get('images'))[0].rotation,30 + snapshots.length - 1,'Every export carries the current angle');
     assert.equal(snapshot.filename,'banner-hello','Download names exclude image URLs and attributes');
     assert.equal(JSON.parse(url.searchParams.get('images'))[0].x,100 + snapshots.length - 1,'Exports serialize the latest inputs before preview debounce');
     assert.equal(url.searchParams.get('header'),context.headerInput.value);
@@ -154,5 +170,5 @@ try {
   context.headerInput.value = 'Plain banner';
   runInContext('update()',context); flush();
   assert.ok(context.exportButtons.every(button => !button.disabled),'Removing custom images restores the ordinary preview flow');
-  console.log('PASS: custom image controls, geometry, order, focus, removal, shared limits, fresh exports, validation, counters, reset and asynchronous preview gating');
+  console.log('PASS: custom image controls, geometry, rotation validation/export/reset, order, focus, removal, shared limits, fresh exports, validation, counters, reset and asynchronous preview gating');
 } finally { globalThis.document = originalDocument; }
