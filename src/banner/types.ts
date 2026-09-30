@@ -11,7 +11,8 @@ export interface BackgroundPreset {
 }
 
 export interface HeaderSegment {
-  type: 'text' | 'emoji' | 'icon';
+  type: 'text' | 'emoji' | 'icon' | 'custom-icon';
+  image?: import('../ui/inline-icons.js').CustomIcon;
   value: string;
   /** Theme for icons (auto, light, or dark) */
   theme?: 'light' | 'dark' | 'auto';
@@ -20,6 +21,7 @@ export interface HeaderSegment {
 }
 
 export interface BannerOptions {
+  images?: import('../ui/image-settings.js').ImageLayer[];
   header: string;
   subheader?: string;
   background: BackgroundPreset;

@@ -1,5 +1,9 @@
 // TEST_REDIS_URL must point to an empty, disposable Redis database.
 import assert from 'node:assert/strict';
+import { mock } from 'bun:test';
+import { parseBannerOptions } from '../src/banner/options.js';
+// Deterministic image transport; real loader bounds are covered in check-image-loader.ts.
+mock.module('../src/banner/image-loader.js', () => ({fetchImageAsBase64: async () => 'data:image/png;base64,iVBORw0KGgo='}));
 import { randomBytes, randomUUID } from 'node:crypto';
 import { Hono } from 'hono';
 import { closeRedis, getRedis, initRedis, isStatsEnabled, getExportRetentionDays, getPublicOrigin } from '../src/config/redis.js';
@@ -43,16 +47,17 @@ try {
   ownsKeys = true;
   assert.ok(isStatsEnabled(), 'Official mode overrides ENABLE_STATS=false');
   assert.equal(usageOptedOut('false','1','1'), false);
+  const customQuery = {header:'![icon src="https://example.com/logo.png" w="48px"] Saved',subheader:'![icon src="https://example.com/sub.png" h="100%"] Details',images:JSON.stringify([{src:'https://example.com/layer.png',x:12,y:24,w:120,h:80,placement:'front'}])};
   const unshared = [];
   for (const action of ['markdown','url','svg','png']) {
-    const entry = {...submission(),action,showcase:false,query:{header:'Saved, not showcased'}};
+    const entry = {...submission(),action,showcase:false,query:customQuery};
     unshared.push(entry);
     const response = await request('/exports?stats=false', entry);
     assert.equal(response.status,201);
     const result = await response.json();
     assert.equal(result.saved,true);
     assert.equal(result.showcased,false);
-    assert.equal(JSON.parse((await redis.get(exportKey(entry.id)))!).options.header,'Saved, not showcased');
+    assert.deepEqual(JSON.parse((await redis.get(exportKey(entry.id)))!).options,JSON.parse(JSON.stringify(parseBannerOptions(customQuery))),'All export actions preserve custom settings without publication');
     assert.ok(await redis.ttl(exportKey(entry.id)) > 29 * 86400);
     assert.equal((await app.request(`/showcase/${entry.id}.svg`)).status,404,'Unshared saved exports have no public preview');
   }
@@ -74,7 +79,7 @@ try {
     assert.equal((await request('/exports',body)).status,400);
   }
   assert.equal((await request('/exports',{...submission(),query:{header:'x'.repeat(13000)}})).status,413);
-  const first = submission();
+  const first = {...submission(),query:customQuery};
   const responses = await Promise.all(Array.from({length:8},()=>request('/exports',first)));
   assert.equal(responses.filter(response=>response.status===201).length,1,'Concurrent retries publish once');
   assert.equal(responses.filter(response=>response.status===200).length,7);
@@ -84,14 +89,20 @@ try {
   assert.equal((await request('/exports',{...first,query:{header:'changed'}})).status,409);
   const stored = JSON.parse((await redis.hget(SHOWCASE_KEY,first.id))!);
   assert.ok(!JSON.stringify(stored).includes(first.removalToken),'Removal secrets are hashed');
-  assert.equal(stored.options.header,'Community banner');
-  assert.equal(stored.options.backgroundEffects.brightness,80);
+  assert.deepEqual(stored.options,JSON.parse(JSON.stringify(parseBannerOptions(customQuery))));
+  const customFeed = await (await app.request('/showcase')).json();
+  assert.equal(customFeed.entries[0].label, 'custom icon Saved — custom icon Details');
+  assert.ok(!JSON.stringify(customFeed).includes('example.com'));
   const beforePreview = await redis.hgetall(keys.counters);
   const preview = await app.request(`/showcase/${first.id}.svg`);
   assert.equal(preview.status,200);
   assert.equal(preview.headers.get('Cache-Control'),'no-store');
   assert.match(preview.headers.get('Content-Security-Policy')!,/sandbox/);
-  assert.match(await preview.text(),/Community banner/);
+  const renderedCustom = await preview.text();
+  assert.match(renderedCustom, /data:image\/png;base64/);
+  assert.match(renderedCustom, /x="12" y="24" width="120" height="80"/);
+  assert.ok(renderedCustom.indexOf('</foreignObject>') < renderedCustom.indexOf('x="12" y="24"'));
+  assert.match(renderedCustom,/Saved/);
   assert.deepEqual(await redis.hgetall(keys.counters),beforePreview,'Gallery previews do not increment usage');
   const rejectedImage = {...submission(),query:{header:'safe',bgimg:'https://localhost/private.png'}};
   assert.equal((await request('/exports',rejectedImage)).status,201);
@@ -187,9 +198,15 @@ try {
   assert.equal((await request('/exports',unshared[0])).status,200,'Existing retry works at retained capacity');
   const rejectedCap = capAttempts[capResponses.findIndex(r=>r.status===429)];
   assert.equal(await redis.exists(exportKey(rejectedCap.id)),0);
-  assert.equal(JSON.parse((await redis.get(exportKey(unshared[0].id)))!).options.header,'Saved, not showcased','Capacity never evicts accepted designs');
+  assert.deepEqual(JSON.parse((await redis.get(exportKey(unshared[0].id)))!).options,JSON.parse(JSON.stringify(parseBannerOptions(customQuery))),'Capacity never evicts accepted designs');
   await redis.del(EXPORT_INDEX_KEY,EXPORT_RATE_KEY);
   for(let i=0;i<originalIndex.length;i+=2) await redis.zadd(EXPORT_INDEX_KEY,originalIndex[i+1],originalIndex[i]);
+  const longLayers=JSON.stringify(Array.from({length:5},(_,i)=>({src:'https://example.com/'+String(i)+'a'.repeat(430)+'.png'})));
+  assert.ok(longLayers.length>2048 && longLayers.length<4096);
+  const longExport={...submission(),showcase:false,query:{images:longLayers}};
+  assert.equal((await request('/exports',longExport)).status,201,'Full layer JSON survives the export boundary');
+  assert.deepEqual(JSON.parse((await redis.get(exportKey(longExport.id)))!).options.images,parseBannerOptions(longExport.query).images);
+  assert.equal((await request('/exports',{...submission(),query:{images:'['}})).status,400);
   const home = await (await app.request('/')).text();
   assert.ok(home.includes('data-official="true"'));
   assert.ok(home.includes('Exports are counted and their designs are saved for 30 days.'));

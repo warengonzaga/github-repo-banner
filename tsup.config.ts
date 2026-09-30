@@ -13,6 +13,10 @@ export default defineConfig({
     for (const file of [
       'index.html',
       'image-url.js',
+      'image-layers.js',
+      'image-layers.css',
+      'image-settings.js',
+      'inline-icons.js',
       'usage.html',
       'usage.js',
       'export.js',

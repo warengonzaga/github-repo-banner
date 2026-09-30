@@ -13,13 +13,18 @@ compose up --build --wait --wait-timeout 90
 compose exec -T app node --input-type=module <<'JS'
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import sharp from 'sharp';
+
+// The runtime must include working native image decoders, not just the JS wrapper.
+const pixel = await sharp({ create: { width: 1, height: 1, channels: 3, background: 'red' } }).png().toBuffer();
+assert.deepEqual(await sharp(pixel).raw().toBuffer(), Buffer.from([255, 0, 0]));
 
 assert.equal(process.versions.node.split('.')[0], '22');
 assert.notEqual(process.getuid(), 0);
 assert.equal(existsSync('node_modules/tsup'), false);
 assert.equal(existsSync('.env'), false);
 assert.ok(JSON.parse(readFileSync('package.json', 'utf8')).version);
-for (const file of ['index.html', 'image-url.js', 'LICENSE', 'CODE_OF_CONDUCT.md', 'usage.html', 'usage.js', 'pages.css', 'docs/README.md', 'docs/docs/api.md', 'docs/docs/self-hosting.md']) {
+for (const file of ['index.html', 'image-url.js', 'inline-icons.js', 'image-settings.js', 'image-layers.js', 'image-layers.css', 'LICENSE', 'CODE_OF_CONDUCT.md', 'usage.html', 'usage.js', 'pages.css', 'docs/README.md', 'docs/docs/api.md', 'docs/docs/self-hosting.md']) {
   assert.ok(existsSync(`dist/ui/${file}`), `${file} must be bundled`);
 }
 const base = 'http://127.0.0.1:3000';
@@ -35,7 +40,7 @@ const html = await home.text();
 assert.match(html, /MIT License/);
 assert.match(html, /Our Pledge/);
 assert.equal((await get('/image-url.js')).status, 200);
-for (const path of ['/docs', '/usage', '/pages.css', '/usage.js']) {
+for (const path of ['/docs', '/usage', '/pages.css', '/usage.js', '/inline-icons.js', '/image-settings.js', '/image-layers.js', '/image-layers.css']) {
   assert.equal((await get(path)).status, 200, `${path} must work in the production image`);
 }
 const docs = await (await get('/docs')).text();

@@ -1,3 +1,4 @@
+import { CUSTOM_ICON_SOURCE, validateCustomIcons, sanitizeBannerText } from '../src/ui/inline-icons.js';
 // Run with node scripts/check-watermark.mjs.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -6,7 +7,8 @@ const html = readFileSync(new URL('../src/ui/index.html', import.meta.url), 'utf
 const source = html.slice(html.indexOf('    function buildUrl()'), html.indexOf('    function autoResizeTextarea()'));
 const input = { value: '' };
 const context = {
-  appendBackgroundEffects() {},
+  CUSTOM_ICON_SOURCE,
+  appendBackgroundEffects() {}, imageLayers: {serialize:()=>''}, validateCustomIcons, sanitizeBannerText,
   URL, URLSearchParams, headerInput: input, subheaderInput: input, bgImgInput: input,
   headerFontInput: input, subheaderFontInput: input, supportCheckbox: { checked: true },
   getBgHex: () => '000000', getBgHex2: () => '', getColorHex: () => 'ffffff',

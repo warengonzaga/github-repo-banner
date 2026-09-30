@@ -11,7 +11,7 @@ import {
   isOfficialInstance,
   isStatsEnabled,
 } from '../config/redis.js';
-import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
+import { describeBannerText } from '../ui/inline-icons.js';
 import {
   recordExportRequest,
   usageKeys,
@@ -134,10 +134,10 @@ route.post('/exports', async (c) => {
     typeof body.query !== 'object' ||
     Array.isArray(body.query) ||
     Object.keys(body.query).length > 20 ||
-    Object.values(body.query).some(
-      (value) =>
+    Object.entries(body.query).some(
+      ([key, value]) =>
         typeof value !== 'string' ||
-        value.length > 2048 ||
+        value.length > (key === 'images' ? 4096 : 2048) ||
         /[\uD800-\uDFFF]/u.test(value),
     )
   ) {
@@ -155,7 +155,18 @@ route.post('/exports', async (c) => {
       },
       503,
     );
-  const options = parseBannerOptions(body.query as Record<string, string>);
+  let options: ReturnType<typeof parseBannerOptions>;
+  try {
+    options = parseBannerOptions(body.query as Record<string, string>);
+  } catch (error) {
+    return c.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Invalid image settings.',
+      },
+      400,
+    );
+  }
   const removalHash = digest(body.removalToken);
   const fingerprint = digest(
     JSON.stringify([
@@ -319,12 +330,9 @@ route.get('/showcase', async (c) => {
         id,
         createdAt,
         label:
-          [options.header, options.subheader]
-            .filter(Boolean)
-            .join(' — ')
-            .replace(createIconSyntaxRegExp(), '$1 icon')
-            .replace(/\s+/g, ' ')
-            .trim() || 'Untitled banner',
+          describeBannerText(
+            [options.header, options.subheader].filter(Boolean).join(' — '),
+          ) || 'Untitled banner',
         previewUrl: `/showcase/${id}.svg`,
       })),
       nextCursor:

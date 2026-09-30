@@ -1,3 +1,5 @@
+import { MAX_CUSTOM_IMAGES, parseImageLayers } from '../ui/image-settings.js';
+import { CUSTOM_ICON_SOURCE, validateCustomIcons } from '../ui/inline-icons.js';
 import {
   isValidHexColor,
   isValidImageUrl,
@@ -22,8 +24,22 @@ export function parseBannerOptions(
   const subheaderFontParam = query.subheaderfont || '';
   const watermarkPosParam = query.watermarkpos || 'bottom-right';
 
+  validateCustomIcons(rawHeader);
+  validateCustomIcons(rawSubheader);
   const header = sanitizeHeader(rawHeader, 50);
   const subheader = rawSubheader ? sanitizeHeader(rawSubheader, 60) : undefined;
+  // HTML stripping must not introduce a token that escaped validation/counting.
+  validateCustomIcons(header);
+  validateCustomIcons(subheader || '');
+  const images = parseImageLayers(query.images);
+  const customCount = [
+    ...header.matchAll(new RegExp(CUSTOM_ICON_SOURCE, 'g')),
+    ...(subheader || '').matchAll(new RegExp(CUSTOM_ICON_SOURCE, 'g')),
+  ].length;
+  if (customCount + images.length > MAX_CUSTOM_IMAGES)
+    throw new Error(
+      'Use at most five custom images across the banner, including inline icons.',
+    );
 
   // Invalid inputs keep the default gradient; a valid image takes precedence.
   let background: BackgroundPreset = {
@@ -93,6 +109,7 @@ export function parseBannerOptions(
     : undefined;
 
   return {
+    ...(images.length ? { images } : {}),
     header,
     subheader,
     background,
