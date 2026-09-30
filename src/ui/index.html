@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GitHub Repo Banner Generator</title>
   <link rel="stylesheet" href="/pages.css">
+  <link rel="stylesheet" href="/image-layers.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1279,6 +1280,7 @@
         
         <div class="preview">
           <img id="preview" alt="Banner preview" />
+          <p id="custom-preview-status" role="status" aria-live="polite" hidden></p>
         </div>
 
         <div class="repo-description">
@@ -1300,7 +1302,7 @@
         <div class="form-group">
           <label for="header">Header Text</label>
           <div class="input-with-info">
-            <input type="text" id="header" value="![github] Hello World 👋" placeholder="Enter your repository title or project name" />
+            <input type="text" id="header" aria-describedby="design-error" value="![github] Hello World 👋" placeholder="Enter your repository title or project name" />
             <button type="button" class="info-icon-btn" id="header-info-btn" aria-label="Show emoji and icon help">
               <svg viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
@@ -1320,6 +1322,7 @@
               </ul>
             </div>
           </div>
+          <p class="inline-image-help">Custom icon: <code>![icon src="https://example.com/logo.png" w="100%"]</code>. Percentages follow the text size; use pixels for a fixed size. Optional <code>h</code> sets height.</p>
           <div class="char-counter" id="header-counter">
             <span class="char-counter-part" id="header-text-count">Text: 0/50</span>
             <span class="char-counter-separator">|</span>
@@ -1354,7 +1357,7 @@
         <div class="form-group">
           <label for="subheader">Sub Header Text (optional)</label>
           <div class="input-with-info">
-            <input type="text" id="subheader" value="Great projects deserve great repository banners" placeholder="Add a compelling tagline or description" />
+            <input type="text" id="subheader" aria-describedby="design-error" value="Great projects deserve great repository banners" placeholder="Add a compelling tagline or description" />
             <button type="button" class="info-icon-btn" id="subheader-info-btn" aria-label="Show emoji and icon help">
               <svg viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
@@ -1374,6 +1377,7 @@
               </ul>
             </div>
           </div>
+          <p class="inline-image-help">Custom icon: <code>![icon src="https://example.com/logo.png" w="100%"]</code>. Percentages follow the text size; use pixels for a fixed size. Optional <code>h</code> sets height.</p>
           <div class="char-counter" id="subheader-counter">
             <span class="char-counter-part" id="subheader-text-count">Text: 0/60</span>
             <span class="char-counter-separator">|</span>
@@ -1596,10 +1600,19 @@
       </div>
         </fieldset>
 
+        <section class="custom-images" aria-labelledby="custom-images-heading">
+          <h3 id="custom-images-heading">Custom Images</h3>
+          <p>Add logos or decorations anywhere on the banner. Use public HTTPS images up to 1 MiB each (PNG, JPEG, WebP, GIF or AVIF), with at most 16,777,216 pixels across all frames.</p>
+          <p>Positions start at the top-left of the 1280 × 304 banner. Images extending past an edge are cropped. Raise or lower images within the same text position; the watermark stays on top.</p>
+          <div id="image-layers"></div>
+          <p id="image-layer-status" role="status" aria-live="polite"></p>
+          <button type="button" id="add-image" aria-describedby="image-layer-status">Add image</button>
+        </section>
         </div>
 
         <div class="content-section">
           <h2>Output</h2>
+          <p id="design-error" role="alert" hidden></p>
           <p class="privacy-help"><!-- export-privacy --></p>
           <p id="export-feedback" class="privacy-help" role="status" aria-live="polite"></p>
           <div class="output-container">
@@ -1759,6 +1772,8 @@
   <script type="module">
     import { isValidImageUrl } from '/image-url.js';
     import { beginExport } from '/export.js';
+    import { initImageLayers } from '/image-layers.js';
+    import { INLINE_ICON_SOURCE, CUSTOM_ICON_SOURCE, validateCustomIcons, sanitizeBannerText } from '/inline-icons.js';
     async function loadUsageStats() {
       const status = document.getElementById('usage-status');
       try {
@@ -1844,6 +1859,31 @@
     let debounceTimer;
     let currentPreset = null;
     let watermarkPosition = 'bottom-right';
+    const designError = document.getElementById('design-error');
+    const customPreviewStatus = document.getElementById('custom-preview-status');
+    let previewVersion = 0;
+    let pendingPreview = null;
+    let customPreviewPending = false;
+    let confirmedPreviewUrl = '';
+    const exportButtons = [copyBtn, copyUrlBtn, downloadBtn, downloadPngBtn];
+    function customInlineCount() {
+      return [sanitizeBannerText(headerInput.value, 50), sanitizeBannerText(subheaderInput.value, 60)].reduce((total, value) => total + (value.match(new RegExp(CUSTOM_ICON_SOURCE, 'g')) || []).length, 0);
+    }
+    const imageLayers = initImageLayers({
+      container: document.getElementById('image-layers'),
+      addButton: document.getElementById('add-image'),
+      status: document.getElementById('image-layer-status'),
+      onChange: update,
+      getInlineCount: customInlineCount,
+    });
+
+    function setDesignError(error) {
+      const message = error ? error.message + ' Fix the settings to update the preview and export.' : '';
+      designError.textContent = message;
+      designError.hidden = !message;
+      exportButtons.forEach(button => { button.disabled = !!message || customPreviewPending; });
+      if (message) markdownInput.value = '';
+    }
 
     function createEmojiExplosion(emojis, count = 6) {
       const toggleSwitch = document.querySelector('.toggle-switch');
@@ -2061,6 +2101,12 @@
 
     function buildUrl() {
       const params = new URLSearchParams();
+      for (const [input, limit] of [[headerInput, 50], [subheaderInput, 60]]) {
+        validateCustomIcons(input.value);
+        validateCustomIcons(sanitizeBannerText(input.value, limit));
+      }
+      const images = imageLayers.serialize();
+      if (images) params.set('images', images);
       if (statsOptOut.checked) params.set('stats', 'false');
       const header = headerInput.value || '![github] Hello World 👋';
       params.set('header', header);
@@ -2109,7 +2155,9 @@
         params.set('watermarkpos', watermarkPosition);
       }
       appendBackgroundEffects(params);
-      return '/banner?' + params.toString();
+      const url = '/banner?' + params.toString();
+      if (url.length > 12000) throw new Error('This banner link is too long. Use shorter image URLs or fewer custom images.');
+      return url;
     }
 
     function buildMarkdown(url) {
@@ -2127,16 +2175,67 @@
       markdownInput.style.height = markdownInput.scrollHeight + 'px';
     }
 
+    function hasCustomImages(url) {
+      const params = new URL(url, window.location.origin).searchParams;
+      return params.has('images') || [sanitizeBannerText(params.get('header') || '', 50), sanitizeBannerText(params.get('subheader') || '', 60)]
+        .some(text => new RegExp(CUSTOM_ICON_SOURCE).test(text));
+    }
+
+    function requireReadyPreview(url) {
+      if (hasCustomImages(url) && confirmedPreviewUrl !== url) {
+        throw new Error(customPreviewPending ? 'Wait for the custom image preview to finish loading.' : 'Check your custom image URLs and wait for a successful preview.');
+      }
+    }
+
     function update() {
       updateBackgroundEffectControls();
       updateBackgroundControls();
       clearTimeout(debounceTimer);
+      const version = ++previewVersion;
+      if (pendingPreview) { pendingPreview.src = ''; pendingPreview = null; }
+      customPreviewPending = false;
+      confirmedPreviewUrl = '';
+      customPreviewStatus.hidden = true;
+      imageLayers.refreshLimit();
+      let url;
+      try { url = buildUrl(); }
+      catch (error) { setDesignError(error); return; }
+      customPreviewPending = hasCustomImages(url);
+      setDesignError(null);
+      if (customPreviewPending) {
+        markdownInput.value = '';
+        customPreviewStatus.textContent = 'Loading custom images. The preview will update when they are ready.';
+        customPreviewStatus.hidden = false;
+      }
       debounceTimer = setTimeout(() => {
-        const url = buildUrl();
-        // Cache-bust for preview, clean URL for markdown
-        previewImg.src = url + '&_t=' + Date.now();
-        markdownInput.value = buildMarkdown(url);
-        autoResizeTextarea();
+        const previewUrl = url + '&_t=' + Date.now();
+        if (!customPreviewPending) {
+          previewImg.src = previewUrl;
+          markdownInput.value = buildMarkdown(url);
+          autoResizeTextarea();
+          return;
+        }
+        const image = new Image();
+        pendingPreview = image;
+        image.onload = () => {
+          if (version !== previewVersion) return;
+          pendingPreview = null;
+          customPreviewPending = false;
+          confirmedPreviewUrl = url;
+          customPreviewStatus.hidden = true;
+          setDesignError(null);
+          previewImg.src = previewUrl;
+          markdownInput.value = buildMarkdown(url);
+          autoResizeTextarea();
+        };
+        image.onerror = () => {
+          if (version !== previewVersion) return;
+          pendingPreview = null;
+          customPreviewPending = false;
+          customPreviewStatus.textContent = 'Custom images could not be loaded. The previous preview is unchanged.';
+          setDesignError(new Error('Could not load a custom image. Check that every URL is public and serves a valid image of 1 MiB or less, with at most 16,777,216 pixels across all frames.'));
+        };
+        image.src = previewUrl;
       }, 300);
     }
 
@@ -2147,69 +2246,32 @@
       return div.innerHTML;
     }
 
-    function removeEmojis(text) {
-      // Remove emojis using regex (matches all emoji characters)
-      return text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '');
-    }
-
-    const iconSyntaxSource = '!\\[([a-z0-9_-]+)\\](?:\\((light|dark|auto)\\))?';
-
     function extractIcons(text) {
-      // Match ![icon-name] or ![icon-name](theme)
-      const iconRegex = new RegExp(iconSyntaxSource, 'g');
-      const icons = [];
-      let match;
-      while ((match = iconRegex.exec(text)) !== null) {
-        icons.push({
-          fullMatch: match[0],
-          name: match[1]
-        });
-      }
-      return icons;
+      return Array.from(text.matchAll(new RegExp(INLINE_ICON_SOURCE, 'g')), match => ({
+        fullMatch: match[0], name: match[1] || 'custom icon', custom: !match[1],
+      }));
     }
 
-    function getTextWithoutIconsAndEmojis(text) {
-      // Remove icon syntax first
-      const textWithoutIcons = text.replace(new RegExp(iconSyntaxSource, 'g'), '');
-      // Then remove emojis
-      return removeEmojis(textWithoutIcons);
+    function getDisplayText(text) {
+      // Match the server's UTF-16 text limit, including emojis, without image syntax.
+      return text.replace(new RegExp(INLINE_ICON_SOURCE, 'g'), '');
     }
 
-    // Simulate backend sanitizeHeader truncation logic
     function simulateTruncation(text, maxLength) {
-      if (text.length <= maxLength) {
-        return text;
-      }
-      
-      let truncated = text.slice(0, maxLength);
-      
-      // Check if we're in the middle of an icon syntax ![...]
-      const lastOpenBracket = truncated.lastIndexOf('![');
-      
-      if (lastOpenBracket !== -1) {
-        const afterOpen = truncated.slice(lastOpenBracket);
-        const hasClosing = afterOpen.includes(']');
-        
-        // If no closing bracket, we cut in the middle of an icon - remove it
-        if (!hasClosing) {
-          truncated = truncated.slice(0, lastOpenBracket);
-        }
-      }
-      
-      return truncated.trimEnd();
+      return sanitizeBannerText(text, maxLength);
     }
 
     function validateInput(input, textLimit, iconLimit) {
       const value = input.value;
       const icons = extractIcons(value);
-      const textOnly = getTextWithoutIconsAndEmojis(value);
+      const textOnly = getDisplayText(value);
       
       // Calculate limits
       const textLength = textOnly.length;
-      const maxIconLength = Math.max(...icons.map(i => i.name.length), 0);
+      const maxIconLength = Math.max(...icons.filter(i => !i.custom).map(i => i.name.length), 0);
       
       const textExceeded = textLength > textLimit;
-      const iconExceeded = maxIconLength > iconLimit;
+      const iconExceeded = maxIconLength > iconLimit || icons.length > 5;
       
       // Check if content will be truncated by backend
       const truncated = simulateTruncation(value, textLimit);
@@ -2240,7 +2302,7 @@
       if (validation.icons.length > 0) {
         // Compact display with tooltip for details
         const iconCount = validation.icons.length;
-        const iconDetails = validation.icons.map(i => `![${escapeHtml(i.name)}] (${i.name.length} chars)`).join('\n');
+        const iconDetails = validation.icons.map(i => i.custom ? 'Custom image icon' : `![${i.name}] (${i.name.length} chars)`).join('\n');
 
         iconCountEl.innerHTML = `Icons: ${iconCount} <span class="char-counter-info"><span class="char-counter-info-icon" title="Click for details">i</span><span class="char-counter-tooltip">${escapeHtml(iconDetails)}</span></span> | Max: ${validation.maxIconLength}/${validation.iconLimit}`;
         iconCountEl.classList.toggle('exceeded', validation.iconExceeded);
@@ -2683,6 +2745,7 @@
     });
 
     resetBtn.addEventListener('click', () => {
+      imageLayers.reset();
       resetBackgroundEffects();
       // Reset all form fields to defaults
       headerInput.value = '![github] Hello World 👋';
@@ -2731,13 +2794,15 @@
 
     for (const [button, action] of [[copyBtn, 'markdown'], [copyUrlBtn, 'url'], [downloadBtn, 'svg'], [downloadPngBtn, 'png']]) {
       button.addEventListener('click', () => {
-        const url = new URL(buildUrl(), window.location.origin);
+        let url;
+        try { const fresh = buildUrl(); requireReadyPreview(fresh); url = new URL(fresh, window.location.origin); setDesignError(null); }
+        catch (error) { setDesignError(error); designError.scrollIntoView({ block: 'nearest' }); return; }
         if (action === 'url') {
           // Copied image URLs intentionally omit attribution.
           url.searchParams.delete('support');
           url.searchParams.delete('watermarkpos');
         }
-        const filename = 'banner-' + (headerInput.value.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-+|-+$/g, '') || 'download');
+        const filename = 'banner-' + (headerInput.value.replace(new RegExp(CUSTOM_ICON_SOURCE, 'g'), '').replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-+|-+$/g, '') || 'download');
         beginExport({ action, url: url.href, text: action === 'markdown' ? buildMarkdown(url.href) : url.href, filename }, button);
       });
     }

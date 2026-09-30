@@ -1,5 +1,5 @@
-export const ICON_SYNTAX_SOURCE =
-  '!\\[([a-z0-9_-]+)\\](?:\\((light|dark|auto)\\))?';
+import { BRAND_ICON_SOURCE } from '../ui/inline-icons.js';
+export const ICON_SYNTAX_SOURCE = BRAND_ICON_SOURCE;
 
 export const ICON_SLUG_SANITIZE_RE = /[^a-z0-9_-]/g;
 

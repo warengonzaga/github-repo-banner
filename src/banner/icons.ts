@@ -1,4 +1,8 @@
-import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
+import {
+  INLINE_ICON_SOURCE,
+  iconPixels,
+  parseCustomIcon,
+} from '../ui/inline-icons.js';
 import { escapeXml, sanitizeIconSlug } from '../utils/sanitize.js';
 import { emojiToCodepoint, fetchTwemojiSVG } from './emoji.js';
 import type { BackgroundPreset, HeaderSegment } from './types.js';
@@ -7,7 +11,7 @@ import type { BackgroundPreset, HeaderSegment } from './types.js';
 const iconCache = new Map<string, string>();
 
 // Regex to match icon syntax: ![slug] or ![slug](theme)
-const ICON_RE = createIconSyntaxRegExp('g');
+const ICON_RE = new RegExp(INLINE_ICON_SOURCE, 'g');
 
 // Regex to detect emojis (same as in emoji.ts)
 const EMOJI_RE =
@@ -124,6 +128,7 @@ export function parseHeaderWithIcons(header: string): HeaderSegment[] {
     index: number;
     length: number;
     slug: string;
+    image?: import('../ui/inline-icons.js').CustomIcon;
     theme: 'light' | 'dark' | 'auto';
   }> = [];
 
@@ -136,7 +141,10 @@ export function parseHeaderWithIcons(header: string): HeaderSegment[] {
     iconMatches.push({
       index: matchIndex,
       length: match[0].length,
-      slug: match[1],
+      slug: match[1] || '',
+      ...(/^!\[icon\s/.test(match[0])
+        ? { image: parseCustomIcon(match[0]) }
+        : {}),
       theme: (match[2] as 'light' | 'dark' | 'auto') || 'auto',
     });
   }
@@ -156,8 +164,9 @@ export function parseHeaderWithIcons(header: string): HeaderSegment[] {
 
     // Add icon segment
     segments.push({
-      type: 'icon',
+      type: iconMatch.image ? 'custom-icon' : 'icon',
       value: iconMatch.slug,
+      ...(iconMatch.image ? { image: iconMatch.image } : {}),
       theme: iconMatch.theme,
     });
 
@@ -231,8 +240,33 @@ export async function renderSegmentsAsHTML(
   fontSize: number,
   _textColor: string,
   backgroundTheme: 'light' | 'dark',
+  images: Map<string, string> = new Map(),
+  maxHeight = 304,
 ): Promise<string> {
   const parts: string[] = [];
+  const count = segments.filter(
+    (segment) => segment.type === 'custom-icon',
+  ).length;
+  const occupied = segments.reduce(
+    (width, segment) =>
+      width +
+      (segment.type === 'custom-icon'
+        ? 0
+        : segment.type === 'text'
+          ? [...segment.value].reduce(
+              (sum, ch) => sum + fontSize * (ch === ' ' ? 0.25 : 0.65),
+              0,
+            )
+          : fontSize * 1.5),
+    0,
+  );
+  const maxWidth = Math.max(
+    1,
+    Math.min(
+      304,
+      (1180 - occupied * 1.1) / Math.max(1, count) - fontSize * 0.2,
+    ),
+  );
 
   for (const segment of segments) {
     if (segment.type === 'text') {
@@ -252,6 +286,22 @@ export async function renderSegmentsAsHTML(
       } else {
         // Fallback to text if emoji fetch fails
         parts.push(escapeXml(segment.value));
+      }
+    } else if (segment.type === 'custom-icon' && segment.image) {
+      const { src, w, h } = segment.image;
+      const data = images.get(src);
+      if (data) {
+        const width = w ? `${iconPixels(w, fontSize)}px` : 'auto';
+        const height = h
+          ? `${iconPixels(h, fontSize)}px`
+          : w
+            ? 'auto'
+            : `${fontSize}px`;
+        parts.push(
+          `<img src="${data}" style="display:inline-block;width:${width};height:${height};max-width:${maxWidth}px;max-height:${maxHeight}px;object-fit:contain;vertical-align:middle;margin:0 0.1em;" alt="custom icon" />`,
+        );
+      } else {
+        parts.push('<span style="font-size:0.3em;">[image unavailable]</span>');
       }
     } else if (segment.type === 'icon') {
       // Determine the theme to use for this icon

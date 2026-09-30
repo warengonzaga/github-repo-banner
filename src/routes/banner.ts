@@ -7,7 +7,30 @@ import { recordBannerRequest, usageOptedOut } from '../utils/usage-stats.js';
 const bannerRoute = new Hono();
 
 bannerRoute.get('/banner', async (c) => {
-  const svg = await buildBannerSVG(parseBannerOptions(c.req.query()));
+  let options: ReturnType<typeof parseBannerOptions>;
+  try {
+    options = parseBannerOptions(c.req.query());
+  } catch (error) {
+    return c.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Invalid image settings.',
+      },
+      400,
+    );
+  }
+  let svg: string;
+  try {
+    svg = await buildBannerSVG(options);
+  } catch {
+    return c.json(
+      {
+        error:
+          'A custom image is unavailable. Use a public HTTPS raster image up to 1 MiB and 16,777,216 pixels across all frames, then try again.',
+      },
+      422,
+    );
+  }
 
   const redis = getRedis();
   if (
