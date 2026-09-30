@@ -1602,7 +1602,7 @@
 
         <section class="custom-images" aria-labelledby="custom-images-heading">
           <h3 id="custom-images-heading">Custom Images</h3>
-          <p>Add logos or decorations anywhere on the banner. Use public HTTPS images up to 1 MiB each (PNG, JPEG, WebP, GIF or AVIF).</p>
+          <p>Add logos or decorations anywhere on the banner. Use public HTTPS images up to 1 MiB each (PNG, JPEG, WebP, GIF or AVIF), with at most 16,777,216 pixels across all frames.</p>
           <p>Positions start at the top-left of the 1280 × 304 banner. Images extending past an edge are cropped. Raise or lower images within the same text position; the watermark stays on top.</p>
           <div id="image-layers"></div>
           <p id="image-layer-status" role="status" aria-live="polite"></p>
@@ -2233,7 +2233,7 @@
           pendingPreview = null;
           customPreviewPending = false;
           customPreviewStatus.textContent = 'Custom images could not be loaded. The previous preview is unchanged.';
-          setDesignError(new Error('Could not load a custom image. Check that every URL is public and serves a supported image of 1 MiB or less.'));
+          setDesignError(new Error('Could not load a custom image. Check that every URL is public and serves a valid image of 1 MiB or less, with at most 16,777,216 pixels across all frames.'));
         };
         image.src = previewUrl;
       }, 300);

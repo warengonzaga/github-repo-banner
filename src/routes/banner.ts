@@ -26,7 +26,7 @@ bannerRoute.get('/banner', async (c) => {
     return c.json(
       {
         error:
-          'A custom image is unavailable. Use a public HTTPS raster image up to 1 MiB and try again.',
+          'A custom image is unavailable. Use a public HTTPS raster image up to 1 MiB and 16,777,216 pixels across all frames, then try again.',
       },
       422,
     );

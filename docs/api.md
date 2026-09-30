@@ -66,7 +66,7 @@ const query = new URLSearchParams({
 const bannerUrl = `https://ghrb.waren.build/banner?${query}`;
 ```
 
-There is a shared limit of five custom images across positioned layers and inline icons in both text fields; repeated uses still count. Each custom image must serve JPEG, PNG, GIF, WebP, or AVIF with a matching image content type and a download no larger than 1 MiB. SVG, redirects, credentials, and non-public addresses are rejected. The server fetches and embeds image data into the SVG. Malformed settings return HTTP 400; an unavailable, oversized, or unsupported custom image returns HTTP 422 instead of a partial banner. The generator disables exports until the custom-image preview succeeds.
+There is a shared limit of five custom images across positioned layers and inline icons in both text fields; repeated uses still count. Each custom image must serve JPEG, PNG, GIF, WebP, or AVIF with a matching image content type and a download no larger than 1 MiB. Image data must decode successfully; the limit is 16,777,216 decoded pixels across all frames. SVG, redirects, credentials, and non-public addresses are rejected. The server fetches and embeds image data into the SVG. Malformed settings return HTTP 400; an unavailable, oversized, or unsupported custom image returns HTTP 422 instead of a partial banner. The generator disables exports until the custom-image preview succeeds.
 
 The same settings travel through copied URLs/Markdown and SVG/PNG downloads. Official saved exports and optional showcase previews keep normalized settings and URLs, not image binaries. Later previews can change or fail if a source changes. Existing designs without `images` keep their prior behavior.
 
@@ -300,7 +300,7 @@ https://ghrb.waren.build/banner?header=Semi-Transparent&bg=ffffff80&color=000000
 https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&color=ffffff
 ```
 
-Use a direct public HTTPS URL serving JPEG, PNG, GIF, WebP, or AVIF, up to 10 MiB. URLs containing credentials, blocked private addresses, redirects, and SVG images are not supported. The server embeds the image as base64 and scales it to cover the banner. An invalid URL uses the `bg` selection; an accepted URL whose download fails uses the default gradient.
+Use a direct public HTTPS URL serving JPEG, PNG, GIF, WebP, or AVIF, up to 10 MiB and 16,777,216 decoded pixels across all frames. The data must decode successfully and match its declared content type. URLs containing credentials, blocked private addresses, redirects, and SVG images are not supported. The server embeds the image as base64 and scales it to cover the banner. An invalid URL uses the `bg` selection; an accepted URL whose download fails uses the default gradient.
 
 When the UI accepts an image URL, it disables background colors and presets while preserving their values. Clear the image URL to use those settings again.
 

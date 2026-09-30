@@ -5,12 +5,15 @@ export class BoundedCache {
     { value: string; expires: number; bytes: number }
   >();
   private pending = new Map<string, Promise<string | null>>();
+  private active = 0;
+  private queue: Array<() => void> = [];
   private bytes = 0;
 
   constructor(
     private maxBytes: number,
     private ttlMs: number,
     private concurrency: number,
+    private maxQueued = 0,
   ) {}
 
   async get(
@@ -28,8 +31,15 @@ export class BoundedCache {
     if (cached) return cached.value;
     const pending = this.pending.get(key);
     if (pending) return pending;
-    if (this.pending.size >= this.concurrency) return null;
+    if (this.pending.size >= this.concurrency + this.maxQueued) return null;
     const task = Promise.resolve()
+      .then(async () => {
+        if (this.active >= this.concurrency) {
+          await new Promise<void>((resolve) => this.queue.push(resolve));
+        } else {
+          this.active++;
+        }
+      })
       .then(load)
       .then((value) => {
         if (value === null) return null;
@@ -49,7 +59,13 @@ export class BoundedCache {
         this.bytes += bytes;
         return value;
       })
-      .finally(() => this.pending.delete(key));
+      .finally(() => {
+        this.pending.delete(key);
+        const next = this.queue.shift();
+        // Transfer the reserved slot directly so newcomers cannot overtake a waiter.
+        if (next) next();
+        else this.active--;
+      });
     this.pending.set(key, task);
     return task;
   }

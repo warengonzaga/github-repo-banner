@@ -1,5 +1,6 @@
 import { request as httpsRequest } from 'node:https';
 import type { LookupFunction } from 'node:net';
+import sharp from 'sharp';
 import { BoundedCache } from '../utils/bounded-cache.js';
 import { resolvePublicImageAddress } from '../utils/sanitize.js';
 
@@ -15,7 +16,20 @@ const ALLOWED_IMAGE_TYPES = [
   'image/avif',
 ];
 
-const imageCache = new BoundedCache(32 * 1024 * 1024, 60_000, 4);
+const imageCache = new BoundedCache(32 * 1024 * 1024, 60_000, 4, 16);
+
+// The decoder must never interpret SVG, document, or filesystem input disguised as a raster.
+sharp.block({ operation: ['VipsForeignLoad'] });
+sharp.unblock({
+  operation: [
+    'VipsForeignLoadJpegBuffer',
+    'VipsForeignLoadPngBuffer',
+    'VipsForeignLoadWebpBuffer',
+    'VipsForeignLoadGifBuffer',
+    'VipsForeignLoadNsgifBuffer',
+    'VipsForeignLoadHeifBuffer',
+  ],
+});
 
 export function fetchImageAsBase64(
   url: string,
@@ -118,14 +132,32 @@ async function downloadImageAsBase64(
             }
             chunks.push(chunk);
           });
-          response.on('end', () => {
+          response.on('end', async () => {
             if (totalBytes === 0) {
               finish(null);
               return;
             }
-            finish(
-              `data:${contentType};base64,${Buffer.concat(chunks).toString('base64')}`,
-            );
+            const data = Buffer.concat(chunks);
+            const image = sharp(data, {
+              animated: true,
+              failOn: 'warning',
+              limitInputPixels: 16_777_216,
+            });
+            try {
+              const metadata = await image.metadata();
+              if (metadata.mediaType !== contentType) {
+                finish(null);
+                return;
+              }
+              // Metadata alone does not detect damaged pixel streams. Decode all frames,
+              // with a pixel budget and deadline, before caching the original image bytes.
+              await image.timeout({ seconds: 5 }).raw().toBuffer();
+              finish(`data:${contentType};base64,${data.toString('base64')}`);
+            } catch {
+              finish(null);
+            } finally {
+              image.destroy();
+            }
           });
           response.on('aborted', () => finish(null));
           response.on('error', () => finish(null));

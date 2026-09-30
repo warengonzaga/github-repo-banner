@@ -13,6 +13,11 @@ compose up --build --wait --wait-timeout 90
 compose exec -T app node --input-type=module <<'JS'
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import sharp from 'sharp';
+
+// The runtime must include working native image decoders, not just the JS wrapper.
+const pixel = await sharp({ create: { width: 1, height: 1, channels: 3, background: 'red' } }).png().toBuffer();
+assert.deepEqual(await sharp(pixel).raw().toBuffer(), Buffer.from([255, 0, 0]));
 
 assert.equal(process.versions.node.split('.')[0], '22');
 assert.notEqual(process.getuid(), 0);

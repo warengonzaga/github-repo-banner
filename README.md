@@ -65,7 +65,7 @@ Open `http://localhost:3000`. Compose connects Redis automatically and keeps its
 
 Use `bg=HEX` for a solid color, `bg=HEX1-HEX2` for a gradient, or eight-digit `RRGGBBAA` hex for opacity. `bg=00000000` is fully transparent. Choose a preset in the UI or browse the [preset table and examples](docs/api.md#color-presets).
 
-Use `bgimg` for a direct public HTTPS image. The UI preserves your colors and presets while disabling them until you clear the image URL. Supported images are JPEG, PNG, GIF, WebP, and AVIF, up to 10 MiB; see [image requirements and fallback behavior](docs/api.md#custom-background-image).
+Use `bgimg` for a direct public HTTPS image. The UI preserves your colors and presets while disabling them until you clear the image URL. Supported images are JPEG, PNG, GIF, WebP, and AVIF, up to 10 MiB and 16,777,216 decoded pixels across all frames; see [image requirements and fallback behavior](docs/api.md#custom-background-image).
 
 **Background styling** adjusts brightness, contrast, saturation, and grayscale without changing text, icons, or watermarks. Blur applies only to successfully loaded images. **Reset styling** restores neutral values while keeping your content; the main **Reset** restores all defaults. The effects travel with copied URLs and SVG/PNG downloads.
 
@@ -87,7 +87,7 @@ Replace the example URL with a direct public image URL. Optional `w` and `h` acc
 
 For freely positioned images, open **Custom Images** and choose **Add image**. Set X/Y from the banner's top-left and width/height in pixels on the 1280×304 canvas. **Preserve proportions** fits inside the box; uncheck it to stretch. Choose **Behind text** or **In front of text**, then use **Lower layer**, **Raise layer**, or **Remove image**. Images crossing a banner edge are cropped, and the watermark stays above them. New images start at `(0, 0)` in a 128×128 box, behind text. The main **Reset** clears them.
 
-A banner supports five custom images total, including inline icons in both text fields. Each needs a public HTTPS URL of at most 512 characters and a PNG, JPEG, WebP, GIF, or AVIF download of at most 1 MiB. SVG, redirects, credentials, and private addresses are not supported. Invalid or unavailable custom images show an error and block exports until fixed or removed.
+A banner supports five custom images total, including inline icons in both text fields. Each needs a public HTTPS URL of at most 512 characters and a PNG, JPEG, WebP, GIF, or AVIF download of at most 1 MiB and 16,777,216 decoded pixels across all frames. The image data must decode successfully and match its declared content type. SVG, redirects, credentials, and private addresses are not supported. Invalid or unavailable custom images show an error and block exports until fixed or removed.
 
 Custom image settings follow the live preview, copied URLs/Markdown, SVG/PNG downloads, saved official exports, and optional showcase previews. Saved designs keep URLs and settings, not image binaries, so later previews depend on those images remaining available. See the [custom image API](docs/api.md#custom-icons-and-positioned-images) for parameter details.
 
