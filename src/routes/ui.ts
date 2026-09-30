@@ -75,6 +75,10 @@ function readDocument(filename: string): string {
 for (const [path, type] of [
   ['pages.css', 'text/css; charset=utf-8'],
   ['usage.js', 'text/javascript; charset=utf-8'],
+  ['image-layers.js', 'text/javascript; charset=utf-8'],
+  ['image-layers.css', 'text/css; charset=utf-8'],
+  ['image-settings.js', 'text/javascript; charset=utf-8'],
+  ['inline-icons.js', 'text/javascript; charset=utf-8'],
   ['export.js', 'text/javascript; charset=utf-8'],
   ['showcase.js', 'text/javascript; charset=utf-8'],
 ]) {

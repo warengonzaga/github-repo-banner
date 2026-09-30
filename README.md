@@ -18,7 +18,8 @@ When you deploy your own copy, you're directly supporting this project! 💖
 
 - 🎨 **Backgrounds** — Solid colors, gradients, transparency, presets, and public HTTPS images.
 - 📸 **Image search and styling** — Pexels search with more results, image blur, and background color filters.
-- 🔤 **Typography** — Google Fonts, emoji, and Simple Icons using `![slug]`.
+- 🔤 **Typography** — Google Fonts, emoji, Simple Icons using `![slug]`, and inline custom images using `![icon src="https://…"]`.
+- 🧩 **Custom Images** — Position multiple logos or decorations, resize them, preserve proportions, and arrange them behind or in front of text.
 - 📥 **Output** — Live preview, README Markdown, image URLs, SVG, and PNG downloads.
 - 💖 **Optional attribution** — Toggle the watermark and choose any corner.
 - 📚 **Accessible controls** — Keyboard-selectable photos and responsive Code of conduct and MIT license tabs.
@@ -33,7 +34,7 @@ When you deploy your own copy, you're directly supporting this project! 💖
 ### Use the Hosted Service
 
 1. Open [ghrb.waren.build](https://ghrb.waren.build).
-2. Set your text, fonts, and background; check the live preview.
+2. Set your text, fonts, and background; optionally add custom images and check the live preview.
 3. Choose **Copy Markdown** for your README, copy an image URL, or download SVG/PNG.
 4. On the official service, choose whether to showcase this design on the Usage page. Both choices save the exported design and count usage. Declining only keeps it out of the public showcase.
 
@@ -73,6 +74,22 @@ https://ghrb.waren.build/banner?header=My+Project&bgimg=https://images.pexels.co
 ```
 
 See the [API parameter table](docs/api.md#parameters) for ranges and defaults. Invalid effect values use defaults; neutral values preserve the original output.
+
+### Custom Icons and Images
+
+Put an image inline with header or subheader text:
+
+```text
+![icon src="https://example.com/logo.png" w="100%"] My Project
+```
+
+Replace the example URL with a direct public image URL. Optional `w` and `h` accept `1–304px` or `1–200%`; percentages follow the surrounding text size. With neither set, the icon follows the text height. With one set, the other preserves its proportions; with both set, the image fits inside that box. Oversized icons shrink to fit the available line space. Existing `![github]` icons and emoji still work alongside custom icons.
+
+For freely positioned images, open **Custom Images** and choose **Add image**. Set X/Y from the banner's top-left and width/height in pixels on the 1280×304 canvas. **Preserve proportions** fits inside the box; uncheck it to stretch. Choose **Behind text** or **In front of text**, then use **Lower layer**, **Raise layer**, or **Remove image**. Images crossing a banner edge are cropped, and the watermark stays above them. New images start at `(0, 0)` in a 128×128 box, behind text. The main **Reset** clears them.
+
+A banner supports five custom images total, including inline icons in both text fields. Each needs a public HTTPS URL of at most 512 characters and a PNG, JPEG, WebP, GIF, or AVIF download of at most 1 MiB. SVG, redirects, credentials, and private addresses are not supported. Invalid or unavailable custom images show an error and block exports until fixed or removed.
+
+Custom image settings follow the live preview, copied URLs/Markdown, SVG/PNG downloads, saved official exports, and optional showcase previews. Saved designs keep URLs and settings, not image binaries, so later previews depend on those images remaining available. See the [custom image API](docs/api.md#custom-icons-and-positioned-images) for parameter details.
 
 ### Pexels Integration
 

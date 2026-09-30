@@ -11,7 +11,8 @@ Generate a custom SVG banner.
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `header` | string | No | "Hello World" | Main text (supports emojis and icons) |
-| `subheader` | string | No | - | Optional subtitle text |
+| `subheader` | string | No | - | Optional subtitle text, with the same icon syntax as `header` |
+| `images` | JSON string | No | `[]` | Positioned custom images; see [custom image settings](#custom-icons-and-positioned-images) |
 | `bg` | string | No | `1a1a1a-4a4a4a` | Background color in hex format |
 | `color` | string | No | `ffffff` | Header text color (hex without #) |
 | `subheadercolor` | string | No | Same as `color` | Subheader text color |
@@ -27,7 +28,47 @@ Generate a custom SVG banner.
 | `stats` | boolean | No | `true` | On self-hosted instances with optional tracking, `false` excludes this request. Official-hosted aggregate counting ignores this opt-out. |
 | `watermarkpos` | string | No | `bottom-right` | Watermark position: `top-left`, `top-right`, `bottom-left`, `bottom-right` |
 
-Header and subheader display text are limited to 50 and 60 JavaScript string units respectively, with at most five icons per field and a 500-unit raw-input cap. Font names are sanitized and limited to 50 units. Encode query values, especially embedded image URLs containing their own `&` or `#`; `URLSearchParams` handles this when building URLs in code.
+Header and subheader display text are limited to 50 and 60 JavaScript string units respectively, with at most five inline icons per field. Complete icon tokens do not count toward the display-text limit. Raw input is capped at 500 units, or 2,048 units when it contains custom icon syntax. Font names are sanitized and limited to 50 units. Encode query values, especially embedded image URLs containing their own `&` or `#`; `URLSearchParams` handles this when building URLs in code.
+
+### Custom Icons and Positioned Images
+
+Use inline custom icons in `header` or `subheader`:
+
+```text
+![icon src="https://example.com/logo.png" w="100%"] My Project
+```
+
+Attributes use double quotes. `src` is required; `w` and `h` are optional and each accepts `1–304px` or `1–200%`. Percentages are relative to the surrounding rendered font size, not the banner. Omitting both sizes uses the text height; specifying one preserves the image's aspect ratio. With both, the image fits inside the requested box while preserving proportions. Available line space limits oversized icons. Existing Simple Icons syntax (`![github]`, `![github](light)`) and emoji remain supported. Custom icons do not accept X/Y positions.
+
+For independent images, supply `images` as one JSON-encoded array, at most 4,096 JavaScript string units before URL encoding. Each object accepts only these fields:
+
+| Field | Default | Accepted value |
+|-------|---------|----------------|
+| `src` | Required | Direct public HTTPS image URL, at most 512 units |
+| `x` | `0` | Number from 0 to 1280 pixels from the left edge |
+| `y` | `0` | Number from 0 to 304 pixels from the top edge |
+| `w` | `128` | Width from 1 to 1280 pixels |
+| `h` | `128` | Height from 1 to 304 pixels |
+| `fit` | `contain` | `contain` preserves proportions inside the box; `stretch` fills it |
+| `placement` | `behind` | `behind` or `front`, relative to text |
+
+The canvas is 1280×304 pixels; portions outside it are cropped. Images render above the background, in array order from back to front within each placement group. The watermark remains above all images. Background filters do not affect custom icons or positioned images.
+
+This example builds a URL without manually escaping nested quotes or image URL parameters. The image URLs are illustrative; replace them with working direct image URLs.
+
+```js
+const query = new URLSearchParams({
+  header: '![icon src="https://example.com/logo.png" w="100%"] My Project',
+  images: JSON.stringify([
+    { src: 'https://example.com/decoration.png', x: 32, y: 32, w: 128, h: 128, fit: 'contain', placement: 'behind' },
+  ]),
+});
+const bannerUrl = `https://ghrb.waren.build/banner?${query}`;
+```
+
+There is a shared limit of five custom images across positioned layers and inline icons in both text fields; repeated uses still count. Each custom image must serve JPEG, PNG, GIF, WebP, or AVIF with a matching image content type and a download no larger than 1 MiB. SVG, redirects, credentials, and non-public addresses are rejected. The server fetches and embeds image data into the SVG. Malformed settings return HTTP 400; an unavailable, oversized, or unsupported custom image returns HTTP 422 instead of a partial banner. The generator disables exports until the custom-image preview succeeds.
+
+The same settings travel through copied URLs/Markdown and SVG/PNG downloads. Official saved exports and optional showcase previews keep normalized settings and URLs, not image binaries. Later previews can change or fail if a source changes. Existing designs without `images` keep their prior behavior.
 
 ### Background Effects
 
@@ -48,6 +89,8 @@ Non-finite, non-numeric, and out-of-range values use the parameter defaults. Eff
 - **Content-Type**: `image/svg+xml`
 - **Cache-Control**: `public, max-age=86400, s-maxage=86400` (production)
 - **Size**: 1280×304px
+
+Invalid custom-image settings return HTTP 400 with a JSON error. Failed custom-image downloads return HTTP 422 with a JSON error; they do not return an incomplete SVG.
 
 ## `GET /`
 
@@ -76,7 +119,7 @@ Every official export request, including `showcase: false`, requires:
 - `policyVersion`: `2026-09-29`.
 - `query`: an object mapping banner parameter names to string values.
 
-Settings use the same sanitization and defaults as `/banner`; no SVG markup or uploaded image binary is accepted. Submit the final exported settings, including watermark omission for the image-URL action. The generator presents the public-sharing choice and constructs this request. Keep the removal token secret and save it before submitting.
+Settings use the same sanitization and defaults as `/banner`; no SVG markup or uploaded image binary is accepted. The `query.images` value is a JSON string limited to 4,096 units; other query values remain limited to 2,048 units. The complete body and normalized record limits still apply, so shorten URLs or reduce design settings if the combined payload is too large. Submit the final exported settings, including watermark omission for the image-URL action. The generator presents the public-sharing choice and constructs this request. Keep the removal token secret and save it before submitting.
 
 A new saved export returns HTTP 201; while a saved or public record exists, an identical retry with the same ID, action, settings, choice and token returns 200 without extending retention, counting again or republishing a withdrawn showcase. A successful response contains `saved: true`, `showcased` (the actual publication result), `id` and `expiresAt` (Unix milliseconds for the saved export's expiry). A public entry also includes `previewUrl`. If the gallery is full, the export still saves and counts, with `showcased: false` and `showcaseReason: "full"`; the download can proceed with that status. An identical retry after withdrawal returns `showcaseReason: "removed"` rather than republishing it.
 

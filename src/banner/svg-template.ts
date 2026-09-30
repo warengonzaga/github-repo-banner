@@ -1,14 +1,17 @@
-import { request as httpsRequest } from 'node:https';
-import type { LookupFunction } from 'node:net';
-import { BoundedCache } from '../utils/bounded-cache.js';
+import {
+  CUSTOM_ICON_SOURCE,
+  iconPixels,
+  parseCustomIcon,
+} from '../ui/inline-icons.js';
 import { createIconSyntaxRegExp } from '../utils/icon-syntax.js';
-import { escapeXml, resolvePublicImageAddress } from '../utils/sanitize.js';
+import { escapeXml } from '../utils/sanitize.js';
 import { buildBackgroundFilter } from './background-effects.js';
 import {
   detectBackgroundTheme,
   parseHeaderWithIcons,
   renderSegmentsAsHTML,
 } from './icons.js';
+import { fetchImageAsBase64 } from './image-loader.js';
 import type { BackgroundPreset, BannerOptions } from './types.js';
 
 const WIDTH = 1280;
@@ -27,135 +30,6 @@ function buildGradientDef(bg: BackgroundPreset): string {
     .map((s) => `<stop offset="${s.offset}" stop-color="${s.color}" />`)
     .join('');
   return `<linearGradient id="bg-gradient" x1="0" y1="0" x2="1" y2="0">${stops}</linearGradient>`;
-}
-
-/**
- * Fetch an image and return it as a base64 data URI for SVG embedding.
- */
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-  'image/avif',
-];
-
-const imageCache = new BoundedCache(32 * 1024 * 1024, 60_000, 4);
-
-function fetchImageAsBase64(url: string): Promise<string | null> {
-  return imageCache.get(url, () => downloadImageAsBase64(url));
-}
-
-async function downloadImageAsBase64(url: string): Promise<string | null> {
-  try {
-    const parsedUrl = new URL(url);
-    if (
-      parsedUrl.protocol !== 'https:' ||
-      parsedUrl.username ||
-      parsedUrl.password
-    ) {
-      return null;
-    }
-    const address = await resolvePublicImageAddress(
-      parsedUrl.hostname.replace(/^\[|\]$/g, ''),
-    );
-    if (!address) return null;
-
-    const pinnedLookup: LookupFunction = (_hostname, options, callback) => {
-      if (typeof options === 'object' && options.all) {
-        callback(null, [address]);
-      } else {
-        callback(null, address.address, address.family);
-      }
-    };
-
-    return await new Promise<string | null>((resolve) => {
-      let settled = false;
-      const finish = (dataUri: string | null) => {
-        if (settled) return;
-        settled = true;
-        resolve(dataUri);
-      };
-
-      const request = httpsRequest(
-        parsedUrl,
-        {
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (compatible; GitHubRepoBanner/1.0; +https://ghrb.waren.build)',
-          },
-          lookup: pinnedLookup,
-          signal: AbortSignal.timeout(10_000),
-        },
-        (response) => {
-          if (
-            response.statusCode === undefined ||
-            response.statusCode < 200 ||
-            response.statusCode >= 300
-          ) {
-            response.destroy();
-            finish(null);
-            return;
-          }
-
-          const declaredLength = response.headers['content-length'];
-          if (
-            declaredLength &&
-            Number.parseInt(declaredLength, 10) > MAX_IMAGE_BYTES
-          ) {
-            response.destroy();
-            finish(null);
-            return;
-          }
-
-          const rawContentType = response.headers['content-type'];
-          if (typeof rawContentType !== 'string') {
-            response.destroy();
-            finish(null);
-            return;
-          }
-          const contentType = rawContentType
-            .split(';', 1)[0]
-            .trim()
-            .toLowerCase();
-          if (!ALLOWED_IMAGE_TYPES.includes(contentType)) {
-            response.destroy();
-            finish(null);
-            return;
-          }
-
-          const chunks: Buffer[] = [];
-          let totalBytes = 0;
-          response.on('data', (chunk: Buffer) => {
-            totalBytes += chunk.byteLength;
-            if (totalBytes > MAX_IMAGE_BYTES) {
-              response.destroy();
-              finish(null);
-              return;
-            }
-            chunks.push(chunk);
-          });
-          response.on('end', () => {
-            if (totalBytes === 0) {
-              finish(null);
-              return;
-            }
-            finish(
-              `data:${contentType};base64,${Buffer.concat(chunks).toString('base64')}`,
-            );
-          });
-          response.on('aborted', () => finish(null));
-          response.on('error', () => finish(null));
-        },
-      );
-
-      request.on('error', () => finish(null));
-      request.end();
-    });
-  } catch {
-    return null;
-  }
 }
 
 function buildBackground(bg: BackgroundPreset): string {
@@ -323,6 +197,14 @@ async function buildGoogleFontsStyle(
  * Properly accounts for emojis and icons which render wider than text.
  */
 function estimateTextWidth(text: string, fontSize: number): number {
+  // Estimate automatic widths from the requested height; rendering bounds the actual aspect ratio.
+  let customWidth = 0;
+  text = text.replace(new RegExp(CUSTOM_ICON_SOURCE, 'g'), (token) => {
+    const icon = parseCustomIcon(token);
+    customWidth +=
+      Math.min(304, iconPixels(icon.w || icon.h, fontSize)) + fontSize * 0.2;
+    return '';
+  });
   // Regex to detect emojis (including multi-codepoint sequences)
   const emojiRegex =
     /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(\u200D(\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*/gu;
@@ -350,7 +232,7 @@ function estimateTextWidth(text: string, fontSize: number): number {
   width +=
     (iconCount + emojiCount) * (fontSize * EMOJI_WIDTH_RATIO + marginWidth);
 
-  return width;
+  return width + customWidth;
 }
 
 /**
@@ -360,8 +242,19 @@ function fitFontSize(text: string, baseSize: number): number {
   const widthAtBase = estimateTextWidth(text, baseSize);
   if (widthAtBase <= MAX_CONTENT_WIDTH) return baseSize;
   // Add 10% safety margin to prevent overflow, especially with emojis
-  const scaled = baseSize * (MAX_CONTENT_WIDTH / (widthAtBase * 1.1));
-  return Math.max(MIN_FONT_SIZE, Math.round(scaled));
+  // A binary search also handles fixed-pixel icons whose width does not shrink with text.
+  const minSize = Math.min(MIN_FONT_SIZE, baseSize);
+  let low = minSize,
+    high = baseSize;
+  for (let i = 0; i < 10; i++) {
+    const mid = (low + high) / 2;
+    if (estimateTextWidth(text, mid) * 1.1 <= MAX_CONTENT_WIDTH) low = mid;
+    else high = mid;
+  }
+  const scaled = new RegExp(CUSTOM_ICON_SOURCE).test(text)
+    ? low
+    : baseSize * (MAX_CONTENT_WIDTH / (widthAtBase * 1.1));
+  return Math.max(minSize, Math.round(scaled));
 }
 
 export async function buildBannerSVG(options: BannerOptions): Promise<string> {
@@ -378,6 +271,26 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     watermarkPosition = 'bottom-right',
   } = options;
 
+  const customSources = [
+    ...header.matchAll(new RegExp(CUSTOM_ICON_SOURCE, 'g')),
+    ...(subheader || '').matchAll(new RegExp(CUSTOM_ICON_SOURCE, 'g')),
+  ].map((match) => parseCustomIcon(match[0]).src);
+  customSources.push(...(options.images || []).map((image) => image.src));
+  const customImages = new Map<string, string>();
+  const uniqueSources = [...new Set(customSources)].slice(0, 5);
+  // Two bounded batches reuse the global four-request downloader without dropping a fifth image.
+  for (let i = 0; i < uniqueSources.length; i += 4) {
+    await Promise.all(
+      uniqueSources.slice(i, i + 4).map(async (src) => {
+        const image = await fetchImageAsBase64(src, 1024 * 1024);
+        if (image) customImages.set(src, image);
+      }),
+    );
+  }
+  if (customImages.size !== uniqueSources.length)
+    throw new Error(
+      'A custom image is unavailable. Use a public HTTPS raster image up to 1 MiB and try again.',
+    );
   const hasSubheader = !!subheader;
   const subheaderText = subheader ?? '';
 
@@ -403,6 +316,34 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
       effSubSize = Math.round(subFontSize * scale);
       effGap = Math.round(effGap * scale);
     }
+  }
+
+  // Large custom icons share the same finite line space as the surrounding text.
+  const iconLineHeight = (text: string, size: number) =>
+    Math.max(
+      size,
+      ...[...text.matchAll(new RegExp(CUSTOM_ICON_SOURCE, 'g'))].map(
+        (match) => {
+          const icon = parseCustomIcon(match[0]);
+          return icon.h
+            ? Math.min(304, iconPixels(icon.h, size))
+            : icon.w
+              ? Math.min(304, iconPixels(icon.w, size))
+              : size;
+        },
+      ),
+    );
+  let headerHeight = iconLineHeight(header, effHeaderSize);
+  let subHeight = hasSubheader ? iconLineHeight(subheaderText, effSubSize) : 0;
+  if (
+    customSources.length &&
+    headerHeight + subHeight + effGap > availableHeight
+  ) {
+    const scale = (availableHeight - effGap) / (headerHeight + subHeight);
+    headerHeight *= scale;
+    subHeight *= scale;
+    effHeaderSize = Math.min(effHeaderSize, headerHeight);
+    effSubSize = Math.min(effSubSize, subHeight);
   }
 
   let defs = buildGradientDef(background);
@@ -442,6 +383,12 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   }
 
   const watermark = showWatermark ? buildWatermark(watermarkPosition) : '';
+  const layers = { behind: '', front: '' };
+  for (const image of options.images || []) {
+    const data = customImages.get(image.src);
+    layers[image.placement] +=
+      `<image href="${data}" x="${image.x}" y="${image.y}" width="${image.w}" height="${image.h}" preserveAspectRatio="${image.fit === 'stretch' ? 'none' : 'xMidYMid meet'}" />`;
+  }
 
   // Determine font families to use - Google Font if specified, otherwise default
   // Escape the font names for safe insertion into CSS
@@ -477,6 +424,8 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
     effHeaderSize,
     textColor,
     backgroundTheme,
+    customImages,
+    headerHeight,
   );
 
   const subheaderHTML = hasSubheader
@@ -485,6 +434,8 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
         effSubSize,
         subColorValue,
         backgroundTheme,
+        customImages,
+        subHeight,
       )
     : '';
 
@@ -499,12 +450,12 @@ export async function buildBannerSVG(options: BannerOptions): Promise<string> {
   <div style="font-family:${escapeXml(headerFontFamily)};font-size:${effHeaderSize}px;font-weight:700;color:${textColor};line-height:1;text-align:center;white-space:nowrap;">${headerHTML}</div>
 </div>`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" overflow="hidden">
 <defs>${defs}</defs>
-${bgRect}
+${bgRect}${layers.behind ? `\n${layers.behind}` : ''}
 <foreignObject x="0" y="0" width="${WIDTH}" height="${HEIGHT}">
 ${htmlContent}
 </foreignObject>
-${watermark}
+${layers.front ? `${layers.front}\n` : ''}${watermark}
 </svg>`;
 }
