@@ -1,4 +1,4 @@
-FROM oven/bun:1.3.9 AS build
+FROM oven/bun:1.3.9-alpine AS build
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
@@ -7,12 +7,12 @@ COPY docs ./docs
 COPY src ./src
 RUN bun run build
 
-FROM oven/bun:1.3.9 AS dependencies
+FROM oven/bun:1.3.9-alpine AS dependencies
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
-FROM node:22-bookworm-slim AS runtime
+FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000
 COPY --from=dependencies /app/node_modules ./node_modules
