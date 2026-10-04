@@ -14,6 +14,7 @@ RUN bun install --frozen-lockfile --production
 
 FROM gcr.io/distroless/nodejs22-debian13:nonroot AS runtime
 WORKDIR /app
+USER nonroot
 ENV NODE_ENV=production PORT=3000 PATH="/nodejs/bin:${PATH}"
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
