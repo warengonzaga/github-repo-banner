@@ -12,6 +12,7 @@ trap 'exit 1' INT TERM
 compose up --build --wait --wait-timeout 90
 compose exec -T app node --input-type=module <<'JS'
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import sharp from 'sharp';
 
@@ -21,6 +22,11 @@ assert.deepEqual(await sharp(pixel).raw().toBuffer(), Buffer.from([255, 0, 0]));
 
 assert.equal(process.versions.node.split('.')[0], '22');
 assert.notEqual(process.getuid(), 0);
+assert.equal(existsSync('/usr/local/lib/node_modules/npm'), false);
+for (const executable of ['npm', 'npx']) {
+  const result = spawnSync(executable, ['--version'], { timeout: 5000 });
+  assert.equal(result.error?.code, 'ENOENT', `${executable} must be absent from PATH`);
+}
 assert.equal(existsSync('node_modules/tsup'), false);
 assert.equal(existsSync('.env'), false);
 assert.ok(JSON.parse(readFileSync('package.json', 'utf8')).version);
