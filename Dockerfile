@@ -13,6 +13,9 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
 FROM node:22-bookworm-slim AS runtime
+RUN apt-get update \
+  && apt-get upgrade -y --no-install-recommends \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000
 COPY --from=dependencies /app/node_modules ./node_modules
