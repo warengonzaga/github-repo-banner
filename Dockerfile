@@ -9,10 +9,8 @@ RUN bun run build
 
 FROM oven/bun:1.3.9 AS dependencies
 WORKDIR /app
-COPY package.json ./
-# Resolve production dependencies without the development lockfile so the image
-# includes current compatible security releases.
-RUN bun install --production
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
 
 FROM node:22-trixie-slim AS runtime
 WORKDIR /app
