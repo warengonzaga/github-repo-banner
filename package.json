@@ -1,6 +1,6 @@
 {
   "name": "github-repo-banner",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "description": "Generate customizable GitHub repository banners via URL parameters",
   "type": "module",
   "scripts": {
@@ -12,10 +12,10 @@
     "check": "biome check ."
   },
   "dependencies": {
-    "@hono/node-server": "^2.0.4",
+    "@hono/node-server": "^2.0.10",
     "@wgtechlabs/log-engine": "^2.2.0",
     "dotenv": "^17.2.3",
-    "hono": "^4.12.14",
+    "hono": "^4.13.5",
     "ioredis": "^6.0.0",
     "marked": "^18.0.14",
     "sharp": "^0.35.5"
