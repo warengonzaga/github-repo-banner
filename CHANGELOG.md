@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [2.2.1] - 2026-10-04
+
+### Security
+
+- reconcile Alpine proposal with distroless (#88)
+- reconcile duplicate Trixie runtime proposal (#87)
+- reconcile Trixie proposal with distroless (#86)
+- reconcile runtime hardening with distroless (#85)
+- preserve patched Hono dependency minimum (#84)
+- use a nonroot distroless runtime (#82)
+- reconcile Debian runtime package refresh (#83)
+- patch Hono dependencies and refresh runtime packages (#89)
+
 ## [2.2.0] - 2026-09-30
 
 ### Added
