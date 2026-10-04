@@ -9,12 +9,18 @@ RUN bun run build
 
 FROM oven/bun:1.3.9 AS dependencies
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+COPY package.json ./
+# Resolve production dependencies without the development lockfile so the image
+# includes current compatible security releases.
+RUN bun install --production
 
-FROM node:22-bookworm-slim AS runtime
+FROM node:22-trixie-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000
+RUN apt-get update \
+  && apt-get upgrade -y --no-install-recommends \
+  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/dist ./dist
