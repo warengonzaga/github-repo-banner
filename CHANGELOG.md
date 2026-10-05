@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [2.2.2] - 2026-10-05
+
+### Changed
+
+- guard distroless runtime utilities (#93)
+
+### Security
+
+- declare the nonroot runtime user (#91)
+
 ## [2.2.1] - 2026-10-04
 
 ### Security

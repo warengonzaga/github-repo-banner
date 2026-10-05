@@ -1,6 +1,6 @@
 {
   "name": "github-repo-banner",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Generate customizable GitHub repository banners via URL parameters",
   "type": "module",
   "scripts": {
