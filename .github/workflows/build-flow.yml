@@ -17,7 +17,7 @@ concurrency:
 jobs:
   ci:
     name: CI
-    uses: wgtechlabs/build-flow-action/.github/workflows/ci.yml@b46ac3e40de838b87e1da6b3e69382982d080916 # v0.2.1
+    uses: wgtechlabs/build-flow-action/.github/workflows/ci.yml@260b9a063ef59ccc760155c19902320feb7e25cb # v0.3.1
     with:
       # Use the Node profile so Bun can be pinned instead of installed as latest.
       ci-profile: node
