@@ -27,6 +27,11 @@ for (const executable of ['npm', 'npx']) {
   const result = spawnSync(executable, ['--version'], { timeout: 5000 });
   assert.equal(result.error?.code, 'ENOENT', `${executable} must be absent from PATH`);
 }
+assert.equal(existsSync('/var/lib/dpkg/status'), false, 'runtime must not include a Debian package database');
+for (const executable of ['apt', 'apt-get', 'bash', 'chfn', 'chsh', 'chroot', 'chown', 'chgrp', 'diff3', 'gpgv', 'sort', 'uniq', 'unexpand']) {
+  const result = spawnSync(executable, ['--version'], { timeout: 5000 });
+  assert.equal(result.error?.code, 'ENOENT', `${executable} must be absent from PATH`);
+}
 assert.equal(existsSync('node_modules/tsup'), false);
 assert.equal(existsSync('.env'), false);
 assert.ok(JSON.parse(readFileSync('package.json', 'utf8')).version);
