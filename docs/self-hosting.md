@@ -89,13 +89,23 @@ Recording failures emit a payload-free operational error. The affected process r
 
 ## CI and Release Workflow
 
-[`.github/workflows/build-flow.yml`](../.github/workflows/build-flow.yml) retains Build Flow's pinned CI workflow for Node 22, Bun 1.3.9, frozen dependency installation, static checks, and the production build. A separate Redis and Docker job runs the regression scripts against a disposable Redis service, checks startup failures, and builds and smoke-tests Compose. The `Build` gate requires both jobs to pass.
+[`.github/workflows/build-flow.yml`](../.github/workflows/build-flow.yml) uses Build Flow's pinned app workflow. Redis regression checks and the Docker/Compose smoke check run first, followed by native CI and CodeQL gates. CI uses Node 22 and the project's pinned Bun 1.3.9 for frozen dependency installation, static checks, type checking, and the production build. The final `Build` check requires both the integration job and Build Flow to succeed.
 
-Only a push to `main` can release, after that gate succeeds. Release Build Flow Action v1.8.0 uses the automatically supplied `GITHUB_TOKEN` with `contents: write`; no personal token is needed. Token-generated push, tag, and release events do not trigger additional workflow runs. A successful new release then runs Container Build Flow Action v1.9.0 in the same workflow. It checks out the release tag (including the updated package version) and publishes Linux AMD64 and ARM64 images to both `warengonzaga/github-repo-banner` on Docker Hub and `ghcr.io/warengonzaga/github-repo-banner` on GHCR. Tags include `X.Y.Z`, `X.Y`, `X`, and `latest`.
+Build Flow's native development publishing targets Linux AMD64 images on Docker Hub (`warengonzaga/github-repo-banner`) and GHCR (`ghcr.io/warengonzaga/github-repo-banner`):
+
+| Event | Image tag |
+| --- | --- |
+| Eligible PR into `dev` | `pr-<sha>` |
+| Push to `dev`, or `dev` → `main` PR | `dev-<sha>` |
+| Other eligible same-repository PR into `main` | `patch-<sha>` |
+
+The suffix is the seven-character source revision selected by Build Flow. Bot-authored PRs follow its native validation-only policy. Fork PRs also validate without publishing because they cannot receive registry credentials. Manual runs use Build Flow's native branch policy.
+
+For an eligible `main` release, Build Flow plans the version, finalizes the versioned source and tag, publishes Linux AMD64 and ARM64 images, and creates the GitHub Release last. Production image tags include `X.Y.Z`, `X.Y`, `X`, and `latest`. Release and publishing runs on `main` are serialized. Versioning, tagging, and release ordering are managed by the upstream app workflow.
 
 Docker Hub uses repository secrets `DOCKER_HUB_USERNAME` and `DOCKER_HUB_ACCESS_TOKEN`; the credentials need push access to `warengonzaga/github-repo-banner`. GHCR uses only the automatically supplied `GITHUB_TOKEN` with `packages: write`. No GHCR personal token is needed. The publishing job also has `security-events: write` for the action's default security scan reports.
 
-PRs and pushes to `dev` validate without publishing. Release and publishing runs on `main` are serialized so floating image tags stay in order. Both registries must report success; if publishing fails after the release was created, use **Re-run failed jobs** to retry the publishing job with the original release outputs. Retries of a superseded release are rejected before publishing so they cannot roll floating tags back to an older version. Package visibility and registry access are configured in the registry; successful publication alone does not guarantee anonymous pulls. Railway can still build the Dockerfile directly from the repository.
+Build Flow's native publishing policy requires at least one selected registry to succeed; inspect the per-registry results when confirming availability in both. Package visibility and registry access are configured in the registry; successful publication alone does not guarantee anonymous pulls. Railway can still build the Dockerfile directly from the repository.
 
 ## Commands
 

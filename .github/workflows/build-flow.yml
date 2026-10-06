@@ -5,6 +5,7 @@ on:
     branches: [dev, main]
   push:
     branches: [dev, main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -33,12 +34,11 @@ jobs:
       # Fork PRs cannot receive registry credentials; keep their validation enabled.
       publish-pr-artifacts: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       # Use native development publishing, tagging, and release ordering.
-      # Use the Node profile so Bun can be pinned instead of installed as latest.
-      ci-profile: node
+      # The Bun lockfile selects the default node-bun profile/package manager.
+      codeql-build-mode: none
       ci-runtime-version: '22'
-      ci-setup-command: |
-        npm install --global bun@1.3.9
-        echo "$(npm prefix --global)/bin" >> "$GITHUB_PATH"
+      # setup-bun reads packageManager: bun@1.3.9 from package.json.
+      ci-setup-command: test "$(bun --version)" = '1.3.9'
       ci-install-command: bun install --frozen-lockfile
       ci-lint-command: bun run check
       ci-build-command: bun run build
