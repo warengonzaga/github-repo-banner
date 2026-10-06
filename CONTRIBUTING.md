@@ -109,6 +109,14 @@ bun run start    # Start production server
 bun run check    # Static checks
 ```
 
+### Development container builds
+
+The [Build Flow workflow](.github/workflows/build-flow.yml) uses the upstream app workflow's native container publishing. Redis regression checks and the Docker smoke check run before Build Flow's CI and CodeQL gates.
+
+Eligible PRs into `dev` publish `pr-<sha>` images; pushes to `dev` and `dev` → `main` PRs publish `dev-<sha>` images. The suffix is the seven-character source revision selected by Build Flow. Docker Hub and GHCR are the native registry targets. Bot-authored PRs use Build Flow's validation-only policy. Fork PRs remain validation-only through its supported PR publishing setting because they cannot receive registry credentials.
+
+These are development container images. Versioned production images and GitHub Releases follow Build Flow's native `main` release process. Publishing policy and tags stay with Build Flow; the repository does not add a separate artifact-upload or release implementation.
+
 ## 🐛 Reporting Issues
 
 Before opening an issue, please check if one already exists. When reporting a bug, include:

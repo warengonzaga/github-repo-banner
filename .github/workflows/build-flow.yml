@@ -9,16 +9,30 @@ on:
 permissions:
   contents: read
 
-# Keep release creation and its image publishing in order on main.
+# Keep main pushes ordered through native artifact and release publication.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  ci:
-    name: CI
-    uses: wgtechlabs/build-flow-action/.github/workflows/ci.yml@260b9a063ef59ccc760155c19902320feb7e25cb # v0.3.1
+  build-flow:
+    name: Build Flow
+    needs: integration
+    uses: wgtechlabs/build-flow-action/.github/workflows/app.yml@f8263c388160a62f4a0e72ed888e56c8e9159469 # v1.0.0
+    permissions:
+      contents: write
+      packages: write
+      pull-requests: write
+      security-events: write
+      actions: read
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
     with:
+      enable-container: true
+      # Fork PRs cannot receive registry credentials; keep their validation enabled.
+      publish-pr-artifacts: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+      # Use native development publishing, tagging, and release ordering.
       # Use the Node profile so Bun can be pinned instead of installed as latest.
       ci-profile: node
       ci-runtime-version: '22'
@@ -32,7 +46,7 @@ jobs:
       ci-typecheck-command: 'bunx tsc --noEmit'
       ci-test-command: ':'
       ci-coverage-command: ':'
-      enable-gitleaks: false # Preserve the existing gate set.
+      enable-gitleaks: false # Preserve the existing Gitleaks setting.
 
   integration:
     name: Redis and Docker
@@ -70,89 +84,12 @@ jobs:
   build:
     name: Build
     if: always()
-    needs: [ci, integration]
+    needs: [build-flow, integration]
     runs-on: ubuntu-latest
     steps:
       # Keep the existing Build check name available for branch protection.
       - name: Require successful validation
         env:
-          CI_RESULT: ${{ needs.ci.result }}
+          BUILD_FLOW_RESULT: ${{ needs.build-flow.result }}
           INTEGRATION_RESULT: ${{ needs.integration.result }}
-        run: test "$CI_RESULT" = success && test "$INTEGRATION_RESULT" = success
-
-  release:
-    name: Create Release
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-      created: ${{ steps.release.outputs.release-created }}
-      version-tag: ${{ steps.release.outputs.version-tag }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Create Release
-        id: release
-        uses: wgtechlabs/release-build-flow-action@6df9cb42c24c296d902150d051a0b6be4422cccc # v1.8.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-  container:
-    name: Publish Container
-    needs: release
-    if: >-
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
-      needs.release.outputs.created == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      security-events: write
-    steps:
-      - name: Reject superseded release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ needs.release.outputs.version-tag }}
-        run: |
-          latest_tag=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)
-          if [ -z "$RELEASE_TAG" ] || [ "$latest_tag" != "$RELEASE_TAG" ]; then
-            echo "::error::This release is no longer current. Refusing to overwrite floating image tags."
-            exit 1
-          fi
-
-      - name: Checkout released source
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.release.outputs.version-tag }}
-
-      - name: Record released revision
-        id: source
-        run: printf 'sha=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
-
-      - name: Publish release images
-        id: container
-        uses: wgtechlabs/container-build-flow-action@fb5c0662b33f7702bc1ccf85350689436989f606 # v1.9.0
-        with:
-          registry: both
-          dockerhub-username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          ghcr-token: ${{ secrets.GITHUB_TOKEN }}
-          planned-version-tag: ${{ needs.release.outputs.version-tag }}
-          bot-detection: false
-          labels: |
-            org.opencontainers.image.revision=${{ steps.source.outputs.sha }}
-
-      - name: Require both registries
-        env:
-          DOCKERHUB_PUBLISHED: ${{ steps.container.outputs.dockerhub-published }}
-          GHCR_PUBLISHED: ${{ steps.container.outputs.ghcr-published }}
-        run: test "$DOCKERHUB_PUBLISHED" = true && test "$GHCR_PUBLISHED" = true
+        run: test "$BUILD_FLOW_RESULT" = success && test "$INTEGRATION_RESULT" = success
