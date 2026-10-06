@@ -133,7 +133,15 @@ uiRoute.get('/', (c) => {
         marked.parse(readDocument('CODE_OF_CONDUCT.md'), { async: false }),
       );
   }
-  return c.html(cachedHtml);
+  // Apply deployment capability after the cached template; never expose the key.
+  return c.html(
+    cachedHtml.replace(
+      'id="pexels-section" hidden',
+      process.env.PEXELS_API_KEY
+        ? 'id="pexels-section"'
+        : 'id="pexels-section" hidden',
+    ),
+  );
 });
 
 export default uiRoute;
