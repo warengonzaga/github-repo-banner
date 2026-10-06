@@ -95,7 +95,7 @@ Custom image settings, including rotation, follow the live preview, copied URLs/
 
 Search returns nine landscape thumbnails at a time. **Load more images** appends the next page until results end. A new search starts fresh; failed requests preserve existing choices for retry. Select photos with a mouse or Tab followed by Enter/Space.
 
-For self-hosting, set `PEXELS_API_KEY` in the server environment. The key stays server-side. Without it, the search controls explain how to use a direct image URL instead. Direct images, filters, and the agent skill do not need a Pexels key. See [configuration](docs/self-hosting.md#environment-variables) and [search limits](docs/self-hosting.md#resource-limits).
+For self-hosting, set `PEXELS_API_KEY` in the server environment. The key stays server-side. Without it, Pexels search is hidden while the direct image URL input remains available. Direct images, filters, and the agent skill do not need a Pexels key. See [configuration](docs/self-hosting.md#environment-variables) and [search limits](docs/self-hosting.md#resource-limits).
 
 ### Watermark and Output
 
