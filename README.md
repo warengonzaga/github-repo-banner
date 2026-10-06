@@ -6,7 +6,7 @@
 
 I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great repository banners.
 
-[Create a banner](https://ghrb.waren.build) · [Documentation](https://ghrb.waren.build/docs) · [Public usage](https://ghrb.waren.build/usage) · [API reference](docs/api.md) · [Self-hosting](docs/self-hosting.md) · [Agent skill](#-agent-skill) · [Terms](docs/terms.md) · [Privacy](docs/privacy.md)
+[Create a banner](https://ghrb.waren.build) · [Documentation](https://ghrb.waren.build/docs) · [Public usage](https://ghrb.waren.build/usage) · [API reference](docs/api.md) · [Self-hosting](docs/self-hosting.md) · [Brand guidelines](docs/brand.md) · [Agent skill](#-agent-skill) · [Terms](docs/terms.md) · [Privacy](docs/privacy.md)
 
 ## 🚁 Deploy Your Own
 
