@@ -57,7 +57,7 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-Open `http://localhost:3000`. Compose connects Redis automatically and keeps its data in a volume. Pexels search needs `PEXELS_API_KEY`; statistics are disabled by default. Redis remains required when tracking is off. See the [self-hosting guide](docs/self-hosting.md) for runtime variables, Railway, production builds, and release configuration. The API requires a running server; GitHub Pages alone cannot host it.
+Open `http://localhost:3000`. Compose connects Redis automatically and keeps its data in a volume. Pexels search appears only when `PEXELS_API_KEY` is configured; direct image URLs remain available without a key. Statistics are disabled by default. Redis remains required when tracking is off. See the [self-hosting guide](docs/self-hosting.md) for runtime variables, Railway, production builds, and release configuration. The API requires a running server; GitHub Pages alone cannot host it.
 
 ## 📖 Usage Examples
 
