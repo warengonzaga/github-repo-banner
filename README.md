@@ -57,7 +57,7 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-Open `http://localhost:3000`. Compose connects Redis automatically and keeps its data in a volume. Pexels search needs `PEXELS_API_KEY`; statistics are disabled by default. Redis remains required when tracking is off. See the [self-hosting guide](docs/self-hosting.md) for runtime variables, Railway, production builds, and release configuration. The API requires a running server; GitHub Pages alone cannot host it.
+Open `http://localhost:3000`. Compose connects Redis automatically and keeps its data in a volume. Pexels search appears only when `PEXELS_API_KEY` is configured; direct image URLs remain available without a key. Statistics are disabled by default. Redis remains required when tracking is off. See the [self-hosting guide](docs/self-hosting.md) for runtime variables, Railway, production builds, and release configuration. The API requires a running server; GitHub Pages alone cannot host it.
 
 ## 📖 Usage Examples
 
@@ -95,7 +95,7 @@ Custom image settings, including rotation, follow the live preview, copied URLs/
 
 Search returns nine landscape thumbnails at a time. **Load more images** appends the next page until results end. A new search starts fresh; failed requests preserve existing choices for retry. Select photos with a mouse or Tab followed by Enter/Space.
 
-For self-hosting, set `PEXELS_API_KEY` in the server environment. The key stays server-side. Without it, the search controls explain how to use a direct image URL instead. Direct images, filters, and the agent skill do not need a Pexels key. See [configuration](docs/self-hosting.md#environment-variables) and [search limits](docs/self-hosting.md#resource-limits).
+For self-hosting, set `PEXELS_API_KEY` in the server environment. The key stays server-side. Without it, Pexels search is hidden while the direct image URL input remains available. Direct images, filters, and the agent skill do not need a Pexels key. See [configuration](docs/self-hosting.md#environment-variables) and [search limits](docs/self-hosting.md#resource-limits).
 
 ### Watermark and Output
 
