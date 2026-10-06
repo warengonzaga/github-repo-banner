@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [2.2.3] - 2026-10-06
+
+### Changed
+
+- Bump wgtechlabs/build-flow-action/.github/workflows/ci.yml (#98)
+- Bump docker/setup-qemu-action from 4.1.0 to 4.4.0 (#97)
+- Bump actions/setup-node from 4 to 7 (#96)
+- align Pexels configuration example
+- hide unconfigured Pexels search (#99)
+
 ## [2.2.2] - 2026-10-05
 
 ### Changed
