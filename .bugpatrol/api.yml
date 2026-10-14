@@ -1,0 +1,46 @@
+version: 1
+
+# Direct HTTP patrol for the same local server as .bugpatrol/bugpatrol.yml.
+# Run: npx bugpatrol --config .bugpatrol/api.yml --once
+# The default `npx bugpatrol` patrol is the web UI.
+
+app:
+  platform: api
+  source: .
+  setup:
+    - run: 'redis-cli ping >/dev/null 2>&1 || redis-server --daemonize yes --bind 127.0.0.1 --port 6379 --protected-mode yes --save ""'
+    - run: 'test -f .env || cp .env.example .env'
+    - run: 'bun install && bun run dev'
+      background: true
+      readyWhen: 'Server: http://localhost'
+      timeoutMs: 180000
+  connect:
+    url: http://127.0.0.1:3000
+    # POST stays on this disposable local Redis. DELETE is not enabled.
+    methods: [GET, HEAD, OPTIONS, POST]
+    timeoutMs: 30000
+  instructions: .bugpatrol/api-instructions.md
+  secrets: []
+
+agents:
+  explorer:
+    use:
+      runtime: cli
+      command: 'codex exec --json --skip-git-repo-check -m gpt-6-luna -c mcp_servers.bugpatrol.url={mcpUrl} -'
+  judge:
+    use:
+      runtime: cli
+      command: 'codex exec --json --skip-git-repo-check -m gpt-6-sol -c mcp_servers.bugpatrol.url={mcpUrl} -'
+  fixer:
+    enabled: false
+    commitMessage: '🔧 update: {title}'
+    retest:
+      prepare: bun install
+    verify: bun run check
+    use:
+      runtime: cli
+      command: 'codex exec --json --skip-git-repo-check --approve-for-me -m gpt-6-astra -'
+  github:
+    enabled: false
+  patrol:
+    pull: false

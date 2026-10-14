@@ -1,0 +1,53 @@
+version: 1
+
+# Written by `bugpatrol init` on 2026-10-14, then corrected for this repo.
+# Docs: https://github.com/agent-labs-dev/bugpatrol/blob/main/docs/configuration.md
+# Direct HTTP checks use .bugpatrol/api.yml: npx bugpatrol --config .bugpatrol/api.yml
+
+app:
+  platform: web
+  # Paths are relative to the project root: the folder that holds .bugpatrol/.
+  source: .
+  setup:
+    # Redis is required. Skip the start when one is already listening on localhost:6379.
+    - run: 'redis-cli ping >/dev/null 2>&1 || redis-server --daemonize yes --bind 127.0.0.1 --port 6379 --protected-mode yes --save ""'
+    # .env.example has no secrets. The app reads REDIS_URL from .env.
+    - run: 'test -f .env || cp .env.example .env'
+    # package.json "dev" is `tsx watch src/index.ts`. `bun run dev` is that script.
+    - run: 'bun install && bun run dev'
+      background: true
+      readyWhen: 'Server: http://localhost'
+      timeoutMs: 180000
+  connect:
+    url: http://localhost:3000
+  instructions: .bugpatrol/instructions.md
+  secrets: []
+
+# Codex CLI for every agent. The judge uses the strongest Codex model from
+# Bugpatrol's model guide (gpt-6-sol). The explorer uses the fast, low-cost
+# model (gpt-6-luna). The fixer stays off; its command is the Codex coding model.
+agents:
+  explorer:
+    use:
+      runtime: cli
+      command: 'codex exec --json --skip-git-repo-check -m gpt-6-luna -c mcp_servers.bugpatrol.url={mcpUrl} -'
+  judge:
+    use:
+      runtime: cli
+      command: 'codex exec --json --skip-git-repo-check -m gpt-6-sol -c mcp_servers.bugpatrol.url={mcpUrl} -'
+  fixer:
+    enabled: false
+    commitMessage: '🔧 update: {title}'
+    retest:
+      prepare: bun install
+    verify: bun run check
+    use:
+      runtime: cli
+      command: 'codex exec --json --skip-git-repo-check --approve-for-me -m gpt-6-astra -'
+  github:
+    enabled: false
+  patrol:
+    # false keeps this checkout. The default, origin/main, detaches HEAD
+    # before the cycle and would drop this branch's .bugpatrol/ files.
+    # Set origin/main on a dedicated clone that should follow main.
+    pull: false

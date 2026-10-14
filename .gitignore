@@ -20,3 +20,6 @@ pnpm-workspace.yaml
 
 # Contribute Now workflow configuration
 .contributerc.json
+
+# Bugpatrol: local data and screenshots of the real app
+.bugpatrol/runs/
