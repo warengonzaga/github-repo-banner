@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "bugpatrol": {
+      "source": "agent-labs-dev/bugpatrol",
+      "sourceType": "github",
+      "skillPath": "skills/bugpatrol/SKILL.md",
+      "computedHash": "c42bbf26da68d26c8e84c4d70678e8ce08d4586bf7bafa48965c83d10028e8f5"
+    }
+  }
+}
