@@ -95,8 +95,10 @@ uiRoute.get('/', (c) => {
     cachedHtml = readFileSync(htmlPath, 'utf-8')
       .replace('<!-- site-navigation -->', () => renderNavigation('generator'))
       .replace('<!-- privacy-notice -->', () => privacyNotice())
-      .replace('<!-- sidebar-privacy -->', () =>
-        'When enabled, usage stats count successful banner renders. Exports do not save your design.',
+      .replace(
+        '<!-- sidebar-privacy -->',
+        () =>
+          'When enabled, usage stats count successful banner renders. Exports do not save your design.',
       )
       .replace('<!-- repository-document:license -->', () =>
         escapeXml(readDocument('LICENSE')),

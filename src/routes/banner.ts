@@ -1,4 +1,4 @@
-import { Hono, type Context } from 'hono';
+import { type Context, Hono } from 'hono';
 import { parseBannerOptions } from '../banner/options.js';
 import { buildBannerSVG } from '../banner/svg-template.js';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
