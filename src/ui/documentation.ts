@@ -133,7 +133,8 @@ export function renderDocumentation(
           `https://raw.githubusercontent.com/warengonzaga/github-repo-banner/main/${document.path}`,
         );
         const isBanner =
-          url.hostname === 'ghrb.waren.build' && url.pathname === '/banner';
+          url.hostname === 'ghrb.waren.build' &&
+          ['/render/banner', '/banner'].includes(url.pathname);
         if (isBanner) url.searchParams.set('stats', 'false');
         const title = token.title ? ` title="${escapeXml(token.title)}"` : '';
         const dimensions = isBanner ? ' width="1280" height="304"' : '';

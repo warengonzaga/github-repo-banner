@@ -1,14 +1,9 @@
-import { getExportRetentionDays, isOfficialInstance } from '../config/redis.js';
 import { escapeXml } from '../utils/sanitize.js';
 
-type Page = 'generator' | 'docs' | 'usage';
+type Page = 'generator' | 'docs' | 'stats';
 
 export function privacyNotice(): string {
-  return `<aside class="privacy-notice" aria-label="Privacy notice"><p>${
-    isOfficialInstance()
-      ? `Official hosting counts page views, banner requests and exports, and saves every exported design for ${getExportRetentionDays()} days. The prompt only controls public showcasing on the Usage page; showcase copies remain until removed.`
-      : 'This self-hosted instance uses optional aggregate usage statistics. Exporting does not save a design or publish it to a showcase.'
-  }
+  return `<aside class="privacy-notice" aria-label="Privacy notice"><p>Usage tracking is optional. When enabled, this instance counts successful banner renders; exports are not saved.
     <a href="/docs#privacy">Privacy</a> · <a href="/docs#terms">Terms</a></p></aside>`;
 }
 
@@ -16,7 +11,7 @@ export function renderNavigation(current: Page): string {
   const links = [
     ['generator', '/', 'Generator'],
     ['docs', '/docs', 'Documentation'],
-    ['usage', '/usage', 'Usage'],
+    ['stats', '/stats', 'Stats'],
   ];
   return `<header class="site-header">
     <a class="site-brand" href="/">GitHub Repo Banner</a>
@@ -29,8 +24,8 @@ export function renderNavigation(current: Page): string {
   </header>`;
 }
 
-export function renderPage(page: 'docs' | 'usage', content: string): string {
-  const title = page === 'docs' ? 'Documentation' : 'Usage';
+export function renderPage(page: 'docs' | 'stats', content: string): string {
+  const title = page === 'docs' ? 'Documentation' : 'Stats';
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,9 +34,8 @@ export function renderPage(page: 'docs' | 'usage', content: string): string {
   <meta name="description" content="${escapeXml(title)} for GitHub Repo Banner: customizable repository banners, self-hosting and transparent usage observations.">
   <title>${title} · GitHub Repo Banner</title>
   <link rel="stylesheet" href="/pages.css">
-  ${page === 'usage' ? '<script type="module" src="/usage.js"></script>' : ''}
 </head>
-<body class="project-page" data-official="${isOfficialInstance()}">
+<body class="project-page">
   <a class="skip-link" href="#main">Skip to content</a>
   ${renderNavigation(page)}
   ${privacyNotice()}

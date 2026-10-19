@@ -17,10 +17,7 @@ export default defineConfig({
       'image-layers.css',
       'image-settings.js',
       'inline-icons.js',
-      'usage.html',
-      'usage.js',
       'export.js',
-      'showcase.js',
       'pages.css',
     ]) {
       copyFileSync(`src/ui/${file}`, `dist/ui/${file}`);

@@ -8,7 +8,7 @@ import { closeRedis, getRedis, initRedis, isStatsEnabled } from '../src/config/r
 import banner from '../src/routes/banner.js';
 import route from '../src/routes/pexels.js';
 import stats from '../src/routes/stats.js';
-import { usageKeys } from '../src/utils/usage-stats.js';
+import { usageKey } from '../src/utils/usage-stats.js';
 
 // A fresh process must serve a persisted result without touching upstream.
 if (process.argv.includes('--cache-reader')) {
@@ -38,11 +38,11 @@ let requested = '';
 const search = (query: string) => route.request('/api/pexels/search?q=' + encodeURIComponent(query) + '&page=2');
 await initRedis();
 let redis = getRedis()!;
-const usage = usageKeys();
-let ownsUsageKeys = false;
+const countKey = usageKey();
+let ownsUsageKey = false;
 try {
-  assert.equal(await redis.exists(usage.counters, usage.repositories), 0, 'Use an empty test database; existing usage data will not be changed');
-  ownsUsageKeys = true;
+  assert.equal(await redis.exists(countKey), 0, 'Use an empty test database; existing usage data will not be changed');
+  ownsUsageKey = true;
   assert.equal(isStatsEnabled(), false);
   globalThis.fetch = async (input, init) => {
     calls++;
@@ -88,8 +88,8 @@ try {
   assert.equal(calls, beforeCache + 2, 'expired data must reload');
   assert.equal((await banner.request('/banner?header=No%20tracking')).status, 200);
   await delay(30);
-  assert.equal(await redis.exists(usage.counters, usage.repositories), 0);
-  assert.equal((await (await stats.request('/stats')).json()).enabled, false);
+  assert.equal(await redis.exists(countKey), 0);
+  assert.match(await (await stats.request('/stats')).text(), /tracking is disabled/i);
 
   // Only one of four concurrent misses may reserve the final hourly slot.
   await redis.del(quota);
@@ -135,12 +135,11 @@ try {
     await banner.request('/banner?header=Opted%20out', { headers });
   }
   await delay(30);
-  assert.equal(await redis.exists(usage.counters), 0);
+  assert.equal(await redis.exists(countKey), 0);
   await banner.request('/banner?header=Tracked', { headers: { Referer: 'https://github.com/fixture/repo' } });
-  for (let i = 0; i < 50 && !(await redis.exists(usage.counters)); i++) await delay(10);
-  const observed = await (await stats.request('/stats')).json();
-  assert.equal(observed.recordedBannerRequests, 1);
-  assert.equal(observed.estimatedUniqueRepositories, 1);
+  for (let i = 0; i < 50 && !(await redis.exists(countKey)); i++) await delay(10);
+  const observed = await (await stats.request('/stats')).text();
+  assert.match(observed, />1<\/p>/);
   delete process.env.PEXELS_API_KEY;
   assert.equal((await search('missing-key')).status, 503);
   console.log('PASS: real Redis cache/TTL/coalescing, restart persistence, atomic rolling quota, fail-closed storage, tracking off/on and opt-out');
@@ -149,7 +148,7 @@ try {
   if (redis.status === 'ready') {
     const keys = await redis.keys(`${prefix}:*`);
     if (keys.length) await redis.del(...keys);
-    if (ownsUsageKeys) await redis.del(usage.counters, usage.repositories);
+    if (ownsUsageKey) await redis.del(countKey);
   }
   await closeRedis();
 }

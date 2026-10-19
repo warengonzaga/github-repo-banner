@@ -1613,7 +1613,6 @@
         <div class="content-section">
           <h2>Output</h2>
           <p id="design-error" role="alert" hidden></p>
-          <p class="privacy-help"><!-- export-privacy --></p>
           <p id="export-feedback" class="privacy-help" role="status" aria-live="polite"></p>
           <div class="output-container">
             <textarea id="markdown" readonly></textarea>
@@ -1653,7 +1652,7 @@
               <input type="checkbox" id="stats-opt-out" aria-describedby="stats-opt-out-help" />
               Exclude this banner from usage statistics
             </label>
-            <p class="privacy-help optional-tracking" id="stats-opt-out-help">Applies to future previews, copied banner links and downloads. It does not remove a page view already counted. <a href="/docs#overview-privacy-retention-and-opt-out">See page-view opt-outs and privacy details</a>.</p>
+            <p class="privacy-help optional-tracking" id="stats-opt-out-help">Adds <code>stats=false</code> to generated banner links. <a href="/docs#privacy">Learn about usage stats</a>.</p>
             <label class="checkbox-container">
               <input type="checkbox" id="support" checked />
               <div class="checkbox-label">
@@ -1722,13 +1721,12 @@
         <p style="font-size: 0.8125rem; line-height: 1.5; color: #7d8590; margin-bottom: 0.75rem;">
           <!-- sidebar-privacy -->
         </p>
-        <p style="font-size: 0.8125rem; line-height: 1.5; color: #9da7b3;">Daily aggregates expire seven days after their last write. Counts are partial observations, not unique people. <a href="/docs#privacy">Privacy</a> · <a href="/docs#terms">Terms</a></p>
+        <p style="font-size: 0.8125rem; line-height: 1.5; color: #9da7b3;">Only successful banner renders are counted when tracking is enabled. <a href="/docs#privacy">Privacy</a> · <a href="/docs#terms">Terms</a></p>
       </div>
 
       <div class="sidebar-section">
-        <h2>Usage observations</h2>
-        <p id="usage-status" role="status" style="font-size: 0.875rem; line-height: 1.5; font-variant-numeric: tabular-nums;">Loading statistics status…</p>
-        <p style="font-size: 0.875rem; margin-top: 0.75rem;"><a href="/usage" style="color: #58a6ff;">View usage and coverage limits</a></p>
+        <h2>Usage stats</h2>
+        <p style="font-size: 0.875rem; margin-top: 0.75rem;"><a href="/stats" style="color: #58a6ff;">View today’s banner render count</a></p>
       </div>
 
       <div class="sidebar-section">
@@ -1774,28 +1772,6 @@
     import { beginExport } from '/export.js';
     import { initImageLayers } from '/image-layers.js';
     import { INLINE_ICON_SOURCE, CUSTOM_ICON_SOURCE, validateCustomIcons, sanitizeBannerText } from '/inline-icons.js';
-    async function loadUsageStats() {
-      const status = document.getElementById('usage-status');
-      try {
-        const response = await fetch('/stats', { signal: AbortSignal.timeout(10_000) });
-        if (!response.ok) throw new Error('Stats unavailable');
-        const stats = await response.json();
-        if (!stats.enabled) {
-          status.textContent = 'Usage statistics are disabled on this instance.';
-          return;
-        }
-        if (stats.schemaVersion !== 2 || !stats.available) throw new Error('Stats unavailable');
-        const coverage = stats.repositoryRefererCoverage === null
-          ? 'No recorded requests yet.'
-          : (stats.repositoryRefererCoverage * 100).toFixed(1) + '% of recorded requests had a usable repository Referer.';
-        status.textContent = 'Today (UTC): ' + stats.recordedBannerRequests.toLocaleString() +
-          ' recorded banner requests; approximately ' + stats.estimatedUniqueRepositories.toLocaleString() +
-          ' observed repositories. ' + coverage + ' Partial coverage; not total project usage.';
-      } catch {
-        status.textContent = 'Statistics are unavailable. No reliable count is available right now.';
-      }
-    }
-    loadUsageStats();
     const documentTabs = Array.from(document.querySelectorAll('[role="tab"]'));
 
     function selectDocumentTab(selectedTab) {
@@ -2155,7 +2131,7 @@
         params.set('watermarkpos', watermarkPosition);
       }
       appendBackgroundEffects(params);
-      const url = '/banner?' + params.toString();
+      const url = '/render/banner?' + params.toString();
       if (url.length > 12000) throw new Error('This banner link is too long. Use shorter image URLs or fewer custom images.');
       return url;
     }

@@ -34,42 +34,23 @@ The banner API and Pexels proxy require the running server. GitHub Pages alone c
 
 ## Environment Variables
 
-Every instance serves its own documentation at `/docs` and public usage page at `/usage`. The usage page reads that same instance's `/stats` endpoint; it does not contact the official service for statistics. By default, set `ENABLE_STATS=true` to expose daily observations, or leave it off to show an explicit tracking-disabled state. The raw JSON API remains available at `/stats`. Saved exported designs and public community showcasing require official-hosted mode. Count-only export requests follow the optional tracking setting.
+Every instance serves its own documentation at `/docs` and public stats page at `/stats`. Stats are disabled by default; set `ENABLE_STATS=true` to count successful banner renders. The public page shows the count or explains when tracking is disabled or unavailable.
 
 ```env
 PORT=3000                         # Server port (host port with Compose)
 NODE_ENV=development              # Docker image uses production
 REDIS_URL=redis://localhost:6379   # Required; Compose supplies its internal URL
-ENABLE_STATS=false                # Optional daily aggregate observations
-OFFICIAL_HOSTED_INSTANCE=false     # Keep false for ordinary self-hosting
-EXPORT_RETENTION_DAYS=            # Required in official mode: integer 1–365
-PUBLIC_ORIGIN=                    # External origin when behind a proxy
+ENABLE_STATS=false                # Optional daily banner render count
 PEXELS_API_KEY=                    # Optional server-side Pexels search
 ```
 
-See [`.env.example`](../.env.example). Disabling tracking does not disable Redis caching or quota control. With optional tracking enabled, individual banner and page requests can opt out with `stats=false`, `DNT: 1`, or `Sec-GPC: 1`. No API key is needed for direct image URLs or banner rendering.
-
-### Public origin and reverse proxies
-
-Set `PUBLIC_ORIGIN` to the exact external origin when a reverse proxy or hosting platform terminates HTTPS, for example `https://banners.example.com`. Supply only the scheme, hostname and optional port, with no path, query, fragment or credentials. This allows the browser's export and showcase-removal requests to pass the origin check even when the app receives internal HTTP traffic. Arbitrary forwarded headers are not trusted for this check.
-
-When `PUBLIC_ORIGIN` is unset, official-hosted mode defaults to `https://ghrb.waren.build`. Ordinary self-hosted mode instead uses the request origin, which works for direct HTTP access. Set an explicit value for a custom official-mode domain or local test, such as `http://localhost:3000`; the official default does not follow the current request hostname.
-
-### Official-hosted mode
-
-The official service uses `OFFICIAL_HOSTED_INSTANCE=true`. This forces aggregate counting even if `ENABLE_STATS=false`, removes the optional statistics control, saves every design submitted through its built-in export controls, and enables the public showcase. In this mode, `stats=false`, `DNT: 1`, and `Sec-GPC: 1` do not disable counting or export saving. The explicit showcase choice controls public display only.
-
-Leave this flag off for ordinary self-hosting. If you enable the same behavior on your own instance, make the operator and applicable service policies clear to your users; this repository's official-service Terms do not identify you as its operator. The site's notices must match how you configure it.
-
-Official mode also requires `EXPORT_RETENTION_DAYS`, an explicit integer from 1 to 365 with no default. Startup fails if it is missing or invalid. Choose and disclose the retention period before deploying official mode. Each saved export expires after that period; identical retries do not extend it. Ordinary self-hosting does not save export designs and does not require this setting.
-
-Public showcase copies persist separately until withdrawn or removed. Withdrawal removes the public copy and listing, not the saved export before its expiry. The gallery holds at most 1,000 entries; when full, new exports still save and count while returning a clear non-publication status. Existing entries are not silently evicted. Back up Redis as needed; retained backups require their own handling and retention policy.
+See [`.env.example`](../.env.example). Disabling stats does not disable Redis caching or quota control. Banner requests can opt out with `stats=false`, `DNT: 1`, or `Sec-GPC: 1`. No API key is needed for direct image URLs or banner rendering.
 
 ## Upgrade and Availability
 
 **Breaking configuration change in 2.0.0:** every deployment now requires Redis, even with `ENABLE_STATS=false`. Existing deployments must provision Redis and set `REDIS_URL` before upgrading. Startup fails with a credential-free error if the URL is missing/invalid or Redis cannot be reached; the HTTP listener does not start.
 
-During an outage, `/health` returns 503 and Pexels search returns 503 without bypassing the request budget. The app reconnects automatically when Redis recovers. Plain banner rendering remains available directly from the running process, but a hosting platform may remove unhealthy instances from traffic. Statistics remain optional with the default self-hosted configuration; `/stats` reports storage failures when tracking is enabled. Ordinary self-hosted export counting is best effort and does not block exporting during a statistics outage. Official built-in exports require available storage for the saved design; unconfirmed saves or publications are reported rather than silently claiming success. Retry the same export after storage recovers.
+During an outage, `/api/health` returns 503 and Pexels search returns 503 without bypassing the request budget. The app reconnects automatically when Redis recovers. Plain banner rendering remains available directly from the running process, but a hosting platform may remove unhealthy instances from traffic. Statistics remain optional with the default self-hosted configuration; `/stats` reports the count or storage failures when tracking is enabled. Usage stats are best effort and do not block banner rendering during a storage outage.
 
 ## Railway Deployment
 
@@ -77,15 +58,12 @@ During an outage, `/health` returns 503 and Pexels search returns 503 without by
 
 1. Add a Redis service and persistent storage to your Railway project.
 2. Set the banner service's `REDIS_URL` to that Redis service's connection URL.
-3. Keep `ENABLE_STATS=false`, or set it to `true` to enable aggregate usage observations. Set `PEXELS_API_KEY` only if you want image search.
-4. Set `PUBLIC_ORIGIN` to the service's external HTTPS origin, such as `https://banners.example.com`.
-5. Deploy using this repository's Dockerfile and configure `/health` as the readiness endpoint.
+3. Leave `ENABLE_STATS=false`, or set it to `true` to show the public daily render count. Set `PEXELS_API_KEY` only if you want image search.
+4. Deploy using this repository's Dockerfile and configure `/api/health` as the readiness endpoint.
+
+The official hosted instance must set `ENABLE_STATS=true` in its Railway service variables. Ordinary deployments can leave it `false`.
 
 The existing hosted template may need its Redis service and variables added before deployment. A repository change does not update a saved Railway template automatically.
-
-### Statistics availability
-
-Recording failures emit a payload-free operational error. The affected process returns `/stats` as unavailable for the remainder of that UTC day, since later writes cannot recover lost observations. This health signal is process-local and resets on restart; it is not fleet-wide monitoring. Counter and cardinality reads use one Redis transaction.
 
 ## CI and Release Workflow
 
@@ -134,7 +112,7 @@ Each banner permits five custom images across positioned layers and both text fi
 
 Pexels responses live in Redis for five minutes, limited to 64 KiB per response. Each process permits four concurrent upstream fetches and coalesces identical in-flight requests. A Redis script atomically enforces 100 upstream attempts per rolling hour per API key; failed upstream attempts count too. Queries are normalized and cache keys hash the query URL and API key. Quota entries hold timestamps and random request identifiers, with a one-hour expiry. Cache hits consume no quota; excess uncached requests receive HTTP 429. The budget survives app restarts and is shared only by instances using the same Redis database and API key. Other tools using that Pexels account remain outside this budget.
 
-Image caching remains in process memory; image binaries are not stored in Redis. Saved exports and showcase copies store normalized settings, including custom image URLs and layout, rather than rendered image binaries. Sources must remain available for later previews. Existing saved designs without custom images require no migration. Official mode admits at most 60 new exports per rolling minute and retains at most 5,000 saved records, each limited to 8 KiB; public copies are separately capped at 1,000. These shared Redis limits reject new submissions before saving or counting, without evicting retained designs. Plan retention and capacity together; a full archive prevents new official exports until space expires. Existing identical retries still work at capacity. Bounded expiry and rolling-admission indexes contain only export IDs and timestamps; no permanent withdrawal markers are needed. Tracking opt-outs do not disable operational search caches or quota entries.
+Image caching remains in process memory; image binaries are not stored in Redis. Usage stats are separate from operational search caching and quota records.
 
 ## Regression Checks
 

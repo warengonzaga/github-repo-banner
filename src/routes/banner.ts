@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { parseBannerOptions } from '../banner/options.js';
 import { buildBannerSVG } from '../banner/svg-template.js';
 import { getRedis, isStatsEnabled } from '../config/redis.js';
@@ -6,7 +6,7 @@ import { recordBannerRequest, usageOptedOut } from '../utils/usage-stats.js';
 
 const bannerRoute = new Hono();
 
-bannerRoute.get('/banner', async (c) => {
+const renderBanner = async (c: Context) => {
   let options: ReturnType<typeof parseBannerOptions>;
   try {
     options = parseBannerOptions(c.req.query());
@@ -44,7 +44,7 @@ bannerRoute.get('/banner', async (c) => {
     )
   ) {
     // Successful renders only; measurement failure must not break banner delivery.
-    void recordBannerRequest(redis, c.req.header('referer') || '');
+    void recordBannerRequest(redis);
   }
 
   const isDev = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
@@ -56,6 +56,10 @@ bannerRoute.get('/banner', async (c) => {
     'Content-Type': 'image/svg+xml',
     'Cache-Control': cacheControl,
   });
-});
+};
+
+bannerRoute.get('/render/banner', renderBanner);
+// Keep existing banner image URLs working while users migrate to /render/banner.
+bannerRoute.get('/banner', renderBanner);
 
 export default bannerRoute;

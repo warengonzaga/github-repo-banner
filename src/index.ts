@@ -6,7 +6,6 @@ import { Hono } from 'hono';
 import { getRedis, initRedis, isStatsEnabled } from './config/redis.js';
 import bannerRoute from './routes/banner.js';
 import pexelsRoute from './routes/pexels.js';
-import showcaseRoute from './routes/showcase.js';
 import statsRoute from './routes/stats.js';
 import uiRoute from './routes/ui.js';
 
@@ -22,7 +21,7 @@ LogEngine.configure({
 const app = new Hono();
 
 // Health check endpoint for Railway
-app.get('/health', async (c) => {
+app.get('/api/health', async (c) => {
   c.header('Cache-Control', 'no-store');
   const redis = getRedis();
   const available =
@@ -38,14 +37,13 @@ app.get('/health', async (c) => {
       database: { available },
       stats: {
         enabled: isStatsEnabled(),
-        ...(isStatsEnabled() ? { endpoint: '/stats' } : {}),
+        ...(isStatsEnabled() ? { page: '/stats' } : {}),
       },
     },
     available ? 200 : 503,
   );
 });
 
-app.route('/', showcaseRoute);
 app.route('/', uiRoute);
 app.route('/', bannerRoute);
 app.route('/', pexelsRoute);

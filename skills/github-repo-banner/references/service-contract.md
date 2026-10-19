@@ -2,7 +2,7 @@
 
 Canonical implementation: `src/routes/banner.ts`, `src/utils/sanitize.ts`, `src/utils/icon-syntax.ts`, `src/banner/svg-template.ts`, and the Markdown builder in `src/ui/index.html` in [github-repo-banner](https://github.com/warengonzaga/github-repo-banner). Maintain this reference when those contracts change. Hosts loading only this folder do not need the repository checkout.
 
-`GET /banner` returns a 1280 × 304 SVG. The default service is `https://ghrb.waren.build`; deployments may differ from the repository. Verify requested capabilities against the selected service. Use only the parameters below unless a newer deployed contract is verified.
+`GET /render/banner` returns a 1280 × 304 SVG. `/banner` remains a temporary compatibility alias; generated links should use `/render/banner`. The default service is `https://ghrb.waren.build`; deployments may differ from the repository. Verify requested capabilities against the selected service. Use only the parameters below unless a newer deployed contract is verified.
 
 | Parameter | Meaning and limits |
 | --- | --- |
@@ -26,7 +26,7 @@ Simple Icons syntax is `![slug]`, optionally followed by `(light)`, `(dark)`, or
 
 Image fetches are limited to 10 MiB and have a 10-second timeout. Supported response MIME types are JPEG, PNG, GIF, WebP and AVIF; SVG image URLs are not supported. Redirects, unavailable assets, private addresses, and incorrect content types may fail. An invalid image URL falls back to the `bg` selection; a valid URL whose fetch fails falls back to the default gradient. Check embedded image data and the visual result. Fonts can also fall back when fetching fails. Invalid colors fall back to defaults, and an invalid watermark position becomes bottom-right.
 
-Background effects leave foreground text/icons/watermarks unchanged. Invalid or out-of-range effect values use defaults. Blur applies only after an image loads; color filters also support solids and gradients. Neutral values preserve existing output. Verify deployment support before promising a rendered effect. Pexels search and PNG download are UI capabilities, not additional `/banner` query formats.
+Background effects leave foreground text/icons/watermarks unchanged. Invalid or out-of-range effect values use defaults. Blur applies only after an image loads; color filters also support solids and gradients. Neutral values preserve existing output. Verify deployment support before promising a rendered effect. Pexels search and PNG download are UI capabilities, not additional `/render/banner` query formats.
 
 ## Representative checks
 
