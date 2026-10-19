@@ -2,7 +2,7 @@
 
 [Back to README](../README.md) · [Public pages](pages.md) · [API reference](api.md) · [Self-hosting](self-hosting.md)
 
-## Banner renderer
+## `/render/banner`
 
 The banner renderer at `/render/banner` generates a custom SVG banner.
 
