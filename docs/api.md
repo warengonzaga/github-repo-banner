@@ -2,6 +2,20 @@
 
 [Back to README](../README.md) · [Self-hosting](self-hosting.md)
 
+## Route map
+
+| Route | Purpose |
+|-------|---------|
+| `GET /` | Interactive banner generator |
+| `GET /render/banner` | Primary SVG banner renderer |
+| `GET /banner` | Temporary compatibility alias for existing banner URLs |
+| `GET /docs` | Project documentation |
+| `GET /stats` | Public daily render count when stats are enabled |
+| `GET /api/health` | Railway and platform readiness check |
+| `GET /api/pexels/search` | Server-side Pexels search used by the generator |
+
+`/usage` redirects to `/stats` for older links. Banner rendering and Pexels search are the only API responses that return generated or fetched content; exports stay in the browser and designs are not saved by the server.
+
 ## `GET /render/banner`
 
 Generate a custom SVG banner.
@@ -105,6 +119,8 @@ Single-page project documentation, rendered from the bundled README, API referen
 
 Public HTML page showing the current UTC day’s successful banner render count when `ENABLE_STATS=true`. It explains when tracking is disabled or unavailable. There is no JSON stats endpoint.
 
+When stats are enabled, a successful render increments one daily counter after it reaches the server. Add `stats=false` to a banner URL, or send `DNT: 1` or `Sec-GPC: 1`, to exclude that request. The generator shows the per-banner opt-out when its optional watermark is turned off.
+
 `/usage` redirects to `/stats` for existing links.
 
 ## `GET /api/pexels/search`
@@ -137,7 +153,7 @@ Readiness endpoint with `Cache-Control: no-store`. Returns HTTP 200 when Redis a
 
 ## Removed endpoints
 
-Stats JSON, showcase, export-saving, and log endpoints have been removed. New banner URLs use `/render/banner`; the previous `/banner` route remains temporarily available for compatibility.
+Stats JSON, showcase, export-saving, and log endpoints are not part of the current service. New banner URLs use `/render/banner`; the previous `/banner` route remains temporarily available for compatibility.
 
 ## Usage Examples
 
