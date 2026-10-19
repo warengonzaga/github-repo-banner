@@ -18,4 +18,4 @@ Pexels search uses the configured server-side API key; searches are proxied by `
 
 Redis is required for search caching and quotas even when usage stats are disabled. These operational records are separate from usage stats.
 
-For route details, see the [API reference](api.md). For deployment settings, see the [self-hosting guide](self-hosting.md). For questions, use [project issues](https://github.com/warengonzaga/github-repo-banner/issues).
+For page routes, see the [public pages guide](pages.md). For banner URLs, see the [Banner Rendering guide](rendering.md). For JSON endpoints and deployment settings, see the [API reference](api.md) and [self-hosting guide](self-hosting.md). For questions, use [project issues](https://github.com/warengonzaga/github-repo-banner/issues).

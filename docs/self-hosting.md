@@ -1,6 +1,6 @@
 # Self-Hosting and Development
 
-[Back to README](../README.md) · [API reference](api.md)
+[Back to README](../README.md) · [Banner rendering](rendering.md) · [API reference](api.md) · [Public pages](pages.md)
 
 ## Docker Compose (Recommended)
 
@@ -108,7 +108,7 @@ Fonts, icons, emoji assets, and remote images can depend on external services; d
 
 Backgrounds, inline custom icons, and positioned images share a process-local 32 MiB accounted-string cache with a 60-second TTL and at most four active downloads/decodes. Up to sixteen additional loads wait for a slot; beyond that, new loads are rejected. Requests for the same URL and size limit share in-flight work. Background downloads are limited to 10 MiB; each custom icon or positioned image is limited to 1 MiB. Failed or saturated background downloads use the existing fallback; custom-image failures return an error. Sharp validates image bytes with raster-only buffer decoders before caching. The declared media type must match the decoded format. All animation frames count toward a 16,777,216-pixel limit, and decoding has a five-second processing deadline. The Docker image includes Sharp’s native runtime dependencies. These limits bound retained image data, not total process memory; decoding temporarily allocates additional memory.
 
-Each banner permits five custom images across positioned layers and both text fields. Custom URLs are limited to 512 units, and the `images` JSON parameter to 4,096 units before URL encoding. Only direct public HTTPS raster images are accepted; SVG, redirects, credentials, and private addresses are rejected. See [custom image settings](api.md#custom-icons-and-positioned-images) for geometry, formats, and inline syntax.
+Each banner permits five custom images across positioned layers and both text fields. Custom URLs are limited to 512 units, and the `images` JSON parameter to 4,096 units before URL encoding. Only direct public HTTPS raster images are accepted; SVG, redirects, credentials, and private addresses are rejected. See [custom image settings](rendering.md#custom-icons-and-positioned-images) for geometry, formats, and inline syntax.
 
 Pexels responses live in Redis for five minutes, limited to 64 KiB per response. Each process permits four concurrent upstream fetches and coalesces identical in-flight requests. A Redis script atomically enforces 100 upstream attempts per rolling hour per API key; failed upstream attempts count too. Queries are normalized and cache keys hash the query URL and API key. Quota entries hold timestamps and random request identifiers, with a one-hour expiry. Cache hits consume no quota; excess uncached requests receive HTTP 429. The budget survives app restarts and is shared only by instances using the same Redis database and API key. Other tools using that Pexels account remain outside this budget.
 

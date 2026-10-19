@@ -4,6 +4,8 @@ import { escapeXml } from '../utils/sanitize.js';
 const repository = 'https://github.com/warengonzaga/github-repo-banner';
 const chapters = [
   { path: 'README.md', id: 'overview', title: 'Project overview' },
+  { path: 'docs/pages.md', id: 'pages', title: 'Public pages' },
+  { path: 'docs/rendering.md', id: 'rendering', title: 'Banner rendering' },
   { path: 'docs/api.md', id: 'api', title: 'API reference' },
   { path: 'docs/self-hosting.md', id: 'self-hosting', title: 'Self-hosting' },
   { path: 'docs/terms.md', id: 'terms', title: 'Terms of service' },
