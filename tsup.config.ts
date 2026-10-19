@@ -22,6 +22,20 @@ export default defineConfig({
     ]) {
       copyFileSync(`src/ui/${file}`, `dist/ui/${file}`);
     }
+    for (const [source, destination] of [
+      ['assets/brand/svg/horizontal-dark.svg', 'dist/ui/brand-logo.svg'],
+      ...[
+        'favicon.ico',
+        'favicon.svg',
+        'apple-touch-icon.png',
+        'icon-192.png',
+        'icon-512.png',
+        'maskable-512.png',
+        'site.webmanifest',
+      ].map((file) => [`assets/brand/web/${file}`, `dist/ui/${file}`]),
+    ]) {
+      copyFileSync(source, destination);
+    }
     mkdirSync('dist/ui/docs/docs', { recursive: true });
     for (const file of [
       'README.md',

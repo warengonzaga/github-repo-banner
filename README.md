@@ -34,8 +34,7 @@ When you deploy your own copy, you're directly supporting this project! 💖
 
 1. Open [ghrb.waren.build](https://ghrb.waren.build).
 2. Set your text, fonts, and background; optionally add custom images and check the live preview.
-3. Choose **Copy Markdown** for your README, copy an image URL, or download SVG/PNG.
-4. Copy the Markdown or image URL, or download SVG/PNG. Exports run in your browser; designs are not saved on the server.
+3. Copy Markdown or an image URL, or download SVG/PNG. Exports run in your browser; designs are not saved on the server.
 
 You can also create a banner directly with a URL:
 
@@ -161,10 +160,10 @@ Regression checks are in `scripts/check-*` (run `.ts` files with Bun and `.mjs` 
 
 Contributions are welcome! For major changes, open an issue first.
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit with [Clean Commit](https://github.com/wgtechlabs/clean-commit) convention
-4. Push and open a Pull Request
+1. Fork and clone the repository, then add the original repository as `upstream`.
+2. Create a feature branch from `upstream/dev` (`git fetch upstream dev && git switch -c feature/amazing-feature upstream/dev`).
+3. Commit with [Clean Commit](https://github.com/wgtechlabs/clean-commit) convention.
+4. Push your branch and open a Pull Request targeting `dev`.
 
 ## 📄 License
 

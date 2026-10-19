@@ -14,7 +14,7 @@ export function renderNavigation(current: Page): string {
     ['stats', '/stats', 'Stats'],
   ];
   return `<header class="site-header">
-    <a class="site-brand" href="/">GitHub Repo Banner</a>
+    <a class="site-brand" href="/" aria-label="GitHub Repo Banner home"><img src="/brand-logo.svg" alt="GitHub Repo Banner" width="240" height="79"></a>
     <nav class="site-nav" aria-label="Main navigation">${links
       .map(
         ([page, href, label]) =>
@@ -33,6 +33,11 @@ export function renderPage(page: 'docs' | 'stats', content: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="${escapeXml(title)} for GitHub Repo Banner: customizable repository banners, self-hosting and transparent usage observations.">
   <title>${title} · GitHub Repo Banner</title>
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="/pages.css">
 </head>
 <body class="project-page">

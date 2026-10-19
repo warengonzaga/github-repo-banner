@@ -52,6 +52,29 @@ for (const [path, type] of [
   });
 }
 
+for (const [path, source, type] of [
+  ['brand-logo.svg', 'svg/horizontal-dark.svg', 'image/svg+xml'],
+  ['favicon.ico', 'web/favicon.ico', 'image/x-icon'],
+  ['favicon.svg', 'web/favicon.svg', 'image/svg+xml'],
+  ['apple-touch-icon.png', 'web/apple-touch-icon.png', 'image/png'],
+  ['icon-192.png', 'web/icon-192.png', 'image/png'],
+  ['icon-512.png', 'web/icon-512.png', 'image/png'],
+  ['maskable-512.png', 'web/maskable-512.png', 'image/png'],
+  ['site.webmanifest', 'web/site.webmanifest', 'application/manifest+json'],
+]) {
+  uiRoute.get(`/${path}`, (c) => {
+    const uiDirectory = dirname(findHtmlPath());
+    const candidates = [
+      resolve(uiDirectory, path),
+      resolve(uiDirectory, '..', '..', 'assets', 'brand', source),
+    ];
+    const filePath = candidates.find(existsSync);
+    if (!filePath) throw new Error(`Brand asset ${source} is missing`);
+    c.header('Content-Type', type);
+    return c.body(readFileSync(filePath));
+  });
+}
+
 uiRoute.get('/docs', (c) => {
   if (!cachedDocs || isDev) {
     cachedDocs = renderPage('docs', renderDocumentation(readDocument));

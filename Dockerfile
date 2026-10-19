@@ -5,6 +5,7 @@ RUN bun install --frozen-lockfile
 COPY tsconfig.json tsup.config.ts LICENSE CODE_OF_CONDUCT.md README.md CONTRIBUTING.md ./
 COPY docs ./docs
 COPY src ./src
+COPY assets/brand ./assets/brand
 RUN bun run build
 
 FROM oven/bun:1.3.9 AS dependencies
