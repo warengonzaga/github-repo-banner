@@ -1,45 +1,10 @@
-import { createHash } from 'node:crypto';
 import { LogEngine } from '@wgtechlabs/log-engine';
 import type { Redis } from 'ioredis';
-import { isOfficialInstance } from '../config/redis.js';
 
 const RETENTION_SECONDS = 7 * 24 * 60 * 60;
-const NON_REPOSITORY_PATHS = new Set([
-  'settings',
-  'orgs',
-  'users',
-  'explore',
-  'notifications',
-  'issues',
-  'pulls',
-  'search',
-  'marketplace',
-  'topics',
-  'collections',
-  'sponsors',
-  'login',
-  'signup',
-  'features',
-  'enterprise',
-  'organizations',
-]);
 
-export function repositoryFromReferer(referer: string): string | null {
-  try {
-    const url = new URL(referer);
-    if (url.protocol !== 'https:' || url.hostname !== 'github.com') return null;
-    if (url.username || url.password || url.port) return null;
-    const [, owner, repo] = url.pathname.split('/');
-    if (!owner || !repo || NON_REPOSITORY_PATHS.has(owner.toLowerCase()))
-      return null;
-    if (!/^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?$/i.test(owner)) return null;
-    if (!/^[a-z\d_.-]{1,100}$/i.test(repo) || repo === '.' || repo === '..')
-      return null;
-    // A valid-looking Referer is an observation, not proof that a public repo exists.
-    return `${owner}/${repo}`.toLowerCase();
-  } catch {
-    return null;
-  }
+export function usageKey(date = new Date()): string {
+  return `usage:v3:${date.toISOString().slice(0, 10)}:banner-renders`;
 }
 
 export function usageOptedOut(
@@ -47,93 +12,27 @@ export function usageOptedOut(
   dnt: string | undefined,
   gpc: string | undefined,
 ): boolean {
-  return (
-    !isOfficialInstance() && (stats === 'false' || dnt === '1' || gpc === '1')
-  );
+  return stats === 'false' || dnt === '1' || gpc === '1';
 }
 
-export function usageKeys(date = new Date()) {
-  const day = date.toISOString().slice(0, 10);
-  return {
-    day,
-    counters: `usage:v2:${day}:counters`,
-    repositories: `usage:v2:${day}:repositories`,
-  };
-}
-
-// A successful retry cannot recover observations lost earlier in this UTC day.
-// ponytail: process-local health; use shared telemetry for fleet-wide health.
-let failedRecordingDay: string | null = null;
-
-export function isUsageRecordingAvailable(): boolean {
-  return failedRecordingDay !== usageKeys().day;
-}
-
-export function recordBannerRequest(
-  redis: Redis,
-  referer: string,
-): Promise<boolean> {
-  return recordRequest(redis, 'requests', referer);
-}
-
-export function recordPageView(
-  redis: Redis,
-  page: 'generator' | 'documentation' | 'usage',
-): Promise<boolean> {
-  return recordRequest(redis, `page:${page}`);
-}
-
-export async function recordExportRequest(
-  redis: Redis,
-  showcased: boolean,
-): Promise<boolean> {
-  return recordRequest(redis, 'exports', '', showcased);
-}
-
-async function recordRequest(
-  redis: Redis,
-  counter: string,
-  referer = '',
-  showcased = false,
-): Promise<boolean> {
-  const now = new Date();
-  const keys = usageKeys(now);
+export async function recordBannerRequest(redis: Redis): Promise<void> {
   try {
-    const repository = repositoryFromReferer(referer);
-    const transaction = redis
+    const key = usageKey();
+    const results = await redis
       .multi()
-      .hincrby(keys.counters, counter, 1)
-      .hsetnx(
-        keys.counters,
-        counter === 'requests'
-          ? 'startedAt'
-          : counter === 'exports'
-            ? 'exportsStartedAt'
-            : 'pagesStartedAt',
-        now.toISOString(),
-      )
-      .expire(keys.counters, RETENTION_SECONDS);
-    if (showcased) transaction.hincrby(keys.counters, 'showcased', 1);
-    if (repository) {
-      // Hash before sending to Redis so command logs do not contain repository names.
-      const digest = createHash('sha256').update(repository).digest('hex');
-      transaction
-        .hincrby(keys.counters, 'repositoryRequests', 1)
-        .pfadd(keys.repositories, digest)
-        .expire(keys.repositories, RETENTION_SECONDS);
-    }
-    const result = await transaction.exec();
-    if (!result || result.some(([error]) => error))
-      throw new Error('Usage recording failed');
-    return true;
+      .incr(key)
+      .expire(key, RETENTION_SECONDS)
+      .exec();
+    if (!results || results.some(([error]) => error)) throw new Error();
   } catch {
-    const firstFailure = !failedRecordingDay || keys.day > failedRecordingDay;
-    if (firstFailure) failedRecordingDay = keys.day;
-    if (firstFailure) {
-      LogEngine.error(
-        'Usage recording failed; stats are degraded for this UTC day.',
-      );
-    }
-    return false;
+    // Stats are best effort and never block banner rendering.
+    LogEngine.error('Banner usage could not be recorded.');
   }
+}
+
+export async function getBannerRequestCount(
+  redis: Redis,
+  date = new Date(),
+): Promise<number> {
+  return Number((await redis.get(usageKey(date))) || 0);
 }

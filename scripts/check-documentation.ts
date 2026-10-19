@@ -22,21 +22,21 @@ checkAnchors(html);
 for (const chapter of ['overview', 'api', 'self-hosting', 'contributing', 'code-of-conduct', 'license']) {
   assert.match(html, new RegExp(`<h2[^>]*id="${chapter}"`));
 }
-for (const content of ['Background Effects', 'Resource limits', 'Enforcement Guidelines', 'Clean Commit', 'schemaVersion', 'HyperLogLog']) {
+for (const content of ['Background Effects', 'successful banner renders', 'ENABLE_STATS', 'Clean Commit']) {
   assert.ok(html.includes(content), `Missing canonical content: ${content}`);
 }
 assert.ok(html.includes(escapeXml(readDocument('LICENSE'))), 'The complete license remains intact');
 assert.match(html, /href="#overview--privacy--transparency"/);
 assert.match(html, /href="#contributing--commit-convention"/);
 assert.match(html, /href="#api-parameters"/);
-assert.match(html, /href="#self-hosting-resource-limits"/);
+assert.match(html, /href="#self-hosting-environment-variables"/);
 assert.match(html, /href="https:\/\/github.com\/warengonzaga\/github-repo-banner\/blob\/main\/\.env.example"/);
 assert.match(html, /href="https:\/\/github.com\/warengonzaga\/github-repo-banner\/tree\/main\/skills\/github-repo-banner"/);
 assert.doesNotMatch(html, /repository-document:|\]\((?:\.\.\/)?(?:README\.md|docs\/api\.md)/);
 assert.match(html, /<details class="docs-toc-mobile"><summary>On this page<\/summary>/);
 for (const [image] of html.matchAll(/<img\b[^>]*>/g)) {
   assert.match(image, /loading="lazy"/);
-  if (image.includes('ghrb.waren.build/banner')) {
+  if (image.includes('ghrb.waren.build/render/banner')) {
     assert.match(image, /[?&]amp;stats=false|\?stats=false/);
     assert.match(image, /width="1280" height="304"/);
   }
@@ -62,7 +62,7 @@ const fixture = renderDocumentation((path) => path === 'README.md' ? `# Original
 [Nested heading](#nested-format-and-code) [Privacy](#-privacy--transparency)
 [Entity](#fish-amp-chips) [Code entity](#a-amp-b) [Encoded](#%2Dprivacy%2D%2Dtransparency)
 
-![<Alt & text>](https://ghrb.waren.build/banner?header=Example&stats=true "A & B")
+![<Alt & text>](https://ghrb.waren.build/render/banner?header=Example&stats=true "A & B")
 ` : readDocument(path));
 checkAnchors(fixture);
 assert.match(fixture, /id="overview-same-heading"/);

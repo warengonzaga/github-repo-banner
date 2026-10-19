@@ -35,12 +35,12 @@ for (const executable of ['apt', 'apt-get', 'bash', 'chfn', 'chsh', 'chroot', 'c
 assert.equal(existsSync('node_modules/tsup'), false);
 assert.equal(existsSync('.env'), false);
 assert.ok(JSON.parse(readFileSync('package.json', 'utf8')).version);
-for (const file of ['index.html', 'image-url.js', 'inline-icons.js', 'image-settings.js', 'image-layers.js', 'image-layers.css', 'LICENSE', 'CODE_OF_CONDUCT.md', 'usage.html', 'usage.js', 'pages.css', 'docs/README.md', 'docs/docs/api.md', 'docs/docs/self-hosting.md']) {
+for (const file of ['index.html', 'image-url.js', 'inline-icons.js', 'image-settings.js', 'image-layers.js', 'image-layers.css', 'export.js', 'pages.css', 'LICENSE', 'CODE_OF_CONDUCT.md', 'docs/README.md', 'docs/docs/api.md', 'docs/docs/self-hosting.md']) {
   assert.ok(existsSync(`dist/ui/${file}`), `${file} must be bundled`);
 }
 const base = 'http://127.0.0.1:3000';
 const get = (path) => fetch(base + path, { signal: AbortSignal.timeout(5000) });
-const health = await get('/health');
+const health = await get('/api/health');
 assert.equal(health.status, 200);
 const status = await health.json();
 assert.equal(status.database.available, true);
@@ -51,15 +51,15 @@ const html = await home.text();
 assert.match(html, /MIT License/);
 assert.match(html, /Our Pledge/);
 assert.equal((await get('/image-url.js')).status, 200);
-for (const path of ['/docs', '/usage', '/pages.css', '/usage.js', '/inline-icons.js', '/image-settings.js', '/image-layers.js', '/image-layers.css']) {
+for (const path of ['/docs', '/stats', '/pages.css', '/inline-icons.js', '/image-settings.js', '/image-layers.js', '/image-layers.css']) {
   assert.equal((await get(path)).status, 200, `${path} must work in the production image`);
 }
 const docs = await (await get('/docs')).text();
 assert.ok(docs.includes('id="api"') && docs.includes('id="self-hosting"'));
 assert.ok(docs.includes('REDIS_URL'));
-const usage = await (await get('/usage')).text();
-assert.ok(usage.includes('src="/usage.js"') && usage.includes('href="/stats"'));
-const banner = await get('/banner?header=Docker');
+const stats = await (await get('/stats')).text();
+assert.ok(stats.includes('Usage tracking is disabled'));
+const banner = await get('/render/banner?header=Docker');
 assert.equal(banner.status, 200);
 assert.match(await banner.text(), /<svg/);
 assert.equal((await get('/api/pexels/search?query=nature')).status, 503);
@@ -72,10 +72,10 @@ compose stop redis
 compose exec -T app node --input-type=module <<'JS'
 import assert from 'node:assert/strict';
 const get = (path) => fetch(`http://127.0.0.1:3000${path}`, { signal: AbortSignal.timeout(5000) });
-const health = await get('/health');
+const health = await get('/api/health');
 assert.equal(health.status, 503);
 assert.equal((await health.json()).database.available, false);
-assert.equal((await get('/banner?header=Still%20available')).status, 200);
+assert.equal((await get('/render/banner?header=Still%20available')).status, 200);
 JS
 
 compose rm -f redis
@@ -84,7 +84,7 @@ test "$(compose ps -q app)" = "$app_id"
 test "$(compose exec -T redis redis-cli --raw GET docker-check)" = persistent
 compose exec -T app node --input-type=module <<'JS'
 import assert from 'node:assert/strict';
-const health = await fetch('http://127.0.0.1:3000/health', { signal: AbortSignal.timeout(5000) });
+const health = await fetch('http://127.0.0.1:3000/api/health', { signal: AbortSignal.timeout(5000) });
 assert.equal(health.status, 200);
 assert.equal((await health.json()).database.available, true);
 JS

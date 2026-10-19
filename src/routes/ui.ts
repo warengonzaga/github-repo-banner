@@ -3,45 +3,11 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
 import { marked } from 'marked';
-import {
-  getExportRetentionDays,
-  getRedis,
-  isOfficialInstance,
-  isStatsEnabled,
-} from '../config/redis.js';
 import { renderDocumentation } from '../ui/documentation.js';
-import { privacyNotice, renderNavigation, renderPage } from '../ui/pages.js';
+import { renderNavigation, renderPage } from '../ui/pages.js';
 import { escapeXml } from '../utils/sanitize.js';
-import { recordPageView, usageOptedOut } from '../utils/usage-stats.js';
 
 const uiRoute = new Hono();
-
-const trackedPages = {
-  '/': 'generator',
-  '/docs': 'documentation',
-  '/usage': 'usage',
-} as const;
-
-uiRoute.use('*', async (c, next) => {
-  await next();
-  const page = trackedPages[c.req.path as keyof typeof trackedPages];
-  const redis = getRedis();
-  if (
-    page &&
-    c.req.method === 'GET' &&
-    c.res.status === 200 &&
-    isStatsEnabled() &&
-    redis?.status === 'ready' &&
-    !usageOptedOut(
-      c.req.query('stats'),
-      c.req.header('dnt'),
-      c.req.header('sec-gpc'),
-    )
-  ) {
-    // Count only rendered pages, never assets, API polling or client identifiers.
-    void recordPageView(redis, page);
-  }
-});
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -74,17 +40,38 @@ function readDocument(filename: string): string {
 
 for (const [path, type] of [
   ['pages.css', 'text/css; charset=utf-8'],
-  ['usage.js', 'text/javascript; charset=utf-8'],
   ['image-layers.js', 'text/javascript; charset=utf-8'],
   ['image-layers.css', 'text/css; charset=utf-8'],
   ['image-settings.js', 'text/javascript; charset=utf-8'],
   ['inline-icons.js', 'text/javascript; charset=utf-8'],
   ['export.js', 'text/javascript; charset=utf-8'],
-  ['showcase.js', 'text/javascript; charset=utf-8'],
 ]) {
   uiRoute.get(`/${path}`, (c) => {
     c.header('Content-Type', type);
     return c.body(readFileSync(findHtmlPath(path), 'utf-8'));
+  });
+}
+
+for (const [path, source, type] of [
+  ['brand-logo.svg', 'svg/horizontal-dark.svg', 'image/svg+xml'],
+  ['favicon.ico', 'web/favicon.ico', 'image/x-icon'],
+  ['favicon.svg', 'web/favicon.svg', 'image/svg+xml'],
+  ['apple-touch-icon.png', 'web/apple-touch-icon.png', 'image/png'],
+  ['icon-192.png', 'web/icon-192.png', 'image/png'],
+  ['icon-512.png', 'web/icon-512.png', 'image/png'],
+  ['maskable-512.png', 'web/maskable-512.png', 'image/png'],
+  ['site.webmanifest', 'web/site.webmanifest', 'application/manifest+json'],
+]) {
+  uiRoute.get(`/${path}`, (c) => {
+    const uiDirectory = dirname(findHtmlPath());
+    const candidates = [
+      resolve(uiDirectory, path),
+      resolve(uiDirectory, '..', '..', 'assets', 'brand', source),
+    ];
+    const filePath = candidates.find(existsSync);
+    if (!filePath) throw new Error(`Brand asset ${source} is missing`);
+    c.header('Content-Type', type);
+    return c.body(readFileSync(filePath));
   });
 }
 
@@ -95,11 +82,7 @@ uiRoute.get('/docs', (c) => {
   return c.html(cachedDocs);
 });
 
-uiRoute.get('/usage', (c) =>
-  c.html(
-    renderPage('usage', readFileSync(findHtmlPath('usage.html'), 'utf-8')),
-  ),
-);
+uiRoute.get('/usage', (c) => c.redirect('/stats', 301));
 
 uiRoute.get('/image-url.js', (c) => {
   c.header('Content-Type', 'text/javascript; charset=utf-8');
@@ -112,19 +95,9 @@ uiRoute.get('/', (c) => {
     cachedHtml = readFileSync(htmlPath, 'utf-8')
       .replace('<!-- site-navigation -->', () => renderNavigation('generator'))
       .replace(
-        '<body>',
-        `<body data-official="${isOfficialInstance()}" data-retention="${getExportRetentionDays() || 0}">`,
-      )
-      .replace('<!-- privacy-notice -->', () => privacyNotice())
-      .replace('<!-- export-privacy -->', () =>
-        isOfficialInstance()
-          ? `Exports are counted and their designs are saved for ${getExportRetentionDays()} days. The prompt only asks about public showcasing. Choosing Export only keeps it off the Usage page. Shared showcase copies remain until removed.`
-          : 'Exporting does not store your design. Usage statistics are optional on self-hosted instances.',
-      )
-      .replace('<!-- sidebar-privacy -->', () =>
-        isOfficialInstance()
-          ? 'Official hosting records aggregate usage. Every exported design is saved. The Usage page displays a design only when you explicitly accept showcasing it.'
-          : 'When enabled, optional statistics count page views and banner requests. Exports do not save banner designs. No IPs, cookies or visitor identifiers are stored for these counts.',
+        '<!-- sidebar-privacy -->',
+        () =>
+          'Learn how usage tracking works, what data is counted, and how this service is provided.',
       )
       .replace('<!-- repository-document:license -->', () =>
         escapeXml(readDocument('LICENSE')),
