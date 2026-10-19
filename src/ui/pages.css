@@ -8,17 +8,15 @@
 .site-nav a:hover { background: #161b22; color: #fff; }
 .site-nav a[aria-current="page"] { background: #21262d; color: #f0f6fc; }
 .site-header a:focus-visible, .project-page :focus-visible { outline: 2px solid #58a6ff; outline-offset: 3px; }
-.privacy-notice { max-width: 1280px; margin: -0.75rem auto 2rem; font-size: 0.8125rem; line-height: 1.6; color: #9da7b3; }
-.privacy-notice p { max-width: 90ch; margin: 0; }
-.privacy-notice a, .privacy-help a { color: #79c0ff; text-underline-offset: 0.2em; }
-.privacy-notice a:focus-visible, .privacy-help a:focus-visible { outline: 2px solid #58a6ff; outline-offset: 3px; }
+.privacy-help a { color: #a5d6ff; text-underline-offset: 0.2em; }
+.privacy-help a:focus-visible { outline: 2px solid #58a6ff; outline-offset: 3px; }
 .content-section .privacy-help { max-width: 75ch; margin: 0.75rem 0 1.25rem; font-size: 0.875rem; line-height: 1.6; color: #9da7b3; }
 .project-page { box-sizing: border-box; margin: 0; background: #0d1117; color: #c9d1d9; padding: 2rem 1rem; line-height: 1.65; -webkit-font-smoothing: antialiased; color-scheme: dark; }
 .project-page *, .project-page *::before, .project-page *::after { box-sizing: inherit; }
 .project-page [hidden] { display: none; }
 .project-page ::selection { color: #f0f6fc; background: #264b73; }
-.project-page a { color: #79c0ff; text-underline-offset: 0.2em; }
-.project-page a:hover { color: #b6e3ff; }
+.project-page a { color: #a5d6ff; text-underline-offset: 0.2em; }
+.project-page a:hover { color: #d1efff; }
 .project-page .site-header a { color: #c9d1d9; }
 .project-page p, .project-page li { text-wrap: pretty; }
 .project-page h1, .project-page h2, .project-page h3, .project-page h4 { color: #f0f6fc; line-height: 1.25; text-wrap: balance; }

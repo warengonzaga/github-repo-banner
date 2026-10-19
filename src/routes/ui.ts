@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
 import { marked } from 'marked';
 import { renderDocumentation } from '../ui/documentation.js';
-import { privacyNotice, renderNavigation, renderPage } from '../ui/pages.js';
+import { renderNavigation, renderPage } from '../ui/pages.js';
 import { escapeXml } from '../utils/sanitize.js';
 
 const uiRoute = new Hono();
@@ -94,11 +94,10 @@ uiRoute.get('/', (c) => {
     const htmlPath = findHtmlPath();
     cachedHtml = readFileSync(htmlPath, 'utf-8')
       .replace('<!-- site-navigation -->', () => renderNavigation('generator'))
-      .replace('<!-- privacy-notice -->', () => privacyNotice())
       .replace(
         '<!-- sidebar-privacy -->',
         () =>
-          'When enabled, usage stats count successful banner renders. Exports do not save your design.',
+          'Learn how usage tracking works, what data is counted, and how this service is provided.',
       )
       .replace('<!-- repository-document:license -->', () =>
         escapeXml(readDocument('LICENSE')),

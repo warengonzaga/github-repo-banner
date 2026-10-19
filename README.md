@@ -53,55 +53,41 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-Open `http://localhost:3000`. Compose connects Redis automatically. Pexels search appears only when `PEXELS_API_KEY` is configured; direct image URLs remain available without a key. Stats are disabled by default. Redis remains required when tracking is off. See the [self-hosting guide](docs/self-hosting.md) for runtime variables and Railway setup.
+Open `http://localhost:3000`. See the [self-hosting guide](docs/self-hosting.md) for configuration, Railway deployment, and development commands.
 
 ## 📖 Usage Examples
 
 ### Backgrounds and Styling
 
-Use `bg=HEX` for a solid color, `bg=HEX1-HEX2` for a gradient, or eight-digit `RRGGBBAA` hex for opacity. `bg=00000000` is fully transparent. Choose a preset in the UI.
-
-Use `bgimg` for a direct public HTTPS image. The UI preserves your colors and presets while disabling them until you clear the image URL.
-
-**Background styling** adjusts brightness, contrast, saturation, and grayscale without changing text, icons, or watermarks. Blur applies only to successfully loaded images. **Reset styling** restores neutral values while keeping your content; the main **Reset** restores all defaults. The effects travel with copied URLs and SVG/PNG downloads.
+Use color, gradient, image, and styling parameters to control the banner background.
 
 ```text
 https://ghrb.waren.build/render/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&bgblur=10&bgbrightness=60&bggrayscale=100&color=ffffff
 ```
 
-See the [API parameter table](docs/api.md#parameters) for ranges and defaults. Invalid effect values use defaults; neutral values preserve the original output.
+See [background effects and parameters](docs/api.md#background-effects).
 
 ### Custom Icons and Images
 
-Put an image inline with header or subheader text:
+Add inline icons or freely positioned images from the generator:
 
 ```text
 ![icon src="https://example.com/logo.png" w="100%"] My Project
 ```
 
-Replace the example URL with a direct public image URL. Optional `w` and `h` accept `1–304px` or `1–200%`; percentages follow the surrounding text size. With neither set, the icon follows the text height. With one set, the other preserves its proportions; with both set, the image fits inside that box. Oversized icons shrink to fit the available line space. Existing `![github]` icons and emoji still work alongside custom icons.
-
-For freely positioned images, open **Custom Images** and choose **Add image**. Set X/Y from the banner's top-left and width/height in pixels on the 1280×304 canvas. **Rotation (degrees)** turns each image clockwise from 0° to 360° around its center, keeping the X/Y position and size as the unrotated box. Set 0° to reset its angle; 360° is a full turn. **Preserve proportions** fits inside the box; uncheck it to stretch. Choose **Behind text** or **In front of text**, then use **Lower layer**, **Raise layer**, or **Remove image**. Images crossing a banner edge, including after rotation, are cropped, and the watermark stays above them. New images start at `(0, 0)` in a 128×128 box at 0°, behind text. The main **Reset** clears them.
-
-A banner supports five custom images total, including inline icons in both text fields. Each needs a public HTTPS URL of at most 512 characters and a PNG, JPEG, WebP, GIF, or AVIF download of at most 1 MiB and 16,777,216 decoded pixels across all frames. The image data must decode successfully and match its declared content type. SVG, redirects, credentials, and private addresses are not supported. Invalid or unavailable custom images show an error and block exports until fixed or removed.
-
-Custom image settings, including rotation, follow the live preview, copied URLs/Markdown, and SVG/PNG downloads. See the [custom image API](docs/api.md#custom-icons-and-positioned-images) for parameter details.
+Use public HTTPS image URLs. See the [custom image API](docs/api.md#custom-icons-and-positioned-images) for limits, positioning, rotation, and validation rules.
 
 ### Pexels Integration
 
-Search returns nine landscape thumbnails at a time. **Load more images** appends the next page until results end. A new search starts fresh; failed requests preserve existing choices for retry. Select photos with a mouse or Tab followed by Enter/Space.
-
-For self-hosting, set `PEXELS_API_KEY` in the server environment. The key stays server-side. Without it, Pexels search is hidden while the direct image URL input remains available. See [configuration](docs/self-hosting.md#environment-variables).
+Hosted and self-hosted instances can offer Pexels search when `PEXELS_API_KEY` is configured. Direct image URLs work without a key; see [self-hosting configuration](docs/self-hosting.md#environment-variables).
 
 ### Watermark and Output
 
-The UI enables the watermark by default; the API requires `support=true`. **Copy Markdown** and SVG/PNG downloads honor your choice, including the attribution comment in generated Markdown only when support is enabled. **Copy Image URL** keeps styling while intentionally omitting the watermark. The stats opt-out is included in generated banner links.
+The UI enables attribution by default. Use the output controls or `support=true` to control generated banner links; see the [API reference](docs/api.md).
 
 ### Repository Documents
 
-The **README** tab contains the generator. **Code of conduct** and **MIT license** display bundled repository documents. Tabs support keyboard navigation and adapt to narrow screens.
-
-The main navigation opens **Documentation** and **Stats**. The stats page shows the current instance’s successful banner render count for today, or explains that tracking is disabled or unavailable. Counts are not unique views or people.
+The generator includes the repository README, Code of Conduct, and MIT license. Use the main navigation for [Documentation](https://ghrb.waren.build/docs) and [Stats](https://ghrb.waren.build/stats).
 
 ## 🔌 API Reference
 
@@ -141,9 +127,7 @@ The skill distinguishes generated URLs from verified renders and edits a README 
 
 ## 🔒 Privacy & Transparency
 
-Usage stats are disabled by default. When `ENABLE_STATS=true`, the app counts successful banner renders by UTC day. Counts expire seven days after their last write and appear on `/stats` as a public HTML page. They are request totals, not unique people or views; previews, bots, and retries may count. Cached requests that never reach the app are not counted.
-
-A banner request can opt out with `stats=false`, `DNT: 1`, or `Sec-GPC: 1`. Copying and downloading run in your browser; the server does not save exported designs. See the [Privacy notice](docs/privacy.md) and [Terms](docs/terms.md).
+Usage tracking is optional, and exported designs are not saved. Read the [Privacy Policy](docs/privacy.md) and [Terms of Service](docs/terms.md) for the complete details.
 
 ## 🛠️ Development
 
@@ -172,6 +156,10 @@ MIT License - see [LICENSE](LICENSE) file.
 ## 👨‍💻 Author
 
 **Waren Gonzaga** • [GitHub](https://github.com/warengonzaga) • [Website](https://warengonzaga.com)
+
+## 💖 Support the Project
+
+If GitHub Repo Banner has been useful, you can support my open-source work by [sponsoring me on GitHub](https://github.com/sponsors/warengonzaga) or, if you think my work deserves wider recognition, [nominating me for the GitHub Stars program](https://stars.github.com/nominate). Both are optional—using and sharing the project helps too.
 
 ---
 

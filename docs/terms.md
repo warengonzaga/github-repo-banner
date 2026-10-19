@@ -1,6 +1,6 @@
-# Terms of Use
+# Terms of Service
 
-[Back to README](../README.md) · [Privacy notice](privacy.md)
+[Back to README](../README.md) · [Privacy Policy](privacy.md)
 
 These terms describe use of the official GitHub Repo Banner service at [ghrb.waren.build](https://ghrb.waren.build). Self-hosted services are operated separately and may have different policies.
 
@@ -14,6 +14,6 @@ The service does not save designs submitted through copy or download controls. B
 
 You retain any rights you hold in the text, images, and other material you use. You are responsible for having permission to use those materials. The project’s MIT license applies to the software; it does not automatically license your content.
 
-## Software and service
+## Using the service
 
-The repository source is provided under the [MIT license](../LICENSE), including its warranty disclaimer. Use the hosted service responsibly and do not attempt to bypass validation, resource limits, or access controls. For questions, use [project issues](https://github.com/warengonzaga/github-repo-banner/issues).
+The service is provided as available. Do not misuse it, interfere with its operation, or attempt to bypass validation, rate limits, or access controls. The repository source is available under the [MIT license](../LICENSE), including its warranty disclaimer. For questions, use [project issues](https://github.com/warengonzaga/github-repo-banner/issues).

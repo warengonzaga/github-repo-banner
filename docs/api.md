@@ -25,7 +25,7 @@ Generate a custom SVG banner.
 | `bgsaturation` | number | No | `100` | Background saturation, 0–200 percent |
 | `bggrayscale` | number | No | `0` | Background grayscale, 0–100 percent |
 | `support` | boolean | No | `false` | Show support watermark |
-| `stats` | boolean | No | `true` | On self-hosted instances with optional tracking, `false` excludes this request. Official-hosted aggregate counting ignores this opt-out. |
+| `stats` | boolean | No | `true` | On instances with optional tracking, `false` excludes this request. Do Not Track and Global Privacy Control also opt out. |
 | `watermarkpos` | string | No | `bottom-right` | Watermark position: `top-left`, `top-right`, `bottom-left`, `bottom-right` |
 
 Header and subheader display text are limited to 50 and 60 JavaScript string units respectively, with at most five inline icons per field. Complete icon tokens do not count toward the display-text limit. Raw input is capped at 500 units, or 2,048 units when it contains custom icon syntax. Font names are sanitized and limited to 50 units. Encode query values, especially embedded image URLs containing their own `&` or `#`; `URLSearchParams` handles this when building URLs in code.

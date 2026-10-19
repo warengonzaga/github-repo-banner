@@ -2,11 +2,6 @@ import { escapeXml } from '../utils/sanitize.js';
 
 type Page = 'generator' | 'docs' | 'stats';
 
-export function privacyNotice(): string {
-  return `<aside class="privacy-notice" aria-label="Privacy notice"><p>Usage tracking is optional. When enabled, this instance counts successful banner renders; exports are not saved.
-    <a href="/docs#privacy">Privacy</a> · <a href="/docs#terms">Terms</a></p></aside>`;
-}
-
 export function renderNavigation(current: Page): string {
   const links = [
     ['generator', '/', 'Generator'],
@@ -43,7 +38,6 @@ export function renderPage(page: 'docs' | 'stats', content: string): string {
 <body class="project-page">
   <a class="skip-link" href="#main">Skip to content</a>
   ${renderNavigation(page)}
-  ${privacyNotice()}
   <main id="main" class="page-main" tabindex="-1">${content}</main>
   <footer class="site-footer"><span>GitHub Repo Banner by <a href="https://github.com/warengonzaga">Waren Gonzaga</a></span><a href="https://github.com/warengonzaga/github-repo-banner">Source on GitHub</a><a href="/docs#privacy">Privacy</a><a href="/docs#terms">Terms</a><a href="/docs#license">MIT license</a></footer>
 </body>
