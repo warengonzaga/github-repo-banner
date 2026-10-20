@@ -79,7 +79,7 @@ for (const [path, source, type] of [
 
 uiRoute.get('/docs', (c) => {
   if (!cachedDocs || isDev) {
-  cachedDocs = renderPage(renderDocumentation(readDocument));
+    cachedDocs = renderPage(renderDocumentation(readDocument));
   }
   return c.html(cachedDocs);
 });
