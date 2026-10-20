@@ -67,7 +67,7 @@ The existing hosted template may need its Redis service and variables added befo
 
 ## CI and Release Workflow
 
-[`.github/workflows/build-flow.yml`](../.github/workflows/build-flow.yml) uses Build Flow's pinned app workflow. Redis regression checks and the Docker/Compose smoke check run first, followed by native CI and CodeQL gates. CI uses Node 22 and the project's pinned Bun 1.3.9 for frozen dependency installation, static checks, type checking, and the production build. The final `Build` check requires both the integration job and Build Flow to succeed.
+[`.github/workflows/build-flow.yml`](../.github/workflows/build-flow.yml) uses Build Flow's pinned app workflow for CI, CodeQL, container publishing, and release ordering. CI uses Node 22 and the project's pinned Bun 1.3.9 for frozen dependency installation, static checks, type checking, and the production build. There is no custom Redis service or Docker smoke job in the workflow.
 
 Build Flow's native development publishing targets Linux AMD64 images on Docker Hub (`warengonzaga/github-repo-banner`) and GHCR (`ghcr.io/warengonzaga/github-repo-banner`):
 
@@ -113,17 +113,3 @@ Each banner permits five custom images across positioned layers and both text fi
 Pexels responses live in Redis for five minutes, limited to 64 KiB per response. Each process permits four concurrent upstream fetches and coalesces identical in-flight requests. A Redis script atomically enforces 100 upstream attempts per rolling hour per API key; failed upstream attempts count too. Queries are normalized and cache keys hash the query URL and API key. Quota entries hold timestamps and random request identifiers, with a one-hour expiry. Cache hits consume no quota; excess uncached requests receive HTTP 429. The budget survives app restarts and is shared only by instances using the same Redis database and API key. Other tools using that Pexels account remain outside this budget.
 
 Image caching remains in process memory; image binaries are not stored in Redis. Usage stats are separate from operational search caching and quota records.
-
-## Regression Checks
-
-Use an empty, disposable Redis instance for integration checks; never point them at production. `TEST_REDIS_URL` is required and does not fall back to `REDIS_URL`.
-
-```bash
-bun run build
-TEST_REDIS_URL=redis://127.0.0.1:6379 bun scripts/check-pexels-route.ts
-TEST_REDIS_URL=redis://127.0.0.1:6379 bun scripts/check-redis-connection.ts
-bun scripts/check-redis-startup.ts
-sh scripts/check-docker.sh
-```
-
-Pexels responses in these checks are fixtures; no live API key is needed. The Docker check creates and removes its own containers and volume, without reading local `.env` secrets.
