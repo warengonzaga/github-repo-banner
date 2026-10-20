@@ -7,7 +7,7 @@ for (const [path, title] of [['/docs', 'Documentation']]) {
   assert.match(response.headers.get('Content-Type') || '', /text\/html/);
   const html = await response.text();
   assert.ok(html.includes(`<title>${title} · GitHub Repo Banner</title>`));
-  assert.ok(html.includes('class="site-brand"'));
+  assert.ok(html.includes('class="article-brand-container"));
   assert.ok(!html.includes('<nav class="site-nav"'));
   assert.ok(html.includes('Skip to content'));
   assert.ok(html.includes('href="/pages.css"'));
@@ -18,7 +18,7 @@ const legacyRemoval = await ui.request('/usage#remove=old-code');
 assert.equal(legacyRemoval.status, 200);
 assert.match(await legacyRemoval.text(), /Remove from showcase/);
 const home = await (await ui.request('/')).text();
-assert.ok(home.includes('class="site-brand"'));
+assert.ok(home.includes('class="article-brand-container"'));
 assert.ok(!home.includes('<nav class="site-nav"'));
 assert.ok(!home.includes('<h2>Usage stats</h2>'));
 assert.ok(home.includes('/render/banner?'));
