@@ -2,7 +2,7 @@
 // Pexels is a local fixture; no live API key or requests are used.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { closeRedis, getRedis, initRedis, isStatsEnabled } from '../src/config/redis.js';
 import banner from '../src/routes/banner.js';
@@ -16,7 +16,7 @@ if (process.argv.includes('--cache-reader')) {
   try {
     globalThis.fetch = async () => { throw new Error('Persisted cache missed'); };
     assert.equal((await route.request('/api/pexels/search?q=cache%20test&page=2')).status, 200);
-    const prefix = 'pexels:v1:' + createHash('sha256').update(process.env.PEXELS_API_KEY!).digest('hex');
+    const prefix = 'pexels:v1:' + process.env.PEXELS_API_KEY!;
     assert.equal(await getRedis()!.zcard(`${prefix}:requests`), Number(process.env.EXPECTED_QUOTA));
   } finally {
     await closeRedis();
@@ -29,7 +29,7 @@ process.env.REDIS_URL = process.env.TEST_REDIS_URL;
 process.env.ENABLE_STATS = 'false';
 const apiKey = `fixture-${randomUUID()}`;
 process.env.PEXELS_API_KEY = apiKey;
-const prefix = `pexels:v1:${createHash('sha256').update(apiKey).digest('hex')}`;
+const prefix = `pexels:v1:${apiKey}`;
 const quota = `${prefix}:requests`;
 const originalFetch = globalThis.fetch;
 let calls = 0;
