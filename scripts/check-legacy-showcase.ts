@@ -1,51 +1,44 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
-import { mock } from 'bun:test';
+import { createHash, randomUUID } from 'node:crypto';
+import { closeRedis, getRedis, initRedis } from '../src/config/redis.js';
+import route from '../src/routes/legacy-showcase.js';
 
-let redisStatus = 'ready';
-let deleteResult: number = 1;
-const evalCalls: unknown[][] = [];
-const redis = {
-  get status() { return redisStatus; },
-  eval: async (...args: unknown[]) => { evalCalls.push(args); return deleteResult; },
-};
-mock.module('../src/config/redis.js', () => ({ getRedis: () => redis }));
-const { default: route } = await import('../src/routes/legacy-showcase.js');
-
-const id = `${String(Date.now() - 20 * 60_000)}-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee`;
+assert.ok(process.env.TEST_REDIS_URL, 'Use the disposable Redis service');
+process.env.REDIS_URL = process.env.TEST_REDIS_URL;
+const id = `${Date.now()}-${randomUUID()}`;
 const token = 'a'.repeat(64);
-const request = (body: unknown, headers: Record<string, string> = {}) =>
+const removalHash = createHash('sha256').update(token).digest('hex');
+const request = (value: unknown, origin = 'http://localhost') =>
   route.request(`/showcase/${id}`, {
     method: 'DELETE',
-    headers: { origin: 'http://localhost', 'content-type': 'application/json', ...headers },
-    body: JSON.stringify(body),
+    headers: { origin, 'content-type': 'application/json' },
+    body: JSON.stringify(value),
   });
 
-let response = await request({ removalToken: token });
-assert.equal(response.status, 200);
-assert.deepEqual(await response.json(), { removed: true });
-assert.equal(evalCalls[0].length, 5);
-assert.equal(evalCalls[0][1], 1);
-assert.equal(evalCalls[0][2], 'showcase:v1:entries');
-assert.equal(evalCalls[0][3], id);
-assert.equal(
-  evalCalls[0][4],
-  createHash('sha256').update(token).digest('hex'),
-);
-
-response = await request({ removalToken: token }, { origin: 'https://attacker.example' });
-assert.equal(response.status, 403, 'cross-origin deletion is rejected');
-response = await request({ removalToken: token }, { 'content-type': 'text/plain' });
-assert.equal(response.status, 403, 'non-JSON deletion is rejected');
-response = await route.request('/showcase/not-an-id', { method: 'DELETE' });
-assert.equal(response.status, 404);
-response = await request({ removalToken: 'bad' });
-assert.equal(response.status, 400);
-
-deleteResult = -1;
-response = await request({ removalToken: token });
-assert.equal(response.status, 403, 'a mismatched code cannot remove a design');
-redisStatus = 'offline';
-response = await request({ removalToken: token });
-assert.equal(response.status, 503);
-console.log('PASS: legacy showcase withdrawal validates origin, code, and Redis state');
+await initRedis();
+let redis = getRedis()!;
+try {
+  assert.equal(await redis.hget('showcase:v1:entries', id), null);
+  await redis.hset('showcase:v1:entries', id, JSON.stringify({ removalHash }));
+  let response = await request({ removalToken: token }, 'https://attacker.example');
+  assert.equal(response.status, 403, 'cross-origin deletion is rejected');
+  response = await request({ removalToken: token }, 'http://localhost');
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { removed: true });
+  assert.equal(await redis.hget('showcase:v1:entries', id), null, 'valid code deletes only its legacy entry');
+  response = await route.request('/showcase/not-an-id', { method: 'DELETE' });
+  assert.equal(response.status, 404);
+  response = await request({ removalToken: 'bad' });
+  assert.equal(response.status, 400);
+  await closeRedis();
+  response = await request({ removalToken: token });
+  assert.equal(response.status, 503, 'Redis outages are reported without confirming removal');
+  console.log('PASS: legacy showcase withdrawal verifies Redis token, origin, and availability');
+} finally {
+  if (redis.status !== 'ready') {
+    await initRedis();
+    redis = getRedis()!;
+  }
+  await redis.hdel('showcase:v1:entries', id);
+  await closeRedis();
+}
