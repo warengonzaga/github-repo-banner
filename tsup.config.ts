@@ -17,13 +17,24 @@ export default defineConfig({
       'image-layers.css',
       'image-settings.js',
       'inline-icons.js',
-      'usage.html',
-      'usage.js',
       'export.js',
-      'showcase.js',
       'pages.css',
     ]) {
       copyFileSync(`src/ui/${file}`, `dist/ui/${file}`);
+    }
+    for (const [source, destination] of [
+      ['assets/brand/svg/horizontal-dark.svg', 'dist/ui/brand-logo.svg'],
+      ...[
+        'favicon.ico',
+        'favicon.svg',
+        'apple-touch-icon.png',
+        'icon-192.png',
+        'icon-512.png',
+        'maskable-512.png',
+        'site.webmanifest',
+      ].map((file) => [`assets/brand/web/${file}`, `dist/ui/${file}`]),
+    ]) {
+      copyFileSync(source, destination);
     }
     mkdirSync('dist/ui/docs/docs', { recursive: true });
     for (const file of [
@@ -32,6 +43,8 @@ export default defineConfig({
       'CODE_OF_CONDUCT.md',
       'LICENSE',
       'docs/api.md',
+      'docs/pages.md',
+      'docs/rendering.md',
       'docs/self-hosting.md',
       'docs/terms.md',
       'docs/privacy.md',

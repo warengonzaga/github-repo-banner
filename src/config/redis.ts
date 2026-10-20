@@ -6,8 +6,6 @@ let statsEnabled = false;
 
 /** Redis is required for search caching and quotas, independently of tracking. */
 export async function initRedis(): Promise<void> {
-  getPublicOrigin();
-  getExportRetentionDays();
   let redisUrl: URL;
   try {
     redisUrl = new URL(process.env.REDIS_URL || '');
@@ -41,7 +39,7 @@ export async function initRedis(): Promise<void> {
       }),
     ]);
     redisClient = client;
-    statsEnabled = isOfficialInstance() || process.env.ENABLE_STATS === 'true';
+    statsEnabled = process.env.ENABLE_STATS === 'true';
     LogEngine.info(
       `Redis connected. Stats tracking: ${statsEnabled ? 'ENABLED' : 'DISABLED'}`,
     );
@@ -59,7 +57,7 @@ export function getRedis(): Redis | null {
   return redisClient;
 }
 
-/** Configuration stays enabled during outages; /stats reports unavailability. */
+/** Usage stats are shown in the generator sidebar. */
 export function isStatsEnabled(): boolean {
   return statsEnabled;
 }
@@ -68,46 +66,4 @@ export async function closeRedis(): Promise<void> {
   redisClient?.disconnect();
   redisClient = null;
   statsEnabled = false;
-}
-
-/** Official hosting counts usage; self-hosted instances keep optional tracking. */
-export function isOfficialInstance(): boolean {
-  return process.env.OFFICIAL_HOSTED_INSTANCE === 'true';
-}
-
-/** Trust an explicit external origin, never arbitrary proxy headers. */
-export function getPublicOrigin(): string | null {
-  const configured =
-    process.env.PUBLIC_ORIGIN ||
-    (isOfficialInstance() ? 'https://ghrb.waren.build' : '');
-  if (!configured) return null;
-  try {
-    const url = new URL(configured);
-    if (
-      !['https:', 'http:'].includes(url.protocol) ||
-      url.username ||
-      url.password ||
-      url.search ||
-      url.hash ||
-      url.pathname !== '/'
-    )
-      throw new Error();
-    return url.origin;
-  } catch {
-    throw new Error(
-      'PUBLIC_ORIGIN must be an http(s) origin without credentials, a path, query or fragment.',
-    );
-  }
-}
-
-/** Required on official hosting so saved-design retention is an explicit policy. */
-export function getExportRetentionDays(): number | null {
-  if (!isOfficialInstance()) return null;
-  const value = process.env.EXPORT_RETENTION_DAYS || '';
-  if (!/^[1-9]\d{0,2}$/.test(value) || Number(value) > 365) {
-    throw new Error(
-      'Official hosting requires EXPORT_RETENTION_DAYS between 1 and 365.',
-    );
-  }
-  return Number(value);
 }

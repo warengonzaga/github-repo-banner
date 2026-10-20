@@ -15,11 +15,11 @@ Read [the service contract](references/service-contract.md) before constructing 
 
 ## Construct and inspect
 
-Use a standard URL builder such as JavaScript `URL` and `URLSearchParams`. Set raw values once; do not pre-encode them. Preserve any self-hosted path prefix, clear stale query/fragment data, and append `/banner`. Do not invent `/banner.png` or a format parameter: the endpoint returns SVG; PNG export is available in the interactive UI.
+Use a standard URL builder such as JavaScript `URL` and `URLSearchParams`. Set raw values once; do not pre-encode them. Preserve any self-hosted path prefix, clear stale query/fragment data, and append `/render/banner`. Do not invent `/render/banner.png` or a format parameter: the endpoint returns SVG; PNG export is available in the interactive UI.
 
 ```js
 const base = new URL('https://ghrb.waren.build');
-base.pathname = base.pathname.replace(/\/$/, '') + '/banner';
+base.pathname = base.pathname.replace(/\/$/, '') + '/render/banner';
 base.search = '';
 base.hash = '';
 base.searchParams.set('header', 'My Project');
@@ -29,7 +29,7 @@ base.searchParams.set('color', 'ffffff');
 const bannerUrl = base.href;
 ```
 
-Use a base URL, not an existing `/banner` endpoint. Pass nested image URLs as raw `bgimg` values through the same builder. Confirm a query round-trip returns the original text and image URL, especially for `&`, `+`, `#`, Unicode, emoji, and icon syntax.
+Use a base URL, not an existing `/render/banner` endpoint. Pass nested image URLs as raw `bgimg` values through the same builder. Confirm a query round-trip returns the original text and image URL, especially for `&`, `+`, `#`, Unicode, emoji, and icon syntax.
 
 When network access is available, request the resulting URL and check status, SVG content type, and SVG markup. Inspect whether requested fonts, icons, and images are actually embedded; an HTTP 200 can contain a fallback. When preview tools are available, render the SVG or open the service UI and inspect the banner at full size and a typical README width. Check clipping, contrast, glyphs, icon visibility, fonts, and background placement. Transparent backgrounds need inspection against the intended README background. A screenshot alone does not prove the original assets loaded.
 

@@ -8,7 +8,7 @@ const skill = readFileSync('skills/github-repo-banner/SKILL.md', 'utf8');
 const example = skill.match(/```js\n([\s\S]*?)```/)?.[1];
 assert.ok(example);
 const basic = new Function(`${example}; return bannerUrl;`)();
-assert.equal(new URL(basic).pathname, '/banner');
+assert.equal(new URL(basic).pathname, '/render/banner');
 assert.equal(new URL(basic).searchParams.get('header'), 'My Project');
 for (const bg of ['0d1117', '0d1117-243b55', '00000000']) {
   const url = new URL(basic);

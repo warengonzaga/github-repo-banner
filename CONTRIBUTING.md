@@ -29,21 +29,23 @@ If you prefer the manual approach:
 
 > **Prerequisites:** [Node.js](https://nodejs.org/) `^22`, [Bun](https://bun.sh/) `1.3.9`, [Git](https://git-scm.com/), and a running Redis service are required. See [self-hosting](docs/self-hosting.md) for Docker Compose and Redis setup.
 
-1. **Fork** the repository
-2. **Clone** your fork and install dependencies:
+1. **Fork** the repository and clone your fork.
+2. **Add the original repository as `upstream`**, fetch `dev`, and install dependencies:
    ```bash
    git clone https://github.com/<your-username>/github-repo-banner.git
    cd github-repo-banner
+   git remote add upstream https://github.com/warengonzaga/github-repo-banner.git
+   git fetch upstream dev
    bun install --frozen-lockfile
    cp .env.example .env
    # Set REDIS_URL in .env to your development Redis URL.
    ```
-3. **Create a feature branch:**
+3. **Create a feature branch from `upstream/dev`:**
    ```bash
-   git checkout -b feature/your-feature-name
+   git switch -c feature/your-feature-name upstream/dev
    ```
 4. **Make your changes** and commit using the [Clean Commit](#-commit-convention) convention
-5. **Push** your branch and **open a Pull Request**
+5. **Push** your branch and **open a Pull Request targeting `dev`**
 
 ## 📝 Commit Convention
 

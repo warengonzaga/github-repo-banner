@@ -3,45 +3,13 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
 import { marked } from 'marked';
-import {
-  getExportRetentionDays,
-  getRedis,
-  isOfficialInstance,
-  isStatsEnabled,
-} from '../config/redis.js';
+import { getRedis, isStatsEnabled } from '../config/redis.js';
 import { renderDocumentation } from '../ui/documentation.js';
-import { privacyNotice, renderNavigation, renderPage } from '../ui/pages.js';
+import { renderPage } from '../ui/pages.js';
 import { escapeXml } from '../utils/sanitize.js';
-import { recordPageView, usageOptedOut } from '../utils/usage-stats.js';
+import { getBannerRequestCount } from '../utils/usage-stats.js';
 
 const uiRoute = new Hono();
-
-const trackedPages = {
-  '/': 'generator',
-  '/docs': 'documentation',
-  '/usage': 'usage',
-} as const;
-
-uiRoute.use('*', async (c, next) => {
-  await next();
-  const page = trackedPages[c.req.path as keyof typeof trackedPages];
-  const redis = getRedis();
-  if (
-    page &&
-    c.req.method === 'GET' &&
-    c.res.status === 200 &&
-    isStatsEnabled() &&
-    redis?.status === 'ready' &&
-    !usageOptedOut(
-      c.req.query('stats'),
-      c.req.header('dnt'),
-      c.req.header('sec-gpc'),
-    )
-  ) {
-    // Count only rendered pages, never assets, API polling or client identifiers.
-    void recordPageView(redis, page);
-  }
-});
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -74,13 +42,11 @@ function readDocument(filename: string): string {
 
 for (const [path, type] of [
   ['pages.css', 'text/css; charset=utf-8'],
-  ['usage.js', 'text/javascript; charset=utf-8'],
   ['image-layers.js', 'text/javascript; charset=utf-8'],
   ['image-layers.css', 'text/css; charset=utf-8'],
   ['image-settings.js', 'text/javascript; charset=utf-8'],
   ['inline-icons.js', 'text/javascript; charset=utf-8'],
   ['export.js', 'text/javascript; charset=utf-8'],
-  ['showcase.js', 'text/javascript; charset=utf-8'],
 ]) {
   uiRoute.get(`/${path}`, (c) => {
     c.header('Content-Type', type);
@@ -88,43 +54,124 @@ for (const [path, type] of [
   });
 }
 
+for (const [path, source, type] of [
+  ['brand-logo.svg', 'svg/horizontal-dark.svg', 'image/svg+xml'],
+  ['favicon.ico', 'web/favicon.ico', 'image/x-icon'],
+  ['favicon.svg', 'web/favicon.svg', 'image/svg+xml'],
+  ['apple-touch-icon.png', 'web/apple-touch-icon.png', 'image/png'],
+  ['icon-192.png', 'web/icon-192.png', 'image/png'],
+  ['icon-512.png', 'web/icon-512.png', 'image/png'],
+  ['maskable-512.png', 'web/maskable-512.png', 'image/png'],
+  ['site.webmanifest', 'web/site.webmanifest', 'application/manifest+json'],
+]) {
+  uiRoute.get(`/${path}`, (c) => {
+    const uiDirectory = dirname(findHtmlPath());
+    const candidates = [
+      resolve(uiDirectory, path),
+      resolve(uiDirectory, '..', '..', 'assets', 'brand', source),
+    ];
+    const filePath = candidates.find(existsSync);
+    if (!filePath) throw new Error(`Brand asset ${source} is missing`);
+    c.header('Content-Type', type);
+    return c.body(readFileSync(filePath));
+  });
+}
+
 uiRoute.get('/docs', (c) => {
   if (!cachedDocs || isDev) {
-    cachedDocs = renderPage('docs', renderDocumentation(readDocument));
+    cachedDocs = renderPage(renderDocumentation(readDocument));
   }
   return c.html(cachedDocs);
 });
 
-uiRoute.get('/usage', (c) =>
-  c.html(
-    renderPage('usage', readFileSync(findHtmlPath('usage.html'), 'utf-8')),
-  ),
-);
+uiRoute.get('/usage', (c) => {
+  c.header('Cache-Control', 'no-store');
+  c.header('Referrer-Policy', 'no-referrer');
+  return c.html(
+    renderPage(
+      `<div class="page-heading"><h1>Withdraw a shared design</h1><p class="page-intro">Use your saved removal link or code to remove an older shared design. New designs are not submitted to a showcase.</p></div>
+<section class="doc-section" aria-labelledby="removal-heading">
+  <h2 id="removal-heading">Remove a shared design</h2>
+  <form id="showcase-remove">
+    <label for="showcase-code">Removal link or code</label>
+    <input id="showcase-code" type="password" autocomplete="off" required spellcheck="false">
+    <button class="page-button" type="submit">Remove from showcase</button>
+    <p id="showcase-removal-status" role="status" aria-live="polite"></p>
+  </form>
+  <h3>Codes saved in this browser</h3>
+  <ul id="saved-showcase-codes"></ul>
+</section>
+<script type="module">
+const form = document.getElementById('showcase-remove');
+const code = document.getElementById('showcase-code');
+const status = document.getElementById('showcase-removal-status');
+const saved = document.getElementById('saved-showcase-codes');
+const pattern = /^\\d{13}-[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\\.[a-f0-9]{64}$/;
+const fragment = new URLSearchParams(location.hash.slice(1)).get('remove');
+if (fragment && pattern.test(fragment)) {
+  code.value = fragment;
+  history.replaceState(null, '', location.pathname + location.search);
+}
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (form.querySelector('button').disabled) return;
+  let value = code.value.trim();
+  if (value.includes('#remove=')) value = value.split('#remove=')[1];
+  if (!pattern.test(value)) { status.textContent = 'Paste the complete removal link or code given when sharing.'; return; }
+  const [id, token] = value.split('.');
+  const button = form.querySelector('button');
+  button.disabled = true;
+  status.textContent = 'Removing this design…';
+  try {
+    const response = await fetch('/showcase/' + id, {method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({removalToken:token}), signal:AbortSignal.timeout(10_000)});
+    if (!response.ok) throw new Error((await response.json()).error);
+    status.textContent = 'Removed from the showcase. Existing copies held by others cannot be recalled.';
+    try {
+      const codes = JSON.parse(localStorage.getItem('showcase-removal-codes') || '{}');
+      if (codes && typeof codes === 'object' && !Array.isArray(codes)) {
+        delete codes[id];
+        localStorage.setItem('showcase-removal-codes', JSON.stringify(codes));
+      }
+    } catch {}
+    code.value = '';
+  } catch (error) { status.textContent = error instanceof Error ? error.message : 'Removal failed. Please try again.'; }
+  finally { button.disabled = false; }
+});
+try {
+  const codes = JSON.parse(localStorage.getItem('showcase-removal-codes') || '{}');
+  if (codes && typeof codes === 'object' && !Array.isArray(codes)) {
+    for (const [id, token] of Object.entries(codes)) {
+      if (!pattern.test(id + '.' + token)) continue;
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'page-button';
+      button.textContent = 'Remove design shared ' + new Date(Number(id.slice(0, 13))).toLocaleDateString();
+      button.addEventListener('click', () => { code.value = id + '.' + token; form.requestSubmit(); });
+      item.append(button);
+      saved.append(item);
+    }
+  }
+} catch {}
+</script>`,
+      'Remove a shared design',
+    ),
+  );
+});
 
 uiRoute.get('/image-url.js', (c) => {
   c.header('Content-Type', 'text/javascript; charset=utf-8');
   return c.body(readFileSync(findHtmlPath('image-url.js'), 'utf-8'));
 });
 
-uiRoute.get('/', (c) => {
+uiRoute.get('/', async (c) => {
   if (!cachedHtml || isDev) {
     const htmlPath = findHtmlPath();
     cachedHtml = readFileSync(htmlPath, 'utf-8')
-      .replace('<!-- site-navigation -->', () => renderNavigation('generator'))
       .replace(
-        '<body>',
-        `<body data-official="${isOfficialInstance()}" data-retention="${getExportRetentionDays() || 0}">`,
-      )
-      .replace('<!-- privacy-notice -->', () => privacyNotice())
-      .replace('<!-- export-privacy -->', () =>
-        isOfficialInstance()
-          ? `Exports are counted and their designs are saved for ${getExportRetentionDays()} days. The prompt only asks about public showcasing. Choosing Export only keeps it off the Usage page. Shared showcase copies remain until removed.`
-          : 'Exporting does not store your design. Usage statistics are optional on self-hosted instances.',
-      )
-      .replace('<!-- sidebar-privacy -->', () =>
-        isOfficialInstance()
-          ? 'Official hosting records aggregate usage. Every exported design is saved. The Usage page displays a design only when you explicitly accept showcasing it.'
-          : 'When enabled, optional statistics count page views and banner requests. Exports do not save banner designs. No IPs, cookies or visitor identifiers are stored for these counts.',
+        '<!-- sidebar-privacy -->',
+        () =>
+          'Learn how usage tracking works, what data is counted, and how this service is provided.',
       )
       .replace('<!-- repository-document:license -->', () =>
         escapeXml(readDocument('LICENSE')),
@@ -133,14 +180,38 @@ uiRoute.get('/', (c) => {
         marked.parse(readDocument('CODE_OF_CONDUCT.md'), { async: false }),
       );
   }
+  let usageStatsSection = '';
+  if (isStatsEnabled()) {
+    const redis = getRedis();
+    if (redis?.status === 'ready') {
+      try {
+        const count = await getBannerRequestCount(redis);
+        if (Number.isSafeInteger(count) && count >= 0) {
+          usageStatsSection = `<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Today: <strong>${count.toLocaleString()}</strong> banner renders</p></div>`;
+        } else {
+          usageStatsSection =
+            '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
+        }
+      } catch {
+        usageStatsSection =
+          '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
+      }
+    } else {
+      usageStatsSection =
+        '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
+    }
+  }
+
   // Apply deployment capability after the cached template; never expose the key.
   return c.html(
-    cachedHtml.replace(
-      'id="pexels-section" hidden',
-      process.env.PEXELS_API_KEY
-        ? 'id="pexels-section"'
-        : 'id="pexels-section" hidden',
-    ),
+    cachedHtml
+      .replace('<!-- usage-stats-section -->', usageStatsSection)
+      .replace(
+        'id="pexels-section" hidden',
+        process.env.PEXELS_API_KEY
+          ? 'id="pexels-section"'
+          : 'id="pexels-section" hidden',
+      ),
   );
 });
 

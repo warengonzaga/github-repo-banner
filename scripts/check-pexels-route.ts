@@ -2,13 +2,13 @@
 // Pexels is a local fixture; no live API key or requests are used.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { closeRedis, getRedis, initRedis, isStatsEnabled } from '../src/config/redis.js';
 import banner from '../src/routes/banner.js';
 import route from '../src/routes/pexels.js';
-import stats from '../src/routes/stats.js';
-import { usageKeys } from '../src/utils/usage-stats.js';
+import ui from '../src/routes/ui.js';
+import { usageKey } from '../src/utils/usage-stats.js';
 
 // A fresh process must serve a persisted result without touching upstream.
 if (process.argv.includes('--cache-reader')) {
@@ -16,8 +16,7 @@ if (process.argv.includes('--cache-reader')) {
   try {
     globalThis.fetch = async () => { throw new Error('Persisted cache missed'); };
     assert.equal((await route.request('/api/pexels/search?q=cache%20test&page=2')).status, 200);
-    const prefix = 'pexels:v1:' + createHash('sha256').update(process.env.PEXELS_API_KEY!).digest('hex');
-    assert.equal(await getRedis()!.zcard(`${prefix}:requests`), Number(process.env.EXPECTED_QUOTA));
+    assert.equal(await getRedis()!.zcard(process.env.EXPECTED_QUOTA_KEY!), Number(process.env.EXPECTED_QUOTA));
   } finally {
     await closeRedis();
   }
@@ -29,8 +28,6 @@ process.env.REDIS_URL = process.env.TEST_REDIS_URL;
 process.env.ENABLE_STATS = 'false';
 const apiKey = `fixture-${randomUUID()}`;
 process.env.PEXELS_API_KEY = apiKey;
-const prefix = `pexels:v1:${createHash('sha256').update(apiKey).digest('hex')}`;
-const quota = `${prefix}:requests`;
 const originalFetch = globalThis.fetch;
 let calls = 0;
 let upstream: Record<string, unknown> = { photos: [], page: 1, total_results: 0 };
@@ -38,11 +35,12 @@ let requested = '';
 const search = (query: string) => route.request('/api/pexels/search?q=' + encodeURIComponent(query) + '&page=2');
 await initRedis();
 let redis = getRedis()!;
-const usage = usageKeys();
-let ownsUsageKeys = false;
+const initialRedisKeys = new Set(await redis.keys('pexels:v1:*'));
+const countKey = usageKey();
+let ownsUsageKey = false;
 try {
-  assert.equal(await redis.exists(usage.counters, usage.repositories), 0, 'Use an empty test database; existing usage data will not be changed');
-  ownsUsageKeys = true;
+  assert.equal(await redis.exists(countKey), 0, 'Use an empty test database; existing usage data will not be changed');
+  ownsUsageKey = true;
   assert.equal(isStatsEnabled(), false);
   globalThis.fetch = async (input, init) => {
     calls++;
@@ -68,9 +66,11 @@ try {
   assert.ok(responses.every((r) => r.status === 200));
   assert.equal((await search('cache test')).status, 200);
   assert.equal(calls, beforeCache + 1, 'normalized concurrent requests share one upstream call');
+  const quota = (await redis.keys('pexels:v1:*:requests')).find((key) => !initialRedisKeys.has(key));
+  assert.ok(quota, 'test request quota key must be created');
   const persistedCount = await redis.zcard(quota);
   const child = spawnSync(process.execPath, ['scripts/check-pexels-route.ts', '--cache-reader'], {
-    env: { ...process.env, EXPECTED_QUOTA: String(persistedCount) }, encoding: 'utf8', timeout: 10_000,
+    env: { ...process.env, EXPECTED_QUOTA: String(persistedCount), EXPECTED_QUOTA_KEY: quota }, encoding: 'utf8', timeout: 10_000,
   });
   assert.equal(child.status, 0, child.stderr || child.stdout);
   // Reconnect this process too: retained budget and cache remain authoritative.
@@ -80,7 +80,7 @@ try {
   assert.equal((await search('cache test')).status, 200);
   assert.equal(calls, beforeCache + 1);
   assert.equal(await redis.zcard(quota), persistedCount);
-  const cacheKeys = await redis.keys(`${prefix}:cache:*`);
+  const cacheKeys = (await redis.keys('pexels:v1:*:cache:*')).filter((key) => !initialRedisKeys.has(key));
   for (const key of cacheKeys) assert.ok((await redis.ttl(key)) > 0 && (await redis.ttl(key)) <= 300);
   await Promise.all(cacheKeys.map((key) => redis.pexpire(key, 1)));
   await delay(10);
@@ -88,8 +88,8 @@ try {
   assert.equal(calls, beforeCache + 2, 'expired data must reload');
   assert.equal((await banner.request('/banner?header=No%20tracking')).status, 200);
   await delay(30);
-  assert.equal(await redis.exists(usage.counters, usage.repositories), 0);
-  assert.equal((await (await stats.request('/stats')).json()).enabled, false);
+  assert.equal(await redis.exists(countKey), 0);
+  assert.ok(!(await (await ui.request('/')).text()).includes('<h2>Usage stats</h2>'));
 
   // Only one of four concurrent misses may reserve the final hourly slot.
   await redis.del(quota);
@@ -135,21 +135,20 @@ try {
     await banner.request('/banner?header=Opted%20out', { headers });
   }
   await delay(30);
-  assert.equal(await redis.exists(usage.counters), 0);
+  assert.equal(await redis.exists(countKey), 0);
   await banner.request('/banner?header=Tracked', { headers: { Referer: 'https://github.com/fixture/repo' } });
-  for (let i = 0; i < 50 && !(await redis.exists(usage.counters)); i++) await delay(10);
-  const observed = await (await stats.request('/stats')).json();
-  assert.equal(observed.recordedBannerRequests, 1);
-  assert.equal(observed.estimatedUniqueRepositories, 1);
+  for (let i = 0; i < 50 && !(await redis.exists(countKey)); i++) await delay(10);
+  const observed = await (await ui.request('/')).text();
+  assert.match(observed, /Today: <strong>1<\/strong> banner renders/);
   delete process.env.PEXELS_API_KEY;
   assert.equal((await search('missing-key')).status, 503);
   console.log('PASS: real Redis cache/TTL/coalescing, restart persistence, atomic rolling quota, fail-closed storage, tracking off/on and opt-out');
 } finally {
   globalThis.fetch = originalFetch;
   if (redis.status === 'ready') {
-    const keys = await redis.keys(`${prefix}:*`);
+    const keys = (await redis.keys('pexels:v1:*')).filter((key) => !initialRedisKeys.has(key));
     if (keys.length) await redis.del(...keys);
-    if (ownsUsageKeys) await redis.del(usage.counters, usage.repositories);
+    if (ownsUsageKey) await redis.del(countKey);
   }
   await closeRedis();
 }
