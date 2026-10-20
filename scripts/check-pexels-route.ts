@@ -139,7 +139,7 @@ try {
   await banner.request('/banner?header=Tracked', { headers: { Referer: 'https://github.com/fixture/repo' } });
   for (let i = 0; i < 50 && !(await redis.exists(countKey)); i++) await delay(10);
   const observed = await (await ui.request('/')).text();
-  assert.match(observed, />1<\/p>/);
+  assert.match(observed, /Today: <strong>1<\/strong> banner renders/);
   delete process.env.PEXELS_API_KEY;
   assert.equal((await search('missing-key')).status, 503);
   console.log('PASS: real Redis cache/TTL/coalescing, restart persistence, atomic rolling quota, fail-closed storage, tracking off/on and opt-out');
