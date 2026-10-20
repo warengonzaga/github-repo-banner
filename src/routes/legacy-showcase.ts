@@ -62,16 +62,15 @@ legacyShowcaseRoute.delete('/showcase/:id', async (c) => {
       if cjson.decode(entry).removalHash ~= ARGV[2] then return -1 end
       return redis.call('HDEL', KEYS[1], ARGV[1])
     `,
-      2,
-      SHOWCASE_KEY,
-      exportKey(id),
+      1,
+      SHOWCCASE_KEY,
       id,
       digest(removalToken),
     );
     if (removed === -1) {
-      return c.json({ error: 'This removal code does not match the design.' }, 403);
+      return c.json( { error: 'This removal code does not match the design.' }, 403);
     }
-    return c.json({ removed: true });
+    return c.json( { removed: true });
   } catch {
     return c.json({ error: 'Removal failed. Please try again.' }, 503);
   }
