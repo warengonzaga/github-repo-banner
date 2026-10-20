@@ -26,7 +26,7 @@ assert.ok(home.includes('id="readme-tab"'));
 const report = await (await stats.request('/stats')).text();
 assert.ok(report.includes('Usage tracking is disabled'));
 const docs = await (await ui.request('/docs')).text();
-assert.ok(docs.includes('Rotation (degrees)'), 'Documentation includes README rotation controls');
+assert.ok(docs.includes('360 degrees clockwise'), 'Documentation includes renderer rotation controls');
 assert.ok(docs.includes('<code>rotation</code>') && docs.includes('x + w/2, y + h/2'), 'Documentation includes the API field and rotation center');
 assert.equal((await ui.request('/docs/../../.env')).status, 404);
 console.log('PASS: public pages, canonical stats page, legacy usage redirect and docs');
