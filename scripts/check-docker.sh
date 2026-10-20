@@ -70,7 +70,7 @@ id="$(date +%s%3N)-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
 token=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 removal_hash="$(printf '%s' "$token" | sha256sum | cut -d ' ' -f 1)"
 compose exec -T redis redis-cli HSET showcase:v1:entries "$id" "{\"removalHash\":\"$removal_hash\"}" >/dev/null
-compose exec -T app env SHOWCASE_ID="$id" SHOWCASE_TOKEN="$token" node --input-type=module <<'JS'
+compose exec -T -e SHOWCASE_ID="$id" -e SHOWCASE_TOKEN="$token" app node --input-type=module <<'JS'
 import assert from 'node:assert/strict';
 const url = `http://127.0.0.1:3000/showcase/${process.env.SHOWCASE_ID}`;
 const remove = (token) => fetch(url, {
