@@ -7,9 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [3.0.0] - 2026-10-20
+
 ### Changed
 
+- isolate Redis fixture keys
+- run Biome lint in Build Flow
+- pass Docker test values directly
+- normalize Docker check line endings
+- run Docker check with Bash
+- fix homepage assertion quoting
+- check current homepage branding
+- align Redis test with inline stats
+- clean up Redis regression fixture
+- exercise malformed ID validation
+- correct legacy showcase key name
+- fix legacy Redis key arguments
+- test legacy withdrawal with Redis
+- list saved legacy removal codes
+- restore withdrawals and integration checks
+- separate public pages rendering and API guides
+- **BREAKING:** simplify usage stats and group API routes
+- use native build flow development builds (#103)
+- update CHANGELOG.md for v2.2.3
 - add logo assets and brand guidelines (#101)
+
+### Security
+
+- avoid hashing fixture API keys
 
 ## [2.2.3] - 2026-10-06
 
