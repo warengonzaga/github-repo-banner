@@ -79,7 +79,7 @@ jobs:
           for check in scripts/check-background-effects.ts scripts/check-banner-skill.ts scripts/check-documentation.ts scripts/check-image-loader.ts scripts/check-legacy-showcase.ts scripts/check-pexels-route.ts scripts/check-pexels-ui.ts scripts/check-policy.ts scripts/check-public-pages.ts scripts/check-redis-connection.ts scripts/check-redis-startup.ts scripts/check-resource-controls.ts scripts/check-stats-routes.ts scripts/check-usage-stats.ts; do bun "$check"; done
           for check in scripts/check-*.mjs; do node "$check"; done
       - name: Docker build and runtime smoke check
-        run: sh scripts/check-docker.sh
+        run: bash scripts/check-docker.sh
 
   build:
     name: Build
