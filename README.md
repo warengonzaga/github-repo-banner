@@ -6,7 +6,7 @@
 
 I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great repository banners.
 
-[Create a banner](https://ghrb.waren.build) · [Documentation](https://ghrb.waren.build/docs) · [Stats](https://ghrb.waren.build/stats) · [Public pages](docs/pages.md) · [Banner rendering](docs/rendering.md) · [API reference](docs/api.md) · [Self-hosting](docs/self-hosting.md) · [Brand guidelines](docs/brand.md) · [Agent skill](#-agent-skill) · [Terms](docs/terms.md) · [Privacy](docs/privacy.md)
+[Create a banner](https://ghrb.waren.build) · [Documentation](https://ghrb.waren.build/docs) · [Public pages](docs/pages.md) · [Banner rendering](docs/rendering.md) · [API reference](docs/api.md) · [Self-hosting](docs/self-hosting.md) · [Brand guidelines](docs/brand.md) · [Agent skill](#-agent-skill) · [Terms](docs/terms.md) · [Privacy](docs/privacy.md)
 
 ## 🚁 Deploy Your Own
 
@@ -23,7 +23,7 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - 📥 **Output** — Live preview, README Markdown, image URLs, SVG, and PNG downloads.
 - 💖 **Optional attribution** — Toggle the watermark and choose any corner.
 - 📚 **Accessible controls** — Keyboard-selectable photos and responsive Code of conduct and MIT license tabs.
-- 📖 **Project pages** — Documentation at `/docs` and public usage stats at `/stats`.
+- 📖 **Project pages** — Documentation at `/docs` and optional usage stats in the generator sidebar.
 - 🔒 **Simple usage stats** — Optional daily counts of successful banner renders; designs are not saved.
 - 🐳 **Self-hosting** — Docker Compose with required Redis for persistent search caching and quota control.
 - 🤖 **Agent skill** — Create banner URLs and README Markdown from compatible AI coding tools.
@@ -87,7 +87,7 @@ The UI enables attribution by default. Use the output controls or `support=true`
 
 ### Repository Documents
 
-The generator includes the repository README, Code of Conduct, and MIT license. Use the main navigation for [Documentation](https://ghrb.waren.build/docs) and [Stats](https://ghrb.waren.build/stats).
+The generator includes the repository README, Code of Conduct, and MIT license. Open the [Documentation](https://ghrb.waren.build/docs) page when you need the full guides. Usage stats appear in the generator sidebar when enabled.
 
 ## 🔌 API Reference
 

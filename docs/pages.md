@@ -12,12 +12,8 @@ The home page at `/` provides an interactive banner generator with live preview,
 
 The documentation page at `/docs` renders the bundled README, API reference, self-hosting guide, contribution guide, Terms, Privacy Policy, Code of Conduct, and license.
 
-## Stats
+## Usage stats
 
-The stats page at `/stats` shows the current UTC day’s successful banner render count when `ENABLE_STATS=true`. It explains when tracking is disabled or unavailable. There is no JSON stats endpoint.
+When `ENABLE_STATS=true`, the generator sidebar shows the current UTC day’s successful banner render count. The section is hidden when tracking is disabled. There is no JSON stats endpoint or separate stats page.
 
 When stats are enabled, a successful render increments one daily counter after it reaches the server. Add `stats=false` to a banner URL, or send `DNT: 1` or `Sec-GPC: 1`, to exclude that request. The generator shows the per-banner opt-out when its optional watermark is turned off.
-
-## Usage
-
-The legacy `/usage` path redirects to `/stats` for existing links. New links should use `/stats`.

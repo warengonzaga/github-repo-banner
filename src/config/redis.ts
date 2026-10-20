@@ -57,7 +57,7 @@ export function getRedis(): Redis | null {
   return redisClient;
 }
 
-/** /stats remains available as a page and explains when tracking is disabled. */
+/** Usage stats are shown in the generator sidebar. */
 export function isStatsEnabled(): boolean {
   return statsEnabled;
 }

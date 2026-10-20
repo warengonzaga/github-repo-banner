@@ -51,14 +51,15 @@ const html = await home.text();
 assert.match(html, /MIT License/);
 assert.match(html, /Our Pledge/);
 assert.equal((await get('/image-url.js')).status, 200);
-for (const path of ['/docs', '/stats', '/pages.css', '/inline-icons.js', '/image-settings.js', '/image-layers.js', '/image-layers.css']) {
+assert.equal((await get('/stats')).status, 404);
+assert.equal((await get('/usage')).status, 404);
+for (const path of ['/docs', '/pages.css', '/inline-icons.js', '/image-settings.js', '/image-layers.js', '/image-layers.css']) {
   assert.equal((await get(path)).status, 200, `${path} must work in the production image`);
 }
 const docs = await (await get('/docs')).text();
 assert.ok(docs.includes('id="api"') && docs.includes('id="self-hosting"'));
 assert.ok(docs.includes('REDIS_URL'));
-const stats = await (await get('/stats')).text();
-assert.ok(stats.includes('Usage tracking is disabled'));
+assert.ok(!html.includes('<h2>Usage stats</h2>'));
 const banner = await get('/render/banner?header=Docker');
 assert.equal(banner.status, 200);
 assert.match(await banner.text(), /<svg/);

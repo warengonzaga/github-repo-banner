@@ -6,7 +6,6 @@ import { Hono } from 'hono';
 import { getRedis, initRedis, isStatsEnabled } from './config/redis.js';
 import bannerRoute from './routes/banner.js';
 import pexelsRoute from './routes/pexels.js';
-import statsRoute from './routes/stats.js';
 import uiRoute from './routes/ui.js';
 
 const require = createRequire(import.meta.url);
@@ -37,7 +36,6 @@ app.get('/api/health', async (c) => {
       database: { available },
       stats: {
         enabled: isStatsEnabled(),
-        ...(isStatsEnabled() ? { page: '/stats' } : {}),
       },
     },
     available ? 200 : 503,
@@ -47,7 +45,6 @@ app.get('/api/health', async (c) => {
 app.route('/', uiRoute);
 app.route('/', bannerRoute);
 app.route('/', pexelsRoute);
-app.route('/', statsRoute);
 
 const port = parseInt(process.env.PORT || '3000', 10);
 
@@ -68,8 +65,6 @@ serve({ fetch: app.fetch, port }, (info) => {
   LogEngine.info('👤 Author: Waren Gonzaga');
   LogEngine.info('='.repeat(50));
   LogEngine.info(`🚀 Server: http://localhost:${info.port}`);
-  LogEngine.info(
-    `📊 Stats: ${isStatsEnabled() ? 'Enabled (/stats)' : 'Disabled'}`,
-  );
+  LogEngine.info(`📊 Stats: ${isStatsEnabled() ? 'Enabled' : 'Disabled'}`);
   LogEngine.info('='.repeat(50));
 });

@@ -50,17 +50,21 @@
       overflow: hidden;
     }
 
-    .article-title-container {
+    .article-brand-container {
       padding: 1.25rem 2rem 0.75rem 2rem;
     }
 
-    .article-title {
-      font-size: 2rem;
-      font-weight: 600;
-      color: #c9d1d9;
-      margin: 0;
-      padding-bottom: 0.35rem;
+    .article-brand {
+      display: flex;
+      width: 100%;
+      padding-bottom: 0.75rem;
       border-bottom: 1px solid #21262d;
+    }
+
+    .article-brand img {
+      display: block;
+      width: 240px;
+      height: auto;
     }
 
     .nav-tabs {
@@ -1400,7 +1404,6 @@
   </style>
 </head>
 <body>
-  <!-- site-navigation -->
   <div class="layout">
     <main class="main-content">
       <div class="readme-container">
@@ -1426,8 +1429,8 @@
       </div>
 
       <div class="content-container" id="readme-panel" role="tabpanel" aria-labelledby="readme-tab" tabindex="0">
-        <div class="article-title-container">
-          <h1 class="article-title">GitHub Repo Banner</h1>
+        <div class="article-brand-container">
+          <a class="article-brand" href="/" aria-label="GitHub Repo Banner home"><img src="/brand-logo.svg" alt="GitHub Repo Banner" width="240" height="79"></a>
         </div>
         
         <div class="preview">
@@ -1917,10 +1920,7 @@
         <p class="contribute-message">Any contributions are welcome and I appreciate any help! 🙏</p>
       </div>
 
-      <div class="sidebar-section">
-        <h2>Usage stats</h2>
-        <p style="font-size: 0.875rem; margin-top: 0.75rem;"><a class="generator-link" href="/stats">View today’s banner render count</a></p>
-      </div>
+      <!-- usage-stats-section -->
 
       <div class="sidebar-section">
         <h2>🔒 Privacy &amp; Terms</h2>

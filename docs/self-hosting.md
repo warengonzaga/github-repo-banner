@@ -34,7 +34,7 @@ The banner API and Pexels proxy require the running server. GitHub Pages alone c
 
 ## Environment Variables
 
-Every instance serves its own documentation at `/docs` and public stats page at `/stats`. Stats are disabled by default; set `ENABLE_STATS=true` to count successful banner renders. The public page shows the count or explains when tracking is disabled or unavailable.
+Every instance serves its own documentation at `/docs`. Stats are disabled by default; set `ENABLE_STATS=true` to count successful banner renders. The generator sidebar shows the count when tracking is enabled.
 
 ```env
 PORT=3000                         # Server port (host port with Compose)
@@ -50,7 +50,7 @@ See [`.env.example`](../.env.example). Disabling stats does not disable Redis ca
 
 **Breaking configuration change in 2.0.0:** every deployment now requires Redis, even with `ENABLE_STATS=false`. Existing deployments must provision Redis and set `REDIS_URL` before upgrading. Startup fails with a credential-free error if the URL is missing/invalid or Redis cannot be reached; the HTTP listener does not start.
 
-During an outage, `/api/health` returns 503 and Pexels search returns 503 without bypassing the request budget. The app reconnects automatically when Redis recovers. Plain banner rendering remains available directly from the running process, but a hosting platform may remove unhealthy instances from traffic. Statistics remain optional with the default self-hosted configuration; `/stats` reports the count or storage failures when tracking is enabled. Usage stats are best effort and do not block banner rendering during a storage outage.
+During an outage, `/api/health` returns 503 and Pexels search returns 503 without bypassing the request budget. The app reconnects automatically when Redis recovers. Plain banner rendering remains available directly from the running process, but a hosting platform may remove unhealthy instances from traffic. Statistics remain optional with the default self-hosted configuration; the generator sidebar reports the count or storage failures when tracking is enabled. Usage stats are best effort and do not block banner rendering during a storage outage.
 
 ## Railway Deployment
 

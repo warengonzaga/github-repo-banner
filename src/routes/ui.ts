@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
 import { marked } from 'marked';
 import { renderDocumentation } from '../ui/documentation.js';
-import { renderNavigation, renderPage } from '../ui/pages.js';
+import { renderPage } from '../ui/pages.js';
+import { getRedis, isStatsEnabled } from '../config/redis.js';
+import { getBannerRequestCount } from '../utils/usage-stats.js';
 import { escapeXml } from '../utils/sanitize.js';
 
 const uiRoute = new Hono();
@@ -82,18 +84,15 @@ uiRoute.get('/docs', (c) => {
   return c.html(cachedDocs);
 });
 
-uiRoute.get('/usage', (c) => c.redirect('/stats', 301));
-
 uiRoute.get('/image-url.js', (c) => {
   c.header('Content-Type', 'text/javascript; charset=utf-8');
   return c.body(readFileSync(findHtmlPath('image-url.js'), 'utf-8'));
 });
 
-uiRoute.get('/', (c) => {
+uiRoute.get('/', async (c) => {
   if (!cachedHtml || isDev) {
     const htmlPath = findHtmlPath();
     cachedHtml = readFileSync(htmlPath, 'utf-8')
-      .replace('<!-- site-navigation -->', () => renderNavigation('generator'))
       .replace(
         '<!-- sidebar-privacy -->',
         () =>
@@ -106,14 +105,35 @@ uiRoute.get('/', (c) => {
         marked.parse(readDocument('CODE_OF_CONDUCT.md'), { async: false }),
       );
   }
+  let usageStatsSection = '';
+  if (isStatsEnabled()) {
+    const redis = getRedis();
+    if (redis?.status === 'ready') {
+      try {
+        const count = await getBannerRequestCount(redis);
+        if (Number.isSafeInteger(count) && count >= 0) {
+          usageStatsSection = `<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Today: <strong>${count.toLocaleString()}</strong> banner renders</p></div>`;
+        } else {
+          usageStatsSection = '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
+        }
+      } catch {
+        usageStatsSection = '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
+      }
+    } else {
+      usageStatsSection = '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
+    }
+  }
+
   // Apply deployment capability after the cached template; never expose the key.
   return c.html(
-    cachedHtml.replace(
-      'id="pexels-section" hidden',
-      process.env.PEXELS_API_KEY
-        ? 'id="pexels-section"'
-        : 'id="pexels-section" hidden',
-    ),
+    cachedHtml
+      .replace('<!-- usage-stats-section -->', usageStatsSection)
+      .replace(
+        'id="pexels-section" hidden',
+        process.env.PEXELS_API_KEY
+          ? 'id="pexels-section"'
+          : 'id="pexels-section" hidden',
+      ),
   );
 });
 

@@ -7,7 +7,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { closeRedis, getRedis, initRedis, isStatsEnabled } from '../src/config/redis.js';
 import banner from '../src/routes/banner.js';
 import route from '../src/routes/pexels.js';
-import stats from '../src/routes/stats.js';
+import ui from '../src/routes/ui.js';
 import { usageKey } from '../src/utils/usage-stats.js';
 
 // A fresh process must serve a persisted result without touching upstream.
@@ -89,7 +89,7 @@ try {
   assert.equal((await banner.request('/banner?header=No%20tracking')).status, 200);
   await delay(30);
   assert.equal(await redis.exists(countKey), 0);
-  assert.match(await (await stats.request('/stats')).text(), /tracking is disabled/i);
+  assert.ok(!(await (await ui.request('/')).text()).includes('<h2>Usage stats</h2>'));
 
   // Only one of four concurrent misses may reserve the final hourly slot.
   await redis.del(quota);
@@ -138,8 +138,8 @@ try {
   assert.equal(await redis.exists(countKey), 0);
   await banner.request('/banner?header=Tracked', { headers: { Referer: 'https://github.com/fixture/repo' } });
   for (let i = 0; i < 50 && !(await redis.exists(countKey)); i++) await delay(10);
-  const observed = await (await stats.request('/stats')).text();
-  assert.match(observed, />1<\/p>/);
+  const observed = await (await ui.request('/')).text();
+  assert.match(observed, /Today: <strong>1<\/strong> banner renders/);
   delete process.env.PEXELS_API_KEY;
   assert.equal((await search('missing-key')).status, 503);
   console.log('PASS: real Redis cache/TTL/coalescing, restart persistence, atomic rolling quota, fail-closed storage, tracking off/on and opt-out');
