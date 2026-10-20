@@ -38,10 +38,9 @@ try {
   assert.equal(response.status, 503, 'Redis outages are reported without confirming removal');
   console.log('PASS: legacy showcase withdrawal verifies Redis token, origin, and availability');
 } finally {
-  if (redis.status !== 'ready') {
-    await initRedis();
-    redis = getRedis()!;
-  }
+  await closeRedis();
+  await initRedis();
+  redis = getRedis()!;
   await redis.hdel('showcase:v1:entries', id);
   await closeRedis();
 }
