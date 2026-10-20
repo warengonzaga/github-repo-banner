@@ -5,7 +5,6 @@ type Page = 'generator' | 'docs' | 'stats';
 export function renderNavigation(current: Page): string {
   const links = [
     ['generator', '/', 'Generator'],
-    ['docs', '/docs', 'Documentation'],
     ['stats', '/stats', 'Stats'],
   ];
   return `<header class="site-header">
