@@ -3,11 +3,11 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
 import { marked } from 'marked';
+import { getRedis, isStatsEnabled } from '../config/redis.js';
 import { renderDocumentation } from '../ui/documentation.js';
 import { renderPage } from '../ui/pages.js';
-import { getRedis, isStatsEnabled } from '../config/redis.js';
-import { getBannerRequestCount } from '../utils/usage-stats.js';
 import { escapeXml } from '../utils/sanitize.js';
+import { getBannerRequestCount } from '../utils/usage-stats.js';
 
 const uiRoute = new Hono();
 
@@ -79,7 +79,7 @@ for (const [path, source, type] of [
 
 uiRoute.get('/docs', (c) => {
   if (!cachedDocs || isDev) {
-    cachedDocs = renderPage('docs', renderDocumentation(readDocument));
+  cachedDocs = renderPage(renderDocumentation(readDocument));
   }
   return c.html(cachedDocs);
 });
@@ -114,13 +114,16 @@ uiRoute.get('/', async (c) => {
         if (Number.isSafeInteger(count) && count >= 0) {
           usageStatsSection = `<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Today: <strong>${count.toLocaleString()}</strong> banner renders</p></div>`;
         } else {
-          usageStatsSection = '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
+          usageStatsSection =
+            '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
         }
       } catch {
-        usageStatsSection = '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
+        usageStatsSection =
+          '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
       }
     } else {
-      usageStatsSection = '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
+      usageStatsSection =
+        '<div class="sidebar-section"><h2>Usage stats</h2><p style="font-size: 0.875rem; margin-top: 0.75rem;">Usage stats are temporarily unavailable.</p></div>';
     }
   }
 
