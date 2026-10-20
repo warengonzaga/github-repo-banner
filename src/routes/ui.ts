@@ -93,16 +93,19 @@ uiRoute.get('/usage', (c) => {
 <section class="doc-section" aria-labelledby="removal-heading">
   <h2 id="removal-heading">Remove a shared design</h2>
   <form id="showcase-remove">
-    <label for="showcase-removal-code">Removal link or code</label>
+    <label for="showcase-code">Removal link or code</label>
     <input id="showcase-code" type="password" autocomplete="off" required spellcheck="false">
     <button class="page-button" type="submit">Remove from showcase</button>
     <p id="showcase-removal-status" role="status" aria-live="polite"></p>
   </form>
+  <h3>Codes saved in this browser</h3>
+  <ul id="saved-showcase-codes"></ul>
 </section>
 <script type="module">
 const form = document.getElementById('showcase-remove');
 const code = document.getElementById('showcase-code');
 const status = document.getElementById('showcase-removal-status');
+const saved = document.getElementById('saved-showcase-codes');
 const pattern = /^\\d{13}-[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\\.[a-f0-9]{64}$/;
 const fragment = new URLSearchParams(location.hash.slice(1)).get('remove');
 if (fragment && pattern.test(fragment)) {
@@ -134,6 +137,22 @@ form.addEventListener('submit', async event => {
   } catch (error) { status.textContent = error instanceof Error ? error.message : 'Removal failed. Please try again.'; }
   finally { button.disabled = false; }
 });
+try {
+  const codes = JSON.parse(localStorage.getItem('showcase-removal-codes') || '{}');
+  if (codes && typeof codes === 'object' && !Array.isArray(codes)) {
+    for (const [id, token] of Object.entries(codes)) {
+      if (!pattern.test(id + '.' + token)) continue;
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'page-button';
+      button.textContent = 'Remove design shared ' + new Date(Number(id.slice(0, 13))).toLocaleDateString();
+      button.addEventListener('click', () => { code.value = id + '.' + token; form.requestSubmit(); });
+      item.append(button);
+      saved.append(item);
+    }
+  }
+} catch {}
 </script>`,
       'Remove a shared design',
     ),
