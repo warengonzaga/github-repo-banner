@@ -10,7 +10,7 @@ Usage stats are disabled by default. When `ENABLE_STATS=true`, the app counts su
 
 The count is an aggregate request total. It does not identify people or unique views, and may include previews, bots, and retries. Responses served from a browser or CDN cache do not reach the app and are not counted. A banner request can opt out with `stats=false`, `DNT: 1`, or `Sec-GPC: 1`. The generator shows the per-banner opt-out when its optional watermark is turned off.
 
-The app does not store copied or downloaded designs. Banner parameters are part of the requested URL and are processed to render the image. Avoid putting secrets or sensitive personal information in a banner URL.
+New copy and download actions run in the browser; the app does not save their designs. Records saved by the previous official showcase remain under their original retention policy. Previously shared showcase designs remain in Redis until withdrawn or removed by the operator. Use the old removal link or the [legacy removal page](/usage) to withdraw a design; codes saved in the same browser are listed there. No new showcase submissions are accepted. Banner parameters are part of the requested URL and are processed to render the image. Avoid putting secrets or sensitive personal information in a banner URL.
 
 ## External services and infrastructure
 

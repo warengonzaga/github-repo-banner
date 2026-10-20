@@ -5,6 +5,7 @@ import { LogEngine, LogMode } from '@wgtechlabs/log-engine';
 import { Hono } from 'hono';
 import { getRedis, initRedis, isStatsEnabled } from './config/redis.js';
 import bannerRoute from './routes/banner.js';
+import legacyShowcaseRoute from './routes/legacy-showcase.js';
 import pexelsRoute from './routes/pexels.js';
 import uiRoute from './routes/ui.js';
 
@@ -44,6 +45,7 @@ app.get('/api/health', async (c) => {
 
 app.route('/', uiRoute);
 app.route('/', bannerRoute);
+app.route('/', legacyShowcaseRoute);
 app.route('/', pexelsRoute);
 
 const port = parseInt(process.env.PORT || '3000', 10);

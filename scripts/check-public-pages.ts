@@ -13,9 +13,10 @@ for (const [path, title] of [['/docs', 'Documentation']]) {
   assert.ok(html.includes('href="/pages.css"'));
   assert.equal((html.match(/<h1[ >]/g) || []).length, 1);
 }
-assert.equal((await ui.request('/usage.js')).status, 404);
 assert.equal((await ui.request('/stats')).status, 404);
-assert.equal((await ui.request('/usage')).status, 404);
+const legacyRemoval = await ui.request('/usage#remove=old-code');
+assert.equal(legacyRemoval.status, 200);
+assert.match(await legacyRemoval.text(), /Remove from showcase/);
 const home = await (await ui.request('/')).text();
 assert.ok(home.includes('class="site-brand"'));
 assert.ok(!home.includes('<nav class="site-nav"'));

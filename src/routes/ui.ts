@@ -84,6 +84,62 @@ uiRoute.get('/docs', (c) => {
   return c.html(cachedDocs);
 });
 
+uiRoute.get('/usage', (c) => {
+  c.header('Cache-Control', 'no-store');
+  c.header('Referrer-Policy', 'no-referrer');
+  return c.html(
+    renderPage(
+      `<div class="page-heading"><h1>Withdraw a shared design</h1><p class="page-intro">Use your saved removal link or code to remove an older shared design. New designs are not submitted to a showcase.</p></div>
+<section class="doc-section" aria-labelledby="removal-heading">
+  <h2 id="removal-heading">Remove a shared design</h2>
+  <form id="showcase-remove">
+    <label for="showcase-removal-code">Removal link or code</label>
+    <input id="showcase-code" type="password" autocomplete="off" required spellcheck="false">
+    <button class="page-button" type="submit">Remove from showcase</button>
+    <p id="showcase-removal-status" role="status" aria-live="polite"></p>
+  </form>
+</section>
+<script type="module">
+const form = document.getElementById('showcase-remove');
+const code = document.getElementById('showcase-code');
+const status = document.getElementById('showcase-removal-status');
+const pattern = /^\\d{13}-[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\\.[a-f0-9]{64}$/;
+const fragment = new URLSearchParams(location.hash.slice(1)).get('remove');
+if (fragment && pattern.test(fragment)) {
+  code.value = fragment;
+  history.replaceState(null, '', location.pathname + location.search);
+}
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (form.querySelector('button').disabled) return;
+  let value = code.value.trim();
+  if (value.includes('#remove=')) value = value.split('#remove=')[1];
+  if (!pattern.test(value)) { status.textContent = 'Paste the complete removal link or code given when sharing.'; return; }
+  const [id, token] = value.split('.');
+  const button = form.querySelector('button');
+  button.disabled = true;
+  status.textContent = 'Removing this design…';
+  try {
+    const response = await fetch('/showcase/' + id, {method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({removalToken:token}), signal:AbortSignal.timeout(10_000)});
+    if (!response.ok) throw new Error((await response.json()).error);
+    status.textContent = 'Removed from the showcase. Existing copies held by others cannot be recalled.';
+    try {
+      const codes = JSON.parse(localStorage.getItem('showcase-removal-codes') || '{}');
+      if (codes && typeof codes === 'object' && !Array.isArray(codes)) {
+        delete codes[id];
+        localStorage.setItem('showcase-removal-codes', JSON.stringify(codes));
+      }
+    } catch {}
+    code.value = '';
+  } catch (error) { status.textContent = error instanceof Error ? error.message : 'Removal failed. Please try again.'; }
+  finally { button.disabled = false; }
+});
+</script>`,
+      'Remove a shared design',
+    ),
+  );
+});
+
 uiRoute.get('/image-url.js', (c) => {
   c.header('Content-Type', 'text/javascript; charset=utf-8');
   return c.body(readFileSync(findHtmlPath('image-url.js'), 'utf-8'));

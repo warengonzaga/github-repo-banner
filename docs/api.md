@@ -30,3 +30,7 @@ The image URLs above are illustrative. Request the next page while `hasMore` is 
 ## `GET /api/health`
 
 Readiness endpoint with `Cache-Control: no-store`. Returns HTTP 200 when Redis answers a ping, or HTTP 503 when Redis is unavailable. The response includes database availability and whether optional usage stats are enabled.
+
+## `DELETE /showcase/{id}` (legacy)
+
+Withdraw a design submitted to the former public showcase. Send the saved 64-character removal code as JSON: `{"removalToken":"…"}`. Requests must come from this instance and use `Content-Type: application/json`. New showcase submissions are not accepted. The legacy `/usage#remove=…` link and the [withdrawal page](/usage) remain available for existing designs.

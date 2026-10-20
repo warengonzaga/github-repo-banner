@@ -14,6 +14,6 @@ The documentation page at `/docs` renders the bundled README, API reference, sel
 
 ## Usage stats
 
-When `ENABLE_STATS=true`, the generator sidebar shows the current UTC day’s successful banner render count. The section is hidden when tracking is disabled. There is no JSON stats endpoint or separate stats page.
+When `ENABLE_STATS=true`, the generator sidebar shows the current UTC day’s successful banner render count. The section is hidden when tracking is disabled. There is no JSON stats endpoint or stats page. The old `/usage` URL remains as a withdrawal-only page for previously showcased designs; it does not display statistics or accept new submissions.
 
 When stats are enabled, a successful render increments one daily counter after it reaches the server. Add `stats=false` to a banner URL, or send `DNT: 1` or `Sec-GPC: 1`, to exclude that request. The generator shows the per-banner opt-out when its optional watermark is turned off.

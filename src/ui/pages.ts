@@ -6,8 +6,7 @@ export function renderNavigation(): string {
   </header>`;
 }
 
-export function renderPage(content: string): string {
-  const title = 'Documentation';
+export function renderPage(content: string, title = 'Documentation'): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
