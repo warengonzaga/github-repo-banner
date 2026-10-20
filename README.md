@@ -6,7 +6,7 @@
 
 I believe every repository deserves to look beautiful. Your code is art, your projects deserve stunning visuals to match. But design tools steal hours you don't have. So I built a service that generates gorgeous banners through simple URL parameters. Instant, customizable, and no design tools required. Because great projects deserve great repository banners.
 
-[Create a banner](https://ghrb.waren.build) · [Documentation](https://ghrb.waren.build/docs) · [Stats](https://ghrb.waren.build/stats) · [API reference](docs/api.md) · [Self-hosting](docs/self-hosting.md) · [Brand guidelines](docs/brand.md) · [Agent skill](#-agent-skill) · [Terms](docs/terms.md) · [Privacy](docs/privacy.md)
+[Create a banner](https://ghrb.waren.build) · [Documentation](https://ghrb.waren.build/docs) · [Public pages](docs/pages.md) · [Banner rendering](docs/rendering.md) · [API reference](docs/api.md) · [Self-hosting](docs/self-hosting.md) · [Brand guidelines](docs/brand.md) · [Agent skill](#-agent-skill) · [Terms](docs/terms.md) · [Privacy](docs/privacy.md)
 
 ## 🚁 Deploy Your Own
 
@@ -23,7 +23,7 @@ When you deploy your own copy, you're directly supporting this project! 💖
 - 📥 **Output** — Live preview, README Markdown, image URLs, SVG, and PNG downloads.
 - 💖 **Optional attribution** — Toggle the watermark and choose any corner.
 - 📚 **Accessible controls** — Keyboard-selectable photos and responsive Code of conduct and MIT license tabs.
-- 📖 **Project pages** — Documentation at `/docs` and public usage stats at `/stats`.
+- 📖 **Project pages** — Documentation at `/docs` and optional usage stats in the generator sidebar.
 - 🔒 **Simple usage stats** — Optional daily counts of successful banner renders; designs are not saved.
 - 🐳 **Self-hosting** — Docker Compose with required Redis for persistent search caching and quota control.
 - 🤖 **Agent skill** — Create banner URLs and README Markdown from compatible AI coding tools.
@@ -65,7 +65,7 @@ Use color, gradient, image, and styling parameters to control the banner backgro
 https://ghrb.waren.build/render/banner?header=My+Project&bgimg=https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg&bgblur=10&bgbrightness=60&bggrayscale=100&color=ffffff
 ```
 
-See [background effects and parameters](docs/api.md#background-effects).
+See [background effects and parameters](docs/rendering.md#background-effects).
 
 ### Custom Icons and Images
 
@@ -75,7 +75,7 @@ Add inline icons or freely positioned images from the generator:
 ![icon src="https://example.com/logo.png" w="100%"] My Project
 ```
 
-Use public HTTPS image URLs. See the [custom image API](docs/api.md#custom-icons-and-positioned-images) for limits, positioning, rotation, and validation rules.
+Use public HTTPS image URLs. See the [custom image settings](docs/rendering.md#custom-icons-and-positioned-images) for limits, positioning, rotation, and validation rules.
 
 ### Pexels Integration
 
@@ -83,15 +83,15 @@ Hosted and self-hosted instances can offer Pexels search when `PEXELS_API_KEY` i
 
 ### Watermark and Output
 
-The UI enables attribution by default. Use the output controls or `support=true` to control generated banner links; see the [API reference](docs/api.md).
+The UI enables attribution by default. Use the output controls or `support=true` to control generated banner links; see the [Banner Rendering guide](docs/rendering.md).
 
 ### Repository Documents
 
-The generator includes the repository README, Code of Conduct, and MIT license. Use the main navigation for [Documentation](https://ghrb.waren.build/docs) and [Stats](https://ghrb.waren.build/stats).
+The generator includes the repository README, Code of Conduct, and MIT license. Open the [Documentation](https://ghrb.waren.build/docs) page when you need the full guides. Usage stats appear in the generator sidebar when enabled.
 
 ## 🔌 API Reference
 
-See the [API reference](docs/api.md) for banner parameters and the `/render/banner`, `/api/health`, `/api/pexels/search`, and `/stats` routes. `/banner` remains a temporary alias for existing links.
+See the [public pages guide](docs/pages.md) for browser-facing routes and the [Banner Rendering guide](docs/rendering.md) for generated SVG URLs. The [API reference](docs/api.md) covers `/api/health` and `/api/pexels/search`.
 
 ## 🌟 Who Uses This
 

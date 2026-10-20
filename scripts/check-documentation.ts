@@ -19,7 +19,7 @@ function checkAnchors(markup: string) {
 }
 
 checkAnchors(html);
-for (const chapter of ['overview', 'api', 'self-hosting', 'contributing', 'code-of-conduct', 'license']) {
+for (const chapter of ['overview', 'pages', 'rendering', 'api', 'self-hosting', 'contributing', 'code-of-conduct', 'license']) {
   assert.match(html, new RegExp(`<h2[^>]*id="${chapter}"`));
 }
 for (const content of ['Background Effects', 'successful banner renders', 'ENABLE_STATS', 'Clean Commit']) {
@@ -28,7 +28,7 @@ for (const content of ['Background Effects', 'successful banner renders', 'ENABL
 assert.ok(html.includes(escapeXml(readDocument('LICENSE'))), 'The complete license remains intact');
 assert.match(html, /href="#overview--privacy--transparency"/);
 assert.match(html, /href="#contributing--commit-convention"/);
-assert.match(html, /href="#api-parameters"/);
+assert.match(html, /href="#rendering-parameters"/);
 assert.match(html, /href="#self-hosting-environment-variables"/);
 assert.match(html, /href="https:\/\/github.com\/warengonzaga\/github-repo-banner\/blob\/main\/\.env.example"/);
 assert.match(html, /href="https:\/\/github.com\/warengonzaga\/github-repo-banner\/tree\/main\/skills\/github-repo-banner"/);

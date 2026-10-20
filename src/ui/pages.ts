@@ -1,26 +1,13 @@
 import { escapeXml } from '../utils/sanitize.js';
 
-type Page = 'generator' | 'docs' | 'stats';
-
-export function renderNavigation(current: Page): string {
-  const links = [
-    ['generator', '/', 'Generator'],
-    ['docs', '/docs', 'Documentation'],
-    ['stats', '/stats', 'Stats'],
-  ];
+export function renderNavigation(): string {
   return `<header class="site-header">
     <a class="site-brand" href="/" aria-label="GitHub Repo Banner home"><img src="/brand-logo.svg" alt="GitHub Repo Banner" width="240" height="79"></a>
-    <nav class="site-nav" aria-label="Main navigation">${links
-      .map(
-        ([page, href, label]) =>
-          `<a href="${href}"${page === current ? ' aria-current="page"' : ''}>${label}</a>`,
-      )
-      .join('')}</nav>
   </header>`;
 }
 
-export function renderPage(page: 'docs' | 'stats', content: string): string {
-  const title = page === 'docs' ? 'Documentation' : 'Stats';
+export function renderPage(content: string): string {
+  const title = 'Documentation';
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,7 +24,7 @@ export function renderPage(page: 'docs' | 'stats', content: string): string {
 </head>
 <body class="project-page">
   <a class="skip-link" href="#main">Skip to content</a>
-  ${renderNavigation(page)}
+  ${renderNavigation()}
   <main id="main" class="page-main" tabindex="-1">${content}</main>
   <footer class="site-footer"><span>GitHub Repo Banner by <a href="https://github.com/warengonzaga">Waren Gonzaga</a></span><a href="https://github.com/warengonzaga/github-repo-banner">Source on GitHub</a><a href="/docs#privacy">Privacy</a><a href="/docs#terms">Terms</a><a href="/docs#license">MIT license</a></footer>
 </body>

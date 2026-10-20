@@ -43,6 +43,8 @@ export default defineConfig({
       'CODE_OF_CONDUCT.md',
       'LICENSE',
       'docs/api.md',
+      'docs/pages.md',
+      'docs/rendering.md',
       'docs/self-hosting.md',
       'docs/terms.md',
       'docs/privacy.md',

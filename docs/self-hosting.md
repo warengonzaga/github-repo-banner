@@ -1,6 +1,6 @@
 # Self-Hosting and Development
 
-[Back to README](../README.md) · [API reference](api.md)
+[Back to README](../README.md) · [Banner rendering](rendering.md) · [API reference](api.md) · [Public pages](pages.md)
 
 ## Docker Compose (Recommended)
 
@@ -34,7 +34,7 @@ The banner API and Pexels proxy require the running server. GitHub Pages alone c
 
 ## Environment Variables
 
-Every instance serves its own documentation at `/docs` and public stats page at `/stats`. Stats are disabled by default; set `ENABLE_STATS=true` to count successful banner renders. The public page shows the count or explains when tracking is disabled or unavailable.
+Every instance serves its own documentation at `/docs`. Stats are disabled by default; set `ENABLE_STATS=true` to count successful banner renders. The generator sidebar shows the count when tracking is enabled.
 
 ```env
 PORT=3000                         # Server port (host port with Compose)
@@ -50,7 +50,7 @@ See [`.env.example`](../.env.example). Disabling stats does not disable Redis ca
 
 **Breaking configuration change in 2.0.0:** every deployment now requires Redis, even with `ENABLE_STATS=false`. Existing deployments must provision Redis and set `REDIS_URL` before upgrading. Startup fails with a credential-free error if the URL is missing/invalid or Redis cannot be reached; the HTTP listener does not start.
 
-During an outage, `/api/health` returns 503 and Pexels search returns 503 without bypassing the request budget. The app reconnects automatically when Redis recovers. Plain banner rendering remains available directly from the running process, but a hosting platform may remove unhealthy instances from traffic. Statistics remain optional with the default self-hosted configuration; `/stats` reports the count or storage failures when tracking is enabled. Usage stats are best effort and do not block banner rendering during a storage outage.
+During an outage, `/api/health` returns 503 and Pexels search returns 503 without bypassing the request budget. The app reconnects automatically when Redis recovers. Plain banner rendering remains available directly from the running process, but a hosting platform may remove unhealthy instances from traffic. Statistics remain optional with the default self-hosted configuration; the generator sidebar reports the count or storage failures when tracking is enabled. Usage stats are best effort and do not block banner rendering during a storage outage.
 
 ## Railway Deployment
 
@@ -67,7 +67,7 @@ The existing hosted template may need its Redis service and variables added befo
 
 ## CI and Release Workflow
 
-[`.github/workflows/build-flow.yml`](../.github/workflows/build-flow.yml) uses Build Flow's pinned app workflow. Redis regression checks and the Docker/Compose smoke check run first, followed by native CI and CodeQL gates. CI uses Node 22 and the project's pinned Bun 1.3.9 for frozen dependency installation, static checks, type checking, and the production build. The final `Build` check requires both the integration job and Build Flow to succeed.
+[`.github/workflows/build-flow.yml`](../.github/workflows/build-flow.yml) uses Build Flow's pinned app workflow for CI, CodeQL, container publishing, and release ordering. CI uses Node 22 and the project's pinned Bun 1.3.9 for frozen dependency installation, static checks, type checking, and the production build. There is no custom Redis service or Docker smoke job in the workflow.
 
 Build Flow's native development publishing targets Linux AMD64 images on Docker Hub (`warengonzaga/github-repo-banner`) and GHCR (`ghcr.io/warengonzaga/github-repo-banner`):
 
@@ -108,22 +108,8 @@ Fonts, icons, emoji assets, and remote images can depend on external services; d
 
 Backgrounds, inline custom icons, and positioned images share a process-local 32 MiB accounted-string cache with a 60-second TTL and at most four active downloads/decodes. Up to sixteen additional loads wait for a slot; beyond that, new loads are rejected. Requests for the same URL and size limit share in-flight work. Background downloads are limited to 10 MiB; each custom icon or positioned image is limited to 1 MiB. Failed or saturated background downloads use the existing fallback; custom-image failures return an error. Sharp validates image bytes with raster-only buffer decoders before caching. The declared media type must match the decoded format. All animation frames count toward a 16,777,216-pixel limit, and decoding has a five-second processing deadline. The Docker image includes Sharp’s native runtime dependencies. These limits bound retained image data, not total process memory; decoding temporarily allocates additional memory.
 
-Each banner permits five custom images across positioned layers and both text fields. Custom URLs are limited to 512 units, and the `images` JSON parameter to 4,096 units before URL encoding. Only direct public HTTPS raster images are accepted; SVG, redirects, credentials, and private addresses are rejected. See [custom image settings](api.md#custom-icons-and-positioned-images) for geometry, formats, and inline syntax.
+Each banner permits five custom images across positioned layers and both text fields. Custom URLs are limited to 512 units, and the `images` JSON parameter to 4,096 units before URL encoding. Only direct public HTTPS raster images are accepted; SVG, redirects, credentials, and private addresses are rejected. See [custom image settings](rendering.md#custom-icons-and-positioned-images) for geometry, formats, and inline syntax.
 
 Pexels responses live in Redis for five minutes, limited to 64 KiB per response. Each process permits four concurrent upstream fetches and coalesces identical in-flight requests. A Redis script atomically enforces 100 upstream attempts per rolling hour per API key; failed upstream attempts count too. Queries are normalized and cache keys hash the query URL and API key. Quota entries hold timestamps and random request identifiers, with a one-hour expiry. Cache hits consume no quota; excess uncached requests receive HTTP 429. The budget survives app restarts and is shared only by instances using the same Redis database and API key. Other tools using that Pexels account remain outside this budget.
 
 Image caching remains in process memory; image binaries are not stored in Redis. Usage stats are separate from operational search caching and quota records.
-
-## Regression Checks
-
-Use an empty, disposable Redis instance for integration checks; never point them at production. `TEST_REDIS_URL` is required and does not fall back to `REDIS_URL`.
-
-```bash
-bun run build
-TEST_REDIS_URL=redis://127.0.0.1:6379 bun scripts/check-pexels-route.ts
-TEST_REDIS_URL=redis://127.0.0.1:6379 bun scripts/check-redis-connection.ts
-bun scripts/check-redis-startup.ts
-sh scripts/check-docker.sh
-```
-
-Pexels responses in these checks are fixtures; no live API key is needed. The Docker check creates and removes its own containers and volume, without reading local `.env` secrets.

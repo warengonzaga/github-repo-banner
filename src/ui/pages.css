@@ -3,10 +3,6 @@
 .site-header a { color: #c9d1d9; text-decoration: none; }
 .site-brand { display: inline-flex; align-items: center; padding: 0.5rem 0; }
 .site-brand img { display: block; width: 240px; height: auto; }
-.site-nav { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-.site-nav a { display: inline-flex; min-height: 44px; align-items: center; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.875rem; }
-.site-nav a:hover { background: #161b22; color: #fff; }
-.site-nav a[aria-current="page"] { background: #21262d; color: #f0f6fc; }
 .site-header a:focus-visible, .project-page :focus-visible { outline: 2px solid #58a6ff; outline-offset: 3px; }
 .privacy-help a { color: #a5d6ff; text-underline-offset: 0.2em; }
 .privacy-help a:focus-visible { outline: 2px solid #58a6ff; outline-offset: 3px; }
@@ -78,7 +74,6 @@
   .project-page { padding: 1rem; }
   .site-header { align-items: flex-start; gap: 0.25rem; margin-bottom: 1.5rem; }
   .site-brand { flex-basis: 100%; }
-  .site-nav a { padding: 0.65rem; }
   .page-heading { margin: 2rem 0; }
   .project-page h1 { font-size: 1.75rem; }
   .prose ul, .prose ol { padding-left: 1.25rem; }
