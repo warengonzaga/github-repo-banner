@@ -131,7 +131,7 @@ https://ghrb.waren.build/render/banner?header=![react]+![typescript]+Modern+Stac
 > Use `![slug]` syntax to embed any icon from [Simple Icons](https://simpleicons.org). Over 3000+ brand icons available! Icons automatically adapt to your text color.
 
 **Transparent/Opacity**
-  
+
 ```text
 https://ghrb.waren.build/render/banner?header=Transparent&bg=00000000&color=ffffff
 https://ghrb.waren.build/render/banner?header=Semi-Transparent&bg=ffffff80&color=000000

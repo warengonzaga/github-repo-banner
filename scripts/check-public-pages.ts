@@ -7,7 +7,8 @@ for (const [path, title] of [['/docs', 'Documentation']]) {
   assert.match(response.headers.get('Content-Type') || '', /text\/html/);
   const html = await response.text();
   assert.ok(html.includes(`<title>${title} · GitHub Repo Banner</title>`));
-  assert.ok(html.includes(`href="${path}" aria-current="page"`));
+  assert.ok(html.includes('class="site-brand"'));
+  assert.ok(!html.includes('<nav class="site-nav"'));
   assert.ok(html.includes('Skip to content'));
   assert.ok(html.includes('href="/pages.css"'));
   assert.equal((html.match(/<h1[ >]/g) || []).length, 1);
