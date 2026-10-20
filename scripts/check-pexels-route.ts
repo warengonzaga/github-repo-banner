@@ -16,8 +16,7 @@ if (process.argv.includes('--cache-reader')) {
   try {
     globalThis.fetch = async () => { throw new Error('Persisted cache missed'); };
     assert.equal((await route.request('/api/pexels/search?q=cache%20test&page=2')).status, 200);
-    const prefix = 'pexels:v1:' + process.env.PEXELS_API_KEY!;
-    assert.equal(await getRedis()!.zcard(`${prefix}:requests`), Number(process.env.EXPECTED_QUOTA));
+    assert.equal(await getRedis()!.zcard(process.env.EXPECTED_QUOTA_KEY!), Number(process.env.EXPECTED_QUOTA));
   } finally {
     await closeRedis();
   }
@@ -29,8 +28,6 @@ process.env.REDIS_URL = process.env.TEST_REDIS_URL;
 process.env.ENABLE_STATS = 'false';
 const apiKey = `fixture-${randomUUID()}`;
 process.env.PEXELS_API_KEY = apiKey;
-const prefix = `pexels:v1:${apiKey}`;
-const quota = `${prefix}:requests`;
 const originalFetch = globalThis.fetch;
 let calls = 0;
 let upstream: Record<string, unknown> = { photos: [], page: 1, total_results: 0 };
@@ -38,6 +35,7 @@ let requested = '';
 const search = (query: string) => route.request('/api/pexels/search?q=' + encodeURIComponent(query) + '&page=2');
 await initRedis();
 let redis = getRedis()!;
+const initialRedisKeys = new Set(await redis.keys('pexels:v1:*'));
 const countKey = usageKey();
 let ownsUsageKey = false;
 try {
@@ -68,9 +66,11 @@ try {
   assert.ok(responses.every((r) => r.status === 200));
   assert.equal((await search('cache test')).status, 200);
   assert.equal(calls, beforeCache + 1, 'normalized concurrent requests share one upstream call');
+  const quota = (await redis.keys('pexels:v1:*:requests')).find((key) => !initialRedisKeys.has(key));
+  assert.ok(quota, 'test request quota key must be created');
   const persistedCount = await redis.zcard(quota);
   const child = spawnSync(process.execPath, ['scripts/check-pexels-route.ts', '--cache-reader'], {
-    env: { ...process.env, EXPECTED_QUOTA: String(persistedCount) }, encoding: 'utf8', timeout: 10_000,
+    env: { ...process.env, EXPECTED_QUOTA: String(persistedCount), EXPECTED_QUOTA_KEY: quota }, encoding: 'utf8', timeout: 10_000,
   });
   assert.equal(child.status, 0, child.stderr || child.stdout);
   // Reconnect this process too: retained budget and cache remain authoritative.
@@ -80,7 +80,7 @@ try {
   assert.equal((await search('cache test')).status, 200);
   assert.equal(calls, beforeCache + 1);
   assert.equal(await redis.zcard(quota), persistedCount);
-  const cacheKeys = await redis.keys(`${prefix}:cache:*`);
+  const cacheKeys = (await redis.keys('pexels:v1:*:cache:*')).filter((key) => !initialRedisKeys.has(key));
   for (const key of cacheKeys) assert.ok((await redis.ttl(key)) > 0 && (await redis.ttl(key)) <= 300);
   await Promise.all(cacheKeys.map((key) => redis.pexpire(key, 1)));
   await delay(10);
@@ -146,7 +146,7 @@ try {
 } finally {
   globalThis.fetch = originalFetch;
   if (redis.status === 'ready') {
-    const keys = await redis.keys(`${prefix}:*`);
+    const keys = (await redis.keys('pexels:v1:*')).filter((key) => !initialRedisKeys.has(key));
     if (keys.length) await redis.del(...keys);
     if (ownsUsageKey) await redis.del(countKey);
   }
