@@ -26,7 +26,10 @@ try {
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { removed: true });
   assert.equal(await redis.hget('showcase:v1:entries', id), null, 'valid code deletes only its legacy entry');
-  response = await route.request('/showcase/not-an-id', { method: 'DELETE' });
+  response = await route.request('/showcase/not-an-id', {
+    method: 'DELETE',
+    headers: { origin: 'http://localhost', 'content-type': 'application/json' },
+  });
   assert.equal(response.status, 404);
   response = await request({ removalToken: 'bad' });
   assert.equal(response.status, 400);
