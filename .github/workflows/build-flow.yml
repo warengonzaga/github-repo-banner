@@ -19,7 +19,7 @@ jobs:
   build-flow:
     name: Build Flow
     needs: integration
-    uses: wgtechlabs/build-flow-action/.github/workflows/app.yml@f8263c388160a62f4a0e72ed888e56c8e9159469 # v1.0.0
+    uses: wgtechlabs/build-flow-action/.github/workflows/app.yml@ec85b4de62008c0e920ea210be20b5a6c32a4f3c # v1.0.1
     permissions:
       contents: write
       packages: write
